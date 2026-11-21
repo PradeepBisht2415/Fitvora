@@ -215,6 +215,14 @@ function MemberDetailContent() {
             <p className="text-xs text-gray-500 font-mono mt-0.5">ID: {profile.id}</p>
           </div>
         </div>
+
+        <div className="flex items-center gap-2">
+          <Link href={`/admin/diet-plans/new?userId=${profile.id}`}>
+            <Button className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 text-xs h-8">
+              Build 7-Day Diet Plan
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">

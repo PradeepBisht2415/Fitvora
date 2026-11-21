@@ -511,14 +511,14 @@ Legend:
 > **Prerequisites:** Phase 2 completed.  
 > **Phase Exit Criteria:** Founder builds and publishes a 7-day plan from Indian meal templates; member logs into `/dashboard` and views today's meals, portions, timing, and alternative swaps; unpublished drafts remain invisible to members.
 
-- [ ] **TASK-3.1: Meal Library & Diet Plan Database Schema** `[P0]`
+- [x] **TASK-3.1: Meal Library & Diet Plan Database Schema** `[P0]`
   - **Module:** Database Schema
   - **Dependencies:** `TASK-0.5`
   - **Target Files:**
     - `supabase/migrations/20261121000004_diet_plans_schema.sql`
   - **Description:** Create database tables for reusable Indian meal templates, weekly diet plans, scheduled meals, and immutable publication versioning.
   - **Atomic Subtasks:**
-    - [ ] Create `meal_templates` table:
+    - [x] Create `meal_templates` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `title`: text not null (e.g. 'Vegetable Poha with Peanuts', 'Dal Tadka, 2 Phulkas & Bhindi Sabzi').
       - `meal_type`: text not null check (`meal_type in ('breakfast', 'morning_snack', 'lunch', 'evening_snack', 'dinner', 'post_dinner')`).
@@ -532,7 +532,7 @@ Legend:
       - `approx_protein_g`: numeric(4,1),
       - `alternatives`: jsonb default '[]' (array of alternative suggestions),
       - `is_active`: boolean not null default true.
-    - [ ] Create `diet_plans` table:
+    - [x] Create `diet_plans` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `user_id`: uuid not null references `profiles(id)`.
       - `version`: integer not null default 1,
@@ -543,7 +543,7 @@ Legend:
       - `created_by`: uuid not null references `profiles(id)`,
       - `published_at`: timestamptz,
       - `created_at`: timestamptz not null default `now()`.
-    - [ ] Create `diet_plan_meals` table:
+    - [x] Create `diet_plan_meals` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `diet_plan_id`: uuid not null references `diet_plans(id)` on delete cascade,
       - `day_of_week`: integer not null check (`day_of_week between 0 and 6`), -- 0=Sunday, 1=Monday...
@@ -555,10 +555,10 @@ Legend:
       - `custom_notes`: text,
       - `custom_alternatives`: jsonb default '[]',
       - `order_index`: integer not null default 0.
-    - [ ] Apply RLS: Members can `SELECT` only `diet_plans` where `user_id = auth.uid()` and `status = 'published'`; members cannot see `draft` or `archived` plans; admins have full access.
+    - [x] Apply RLS: Members can `SELECT` only `diet_plans` where `user_id = auth.uid()` and `status = 'published'`; members cannot see `draft` or `archived` plans; admins have full access.
   - **Acceptance Criteria:** Migration runs cleanly; non-admin member querying draft diet plans receives 0 records via RLS.
 
-- [ ] **TASK-3.2: Reusable Indian Home-Food Meal Library Seeding & Admin CRUD** `[P0]`
+- [x] **TASK-3.2: Reusable Indian Home-Food Meal Library Seeding & Admin CRUD** `[P0]`
   - **Module:** Meal Library
   - **Dependencies:** `TASK-3.1`
   - **Target Files:**
@@ -569,16 +569,16 @@ Legend:
     - `app/api/admin/meal-templates/route.ts`
   - **Description:** Seed the library with diverse, culturally familiar Indian home-cooked meals across regions and provide an admin CRUD interface for the founder.
   - **Atomic Subtasks:**
-    - [ ] Seed standard Indian meal templates:
+    - [x] Seed standard Indian meal templates:
       - Breakfast: Vegetable Poha, Besan Chilla with Mint Chutney, Oats Upma, Idli Sambhar, Paneer Bhurji with Roti, Boiled Eggs with Toast.
       - Lunch: Dal Tadka with 2 Roti and Gobi Sabzi, Curd Rice with Tadka, Rajma Chawal with Kachumber Salad, Chicken Curry with Phulkas.
       - Evening Snacks: Roasted Chana, Sprouted Moong Chaat, Masala Buttermilk, Paneer Tikka cubes.
       - Dinner: Moong Dal Khichdi with Curd, Palak Paneer with Multigrain Roti, Lauki Sabzi with 2 Phulkas, Soya Chunk Pulao.
-    - [ ] Build `/admin/meal-library` list view with search, filter by meal type (Breakfast/Lunch/Dinner), and dietary category.
-    - [ ] Build Template Editor form with tag inputs for allergens and regional cuisine.
+    - [x] Build `/admin/meal-library` list view with search, filter by meal type (Breakfast/Lunch/Dinner), and dietary category.
+    - [x] Build Template Editor form with tag inputs for allergens and regional cuisine.
   - **Acceptance Criteria:** Meal library displays seeded templates; admin can create, update, or archive meal templates without errors.
 
-- [ ] **TASK-3.3: 7-Day Diet Plan Builder Engine & Allergen Safety Warning** `[P0]`
+- [x] **TASK-3.3: 7-Day Diet Plan Builder Engine & Allergen Safety Warning** `[P0]`
   - **Module:** Diet Plan Builder
   - **Dependencies:** `TASK-3.1`, `TASK-3.2`
   - **Target Files:**
@@ -590,14 +590,14 @@ Legend:
     - `features/diet-plans/plan-builder-store.ts`
   - **Description:** Build an intuitive 7-day visual plan builder for the founder to assemble custom plans from templates, customize portions, and validate allergen safety against member preferences.
   - **Atomic Subtasks:**
-    - [ ] Build 7-day tabbed view (Monday through Sunday) with meal slots (Breakfast, Snack, Lunch, Snack, Dinner).
-    - [ ] Implement Meal Template Picker modal allowing quick search and insertion into any meal slot.
-    - [ ] Allow inline editing of serving portions (e.g. change "1 bowl" to "1.5 bowls" for weight gain), scheduled times, and custom instructions.
-    - [ ] Implement Automated Allergen Warning Banner: cross-checks ingredients and tags in the plan against the member's disclosed allergies from their assessment. Display a prominent red warning if an allergen is detected.
-    - [ ] Support night-shift schedules by associating meal slots with local order indices rather than strictly locking to AM/PM daylight assumptions.
+    - [x] Build 7-day tabbed view (Monday through Sunday) with meal slots (Breakfast, Snack, Lunch, Snack, Dinner).
+    - [x] Implement Meal Template Picker modal allowing quick search and insertion into any meal slot.
+    - [x] Allow inline editing of serving portions (e.g. change "1 bowl" to "1.5 bowls" for weight gain), scheduled times, and custom instructions.
+    - [x] Implement Automated Allergen Warning Banner: cross-checks ingredients and tags in the plan against the member's disclosed allergies from their assessment. Display a prominent red warning if an allergen is detected.
+    - [x] Support night-shift schedules by associating meal slots with local order indices rather than strictly locking to AM/PM daylight assumptions.
   - **Acceptance Criteria:** Plan builder saves drafts to `diet_plans` and `diet_plan_meals`; allergen detection highlights any matched allergy tag immediately in the UI.
 
-- [ ] **TASK-3.4: Plan Publication, Version Snapshotting & State Transitions** `[P0]`
+- [x] **TASK-3.4: Plan Publication, Version Snapshotting & State Transitions** `[P0]`
   - **Module:** Diet Plan Engine
   - **Dependencies:** `TASK-3.3`
   - **Target Files:**
@@ -605,7 +605,7 @@ Legend:
     - `features/diet-plans/publish-plan-action.ts`
   - **Description:** Implement plan publication engine that verifies completeness, archives prior active plans, increments version counters, and publishes the immutable plan.
   - **Atomic Subtasks:**
-    - [ ] Create `POST /api/admin/diet-plans/[id]/publish`:
+    - [x] Create `POST /api/admin/diet-plans/[id]/publish`:
       - Validate that all 7 days have at least primary meals (Breakfast, Lunch, Dinner).
       - Check that member has an active subscription.
       - In a single database transaction:
@@ -613,10 +613,10 @@ Legend:
         - Set current plan status to `published`, record `published_at = now()`.
         - Increment plan version number.
       - Log action to `audit_logs`.
-    - [ ] Provide preview mode allowing founder to inspect the exact view the member will see before clicking "Publish Plan".
+    - [x] Provide preview mode allowing founder to inspect the exact view the member will see before clicking "Publish Plan".
   - **Acceptance Criteria:** Publishing creates an active plan; prior plans are safely archived; draft edits cannot corrupt currently published member plans.
 
-- [ ] **TASK-3.5: Member Daily Meal Dashboard (`/dashboard`)** `[P0]`
+- [x] **TASK-3.5: Member Daily Meal Dashboard (`/dashboard`)** `[P0]`
   - **Module:** Member Dashboard
   - **Dependencies:** `TASK-3.1`, `TASK-3.4`
   - **Target Files:**
@@ -627,16 +627,16 @@ Legend:
     - `components/dashboard/plan-pending-card.tsx`
   - **Description:** Build the primary member home dashboard displaying greeting, current goal, today's meal schedule with times, portion guidance, and alternative swaps.
   - **Atomic Subtasks:**
-    - [ ] Implement dashboard state logic:
+    - [x] Implement dashboard state logic:
       - If no published plan exists yet: show `<PlanPendingCard />` ("Your founder-customized meal plan is being prepared. Typical turnaround is within 24 hours of payment.").
       - If subscription is expired: show renew callout.
       - If plan is active: render today's meal list.
-    - [ ] Build `<MealCard />`: shows meal time (e.g. "8:30 AM"), meal type ("Breakfast"), food title, exact portion, preparation tip, and "View Alternative" button.
-    - [ ] Build `<AlternativeSwapModal />`: allows members to view approved home-food alternatives (e.g. swap Poha for Vegetable Upma with equal calories/portion) without altering base plan integrity.
-    - [ ] Highlight next upcoming meal based on member's current local device time.
+    - [x] Build `<MealCard />`: shows meal time (e.g. "8:30 AM"), meal type ("Breakfast"), food title, exact portion, preparation tip, and "View Alternative" button.
+    - [x] Build `<AlternativeSwapModal />`: allows members to view approved home-food alternatives (e.g. swap Poha for Vegetable Upma with equal calories/portion) without altering base plan integrity.
+    - [x] Highlight next upcoming meal based on member's current local device time.
   - **Acceptance Criteria:** Member sees today's meals organized chronologically; clicking alternative swaps reveals approved substitutions; zero broken layouts on mobile.
 
-- [ ] **TASK-3.6: Member Weekly Meal Schedule Route (`/dashboard/meal-plan`)** `[P0]`
+- [x] **TASK-3.6: Member Weekly Meal Schedule Route (`/dashboard/meal-plan`)** `[P0]`
   - **Module:** Member Dashboard
   - **Dependencies:** `TASK-3.5`
   - **Target Files:**
@@ -645,13 +645,13 @@ Legend:
     - `components/dashboard/grocery-overview.tsx`
   - **Description:** Provide a full 7-day interactive view of the published weekly plan with day tabs, detailed ingredient breakdowns, and print/PDF-friendly layout.
   - **Atomic Subtasks:**
-    - [ ] Build day navigation tabs (Monday to Sunday) with active state defaulting to the current day.
-    - [ ] Render all daily meals in structured order with ingredients and portion sizes.
-    - [ ] Add a clean "Print Plan" or "Save as PDF" styled view utilizing CSS print media queries (`@media print`).
-    - [ ] Provide simple consolidated grocery overview of key staple ingredients (e.g. paneer, eggs, vegetables, dals) required for the week.
+    - [x] Build day navigation tabs (Monday to Sunday) with active state defaulting to the current day.
+    - [x] Render all daily meals in structured order with ingredients and portion sizes.
+    - [x] Add a clean "Print Plan" or "Save as PDF" styled view utilizing CSS print media queries (`@media print`).
+    - [x] Provide simple consolidated grocery overview of key staple ingredients (e.g. paneer, eggs, vegetables, dals) required for the week.
   - **Acceptance Criteria:** Member can browse all 7 days of the week; print stylesheet cleanly formats the week's diet plan on standard A4 paper without navigation headers or footers.
 
-- [ ] **TASK-3.7: Member Profile & Dietary Preferences Management** `[P0]`
+- [x] **TASK-3.7: Member Profile & Dietary Preferences Management** `[P0]`
   - **Module:** Member Dashboard
   - **Dependencies:** `TASK-0.5`
   - **Target Files:**
@@ -660,10 +660,10 @@ Legend:
     - `components/dashboard/preferences-view.tsx`
   - **Description:** Allow members to manage profile details (name, phone, timezone), view submitted intake preferences, and review privacy settings.
   - **Atomic Subtasks:**
-    - [ ] Build profile editor for contact details and IANA timezone selection.
-    - [ ] Build read-only view of recorded food preferences, allergies, and goal baseline from assessment.
-    - [ ] Provide "Request Preference Update" CTA that routes to support messaging rather than letting users silently mutate allergies without founder review.
-    - [ ] Include explicit Privacy & Data Rights section with "Request Data Export" and "Request Account Deletion" action buttons.
+    - [x] Build profile editor for contact details and IANA timezone selection.
+    - [x] Build read-only view of recorded food preferences, allergies, and goal baseline from assessment.
+    - [x] Provide "Request Preference Update" CTA that routes to support messaging rather than letting users silently mutate allergies without founder review.
+    - [x] Include explicit Privacy & Data Rights section with "Request Data Export" and "Request Account Deletion" action buttons.
   - **Acceptance Criteria:** Updating profile saves to `profiles` table; allergy data remains protected and cannot be changed without review.
 
 ---
@@ -674,7 +674,7 @@ Legend:
 > **Prerequisites:** Phase 3 completed.  
 > **Phase Exit Criteria:** Member logs weight entries, views interactive trend chart; Normal member submits standard support ticket; Premium member submits ticket flagged as priority; Premium member submits weekly check-in form and receives founder feedback.
 
-- [ ] **TASK-4.1: Weight Tracking Database Schema & Server Actions** `[P0]`
+- [x] **TASK-4.1: Weight Tracking Database Schema & Server Actions** `[P0]`
   - **Module:** Progress Tracking
   - **Dependencies:** `TASK-0.5`
   - **Target Files:**
@@ -683,7 +683,7 @@ Legend:
     - `lib/validation/weight-schema.ts`
   - **Description:** Implement relational table for member weight entries with duplicate prevention, validation, and secure CRUD server actions.
   - **Atomic Subtasks:**
-    - [ ] Create `weight_entries` table:
+    - [x] Create `weight_entries` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `user_id`: uuid not null references `profiles(id)` on delete cascade.
       - `weight_kg`: numeric(5,2) not null check (`weight_kg between 30 and 300`).
@@ -691,14 +691,14 @@ Legend:
       - `notes`: text,
       - `created_at`: timestamptz not null default `now()`.
       - Unique constraint on `(user_id, recorded_at)` to prevent accidental duplicate entries on the same day.
-    - [ ] Configure RLS: Members can `SELECT`, `INSERT`, `UPDATE`, and `DELETE` only their own weight entries.
-    - [ ] Implement Server Actions in `weight-actions.ts` with Zod validation:
+    - [x] Configure RLS: Members can `SELECT`, `INSERT`, `UPDATE`, and `DELETE` only their own weight entries.
+    - [x] Implement Server Actions in `weight-actions.ts` with Zod validation:
       - `logWeightEntry(weightKg, date, notes)`
       - `deleteWeightEntry(id)`
       - `getWeightHistory(userId, days)`
   - **Acceptance Criteria:** Members cannot log invalid weights (<30kg or >300kg); duplicate entries on the same date prompt user to update instead of inserting.
 
-- [ ] **TASK-4.2: Interactive Weight Trend Visualization (`/dashboard/progress`)** `[P0]`
+- [x] **TASK-4.2: Interactive Weight Trend Visualization (`/dashboard/progress`)** `[P0]`
   - **Module:** Progress Frontend
   - **Dependencies:** `TASK-4.1`
   - **Target Files:**
@@ -708,16 +708,16 @@ Legend:
     - `components/progress/milestone-card.tsx`
   - **Description:** Build the member progress tracking page featuring interactive Recharts trend visualization, date range filters (7/30/90 days/All), baseline comparison, and compassionate milestone cards.
   - **Atomic Subtasks:**
-    - [ ] Install `recharts` and build responsive `<WeightChart data={...} />`:
+    - [x] Install `recharts` and build responsive `<WeightChart data={...} />`:
       - X-axis formatted with localized dates; Y-axis automatically zoomed around member range.
       - Smooth line/area chart using Fitvora Fresh Green (`#2FAF37`).
       - Reference line showing initial baseline weight.
-    - [ ] Add range selector tabs: `7 Days`, `30 Days`, `90 Days`, `All Time`.
-    - [ ] Build `<WeightLogModal />` for quick entry of today's weight with numeric keyboard on mobile.
-    - [ ] Display positive, shame-free milestone indicators ("You've logged consistently for 3 weeks", "Steady progress towards your balanced goal") avoiding extreme or punitive language.
+    - [x] Add range selector tabs: `7 Days`, `30 Days`, `90 Days`, `All Time`.
+    - [x] Build `<WeightLogModal />` for quick entry of today's weight with numeric keyboard on mobile.
+    - [x] Display positive, shame-free milestone indicators ("You've logged consistently for 3 weeks", "Steady progress towards your balanced goal") avoiding extreme or punitive language.
   - **Acceptance Criteria:** Chart renders accurately without layout shifting; empty state displayed if fewer than 2 entries exist; user can delete or correct incorrect entries.
 
-- [ ] **TASK-4.3: Private Progress Photo Storage & Consent** `[P1]`
+- [x] **TASK-4.3: Private Progress Photo Storage & Consent** `[P1]`
   - **Module:** Progress Photos
   - **Dependencies:** `TASK-4.1`
   - **Target Files:**
@@ -727,22 +727,22 @@ Legend:
     - `components/progress/photo-gallery.tsx`
   - **Description:** Implement optional, privacy-first progress photo storage in a private Supabase Storage bucket with signed short-lived URLs and explicit informed consent.
   - **Atomic Subtasks:**
-    - [ ] Create private Supabase Storage bucket `progress_photos` (public access disabled).
-    - [ ] Create `progress_photos` table (`id`, `user_id`, `storage_path`, `captured_at`, `consent_version`, `created_at`, `deleted_at`).
-    - [ ] Build photo uploader with mandatory consent checkbox ("I understand my photos are stored privately and accessible only to me and my founder reviewer for progress evaluation").
-    - [ ] Validate file type (JPEG/PNG/WebP only) and enforce 5MB maximum file size.
-    - [ ] Implement short-lived signed URL generation (max 15-minute validity) for rendering photos in the member dashboard.
-    - [ ] Implement immediate hard deletion from Supabase Storage when the member deletes a photo.
+    - [x] Create private Supabase Storage bucket `progress_photos` (public access disabled).
+    - [x] Create `progress_photos` table (`id`, `user_id`, `storage_path`, `captured_at`, `consent_version`, `created_at`, `deleted_at`).
+    - [x] Build photo uploader with mandatory consent checkbox ("I understand my photos are stored privately and accessible only to me and my founder reviewer for progress evaluation").
+    - [x] Validate file type (JPEG/PNG/WebP only) and enforce 5MB maximum file size.
+    - [x] Implement short-lived signed URL generation (max 15-minute validity) for rendering photos in the member dashboard.
+    - [x] Implement immediate hard deletion from Supabase Storage when the member deletes a photo.
   - **Acceptance Criteria:** Photo URLs expire after 15 minutes and cannot be accessed publicly; deleting a photo removes the underlying object from storage immediately.
 
-- [ ] **TASK-4.4: In-App Support Ticketing Database Schema & RLS** `[P0]`
+- [x] **TASK-4.4: In-App Support Ticketing Database Schema & RLS** `[P0]`
   - **Module:** Database Schema
   - **Dependencies:** `TASK-0.5`
   - **Target Files:**
     - `supabase/migrations/20261121000007_support_schema.sql`
   - **Description:** Implement database tables for authenticated member support threads and messages with tier-based priority tagging.
   - **Atomic Subtasks:**
-    - [ ] Create `support_threads` table:
+    - [x] Create `support_threads` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `user_id`: uuid not null references `profiles(id)`.
       - `subject`: text not null,
@@ -750,17 +750,17 @@ Legend:
       - `priority`: text not null default `'normal'` check (`priority in ('normal', 'premium')`),
       - `last_message_at`: timestamptz not null default `now()`,
       - `created_at`: timestamptz not null default `now()`.
-    - [ ] Create `support_messages` table:
+    - [x] Create `support_messages` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `thread_id`: uuid not null references `support_threads(id)` on delete cascade,
       - `sender_id`: uuid not null references `profiles(id)`,
       - `body`: text not null,
       - `read_at`: timestamptz,
       - `created_at`: timestamptz not null default `now()`.
-    - [ ] Configure RLS: Members can `SELECT` and `INSERT` messages only within threads where `user_id = auth.uid()`; admins can access all threads and messages.
+    - [x] Configure RLS: Members can `SELECT` and `INSERT` messages only within threads where `user_id = auth.uid()`; admins can access all threads and messages.
   - **Acceptance Criteria:** Migration runs cleanly; non-admin members cannot read or post to support threads belonging to other users.
 
-- [ ] **TASK-4.5: Member In-App Support Inbox UI (`/dashboard/support`)** `[P0]`
+- [x] **TASK-4.5: Member In-App Support Inbox UI (`/dashboard/support`)** `[P0]`
   - **Module:** Member Dashboard
   - **Dependencies:** `TASK-4.4`
   - **Target Files:**
@@ -770,14 +770,14 @@ Legend:
     - `components/support/new-ticket-modal.tsx`
   - **Description:** Build the member support inbox allowing members to start inquiries, view conversation threads, read founder replies, and view their tier badge.
   - **Atomic Subtasks:**
-    - [ ] Build support thread overview with status badges (`Open`, `Waiting for reply`, `Resolved`).
-    - [ ] Display member tier badge at the top of support UI: "Normal Plan Support" or "Premium Priority Support".
-    - [ ] Build conversation message stream displaying timestamp, sender avatar, and message bubbles.
-    - [ ] Build message composer with textarea, enter-to-send toggle, and character limit indicators.
-    - [ ] Include clear disclaimer: "For general diet and routine guidance. Not an emergency medical channel. Typical response within 24 hours."
+    - [x] Build support thread overview with status badges (`Open`, `Waiting for reply`, `Resolved`).
+    - [x] Display member tier badge at the top of support UI: "Normal Plan Support" or "Premium Priority Support".
+    - [x] Build conversation message stream displaying timestamp, sender avatar, and message bubbles.
+    - [x] Build message composer with textarea, enter-to-send toggle, and character limit indicators.
+    - [x] Include clear disclaimer: "For general diet and routine guidance. Not an emergency medical channel. Typical response within 24 hours."
   - **Acceptance Criteria:** Member can send messages and view founder replies; UI clearly communicates expected response expectations without promising impossible SLAs.
 
-- [ ] **TASK-4.6: Admin Support Triage & Priority Queue (`/admin/support`)** `[P0]`
+- [x] **TASK-4.6: Admin Support Triage & Priority Queue (`/admin/support`)** `[P0]`
   - **Module:** Admin Operations
   - **Dependencies:** `TASK-4.4`, `TASK-4.5`
   - **Target Files:**
@@ -787,13 +787,13 @@ Legend:
     - `components/admin/reply-box.tsx`
   - **Description:** Build administrative support desk for the founder that prioritizes Premium members, provides quick status updates, and organizes active tickets.
   - **Atomic Subtasks:**
-    - [ ] Build triage queue listing all open tickets, sorted automatically with Premium member tickets at the top with a distinct gold/green badge.
-    - [ ] Build quick status toggle: mark as `Resolved`, `Waiting for Member`, or `Closed`.
-    - [ ] Build reply editor with quick reusable guidance snippets (e.g., standard meal swap advice, portion tips).
-    - [ ] Send instant internal notification or badge update when a member posts a new message.
+    - [x] Build triage queue listing all open tickets, sorted automatically with Premium member tickets at the top with a distinct gold/green badge.
+    - [x] Build quick status toggle: mark as `Resolved`, `Waiting for Member`, or `Closed`.
+    - [x] Build reply editor with quick reusable guidance snippets (e.g., standard meal swap advice, portion tips).
+    - [x] Send instant internal notification or badge update when a member posts a new message.
   - **Acceptance Criteria:** Admin view prioritizes Premium tickets; sending admin reply marks ticket as `waiting_member` and updates timestamp.
 
-- [ ] **TASK-4.7: Premium Weekly Structured Check-In System** `[P1]`
+- [x] **TASK-4.7: Premium Weekly Structured Check-In System** `[P1]`
   - **Module:** Premium Features
   - **Dependencies:** `TASK-2.5`, `TASK-3.1`
   - **Target Files:**
@@ -804,17 +804,17 @@ Legend:
     - `components/check-ins/feedback-card.tsx`
   - **Description:** Build the dedicated weekly check-in flow exclusively for Premium (₹999) subscribers, capturing adherence, appetite, energy levels, challenges, and founder feedback.
   - **Atomic Subtasks:**
-    - [ ] Create `check_ins` table (`id`, `user_id`, `week_start_date`, `adherence_rating`, `energy_level`, `appetite_notes`, `challenges_text`, `admin_feedback`, `status`, `submitted_at`, `reviewed_at`).
-    - [ ] Route guard `/dashboard/check-ins`: if user is on `normal` tier, display an upgrade callout explaining the Premium check-in feature.
-    - [ ] Build weekly check-in form for Premium members with structured inputs:
+    - [x] Create `check_ins` table (`id`, `user_id`, `week_start_date`, `adherence_rating`, `energy_level`, `appetite_notes`, `challenges_text`, `admin_feedback`, `status`, `submitted_at`, `reviewed_at`).
+    - [x] Route guard `/dashboard/check-ins`: if user is on `normal` tier, display an upgrade callout explaining the Premium check-in feature.
+    - [x] Build weekly check-in form for Premium members with structured inputs:
       - Meal Adherence: rating scale 1–5.
       - Energy & Sleep: rating scale 1–5.
       - Challenges faced this week: textarea.
       - Optional updated weight.
-    - [ ] Build founder check-in review dashboard in `/admin/check-ins` allowing the founder to write personalized feedback and plan adjustments.
+    - [x] Build founder check-in review dashboard in `/admin/check-ins` allowing the founder to write personalized feedback and plan adjustments.
   - **Acceptance Criteria:** Normal members cannot access check-in submission; Premium members can submit once per week; admin feedback appears in member check-in history.
 
-- [ ] **TASK-4.8: Subscription Tier Upgrade & Downgrade Workflow** `[P0]`
+- [x] **TASK-4.8: Subscription Tier Upgrade & Downgrade Workflow** `[P0]`
   - **Module:** Billing & Entitlements
   - **Dependencies:** `TASK-2.5`, `TASK-4.7`
   - **Target Files:**
@@ -822,10 +822,10 @@ Legend:
     - `components/billing/upgrade-modal.tsx`
   - **Description:** Allow Normal subscribers to upgrade to Premium (₹999) unlocking priority support and weekly check-ins without disrupting their active diet plan.
   - **Atomic Subtasks:**
-    - [ ] Implement upgrade logic: call Razorpay subscription update API to transition plan to `premium`.
-    - [ ] On confirmed upgrade webhook: update `subscriptions.plan_id = 'premium'` immediately; unlock priority support and weekly check-in tab.
-    - [ ] Crucial invariant check: the existing personalized diet plan remains 100% intact with zero changes upon upgrading.
-    - [ ] Handle downgrade requests: schedule tier change at the end of the current billing cycle.
+    - [x] Implement upgrade logic: call Razorpay subscription update API to transition plan to `premium`.
+    - [x] On confirmed upgrade webhook: update `subscriptions.plan_id = 'premium'` immediately; unlock priority support and weekly check-in tab.
+    - [x] Crucial invariant check: the existing personalized diet plan remains 100% intact with zero changes upon upgrading.
+    - [x] Handle downgrade requests: schedule tier change at the end of the current billing cycle.
   - **Acceptance Criteria:** Upgrading unlocks Premium features without altering or resetting the member's current published diet plan.
 
 ---

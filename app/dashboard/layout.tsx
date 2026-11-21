@@ -11,6 +11,9 @@ import {
   LogOut,
   Sparkles,
   ClipboardCheck,
+  User,
+  TrendingUp,
+  MessageSquare,
 } from 'lucide-react';
 
 function DashboardLayoutContent({
@@ -30,9 +33,12 @@ function DashboardLayoutContent({
 
   const navLinks = [
     { label: 'Overview', href: '/dashboard', icon: Sparkles },
-    { label: 'Diet Plan', href: '/dashboard/meals', icon: UtensilsCrossed },
+    { label: '7-Day Plan', href: '/dashboard/meal-plan', icon: UtensilsCrossed },
+    { label: 'Progress', href: '/dashboard/progress', icon: TrendingUp },
     { label: 'Check-ins', href: '/dashboard/check-in', icon: ClipboardCheck },
+    { label: 'Support', href: '/dashboard/support', icon: MessageSquare },
     { label: 'Subscription', href: '/dashboard/subscription', icon: CreditCard },
+    { label: 'Profile', href: '/dashboard/profile', icon: User },
   ];
 
   return (

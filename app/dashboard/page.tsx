@@ -3,11 +3,18 @@ import Link from 'next/link';
 import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import { EmptyState } from '@/components/ui/empty-state';
-import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { BrandCharacter } from '@/components/ui/brand-character';
-import { CreditCard, UtensilsCrossed, ArrowRight, ShieldCheck, HeartHandshake, Loader2 } from 'lucide-react';
+import { GreetingBanner } from '@/components/dashboard/greeting-banner';
+import { PlanPendingCard } from '@/components/dashboard/plan-pending-card';
+import { MealCard } from '@/components/dashboard/meal-card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import {
+  CreditCard,
+  Calendar,
+  Sparkles,
+  Loader2,
+} from 'lucide-react';
+import type { DietPlanMeal } from '@/types/database.types';
 
 async function DashboardContent() {
   const supabase = await createClient();
@@ -15,111 +22,170 @@ async function DashboardContent() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const adminSupabase = createAdminClient();
-
-  let subscription = null;
-  let profile = null;
-
-  if (user) {
-    const { data: p } = await adminSupabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    profile = p;
-
-    const { data: s } = await adminSupabase
-      .from('subscriptions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    subscription = s;
+  if (!user) {
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title="Sign In Required"
+        description="Please sign in to view your daily meal schedule."
+        action={{ label: 'Sign In', href: '/login' }}
+      />
+    );
   }
 
+  const adminSupabase = createAdminClient();
+
+  // 1. Fetch member profile
+  const { data: profile } = await adminSupabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single();
+
+  // 2. Fetch active subscription
+  const { data: subscription } = await adminSupabase
+    .from('subscriptions')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const isSubscribed = subscription && subscription.status === 'active';
+  const isPremium = subscription?.plan_id === 'premium';
+  const tierName = isPremium ? 'Premium' : 'Normal';
+
+  if (!isSubscribed) {
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title="No Active Membership Plan"
+        description="Select a monthly plan to unlock your customized 7-day Indian meal schedule, exact portions, and founder guidance."
+        action={{
+          label: 'Choose a Plan (From ₹499/mo)',
+          href: '/checkout',
+        }}
+      />
+    );
+  }
+
+  // 3. Fetch member's published diet plan
+  const { data: publishedPlan } = await adminSupabase
+    .from('diet_plans')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('status', 'published')
+    .order('version', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (!publishedPlan) {
+    return (
+      <div className="space-y-6">
+        <PlanPendingCard isPremium={isPremium} />
+      </div>
+    );
+  }
+
+  // 4. Fetch meals for this published plan
+  const { data: allMeals } = await adminSupabase
+    .from('diet_plan_meals')
+    .select('*')
+    .eq('diet_plan_id', publishedPlan.id)
+    .order('order_index', { ascending: true });
+
+  const currentDayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const todayName = dayNames[currentDayOfWeek] || 'Today';
+
+  const todayMeals = (allMeals as DietPlanMeal[] || []).filter(
+    (m) => m.day_of_week === currentDayOfWeek
+  );
+
+  // Determine current/next meal by time
+  const currentHourMinute = new Date().toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const nextMeal = todayMeals.find((m) => m.scheduled_time >= currentHourMinute) || todayMeals[0];
+
+  // Fetch assessment goal
+  const { data: assessment } = await adminSupabase
+    .from('assessments')
+    .select('target_direction')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  const goalText =
+    assessment?.target_direction === 'gain_weight'
+      ? 'Healthy Weight Gain & Muscle Nourishment'
+      : assessment?.target_direction === 'maintain_health'
+      ? 'Weight Maintenance & Clean Eating'
+      : 'Sustainable Weight Loss with Home Meals';
+
   const firstName = profile?.first_name || 'Member';
-  const hasActiveSub = subscription && subscription.status === 'active';
 
   return (
     <div className="space-y-6">
-      {/* Welcome Banner */}
-      <div className="rounded-2xl border border-emerald-100 bg-gradient-to-r from-emerald-50/90 to-white p-6 sm:p-8 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-6">
-        <div className="space-y-2 text-center sm:text-left">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#1A2E1C]">
-              Namaste, {firstName}!
-            </h1>
-            {subscription && <StatusBadge status={subscription.status} />}
-          </div>
-          <p className="text-sm text-[#1A2E1C]/75 max-w-lg">
-            Welcome to your Fitvora wellness portal. We personalize your meals using familiar Indian ghar ka khana.
+      {/* Greeting Banner */}
+      <GreetingBanner
+        name={firstName}
+        goal={goalText}
+        tier={tierName}
+        planVersion={publishedPlan.version}
+      />
+
+      {/* Today's Schedule Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-3">
+        <div>
+          <h2 className="text-xl font-bold text-[#1A2E1C]">
+            Today&apos;s Meals — {todayName}
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Follow exact household portions (katori, roti). Swaps available for every meal.
           </p>
         </div>
 
-        <div className="shrink-0">
-          <BrandCharacter variant="celebration" className="w-24 h-24 rounded-2xl" priority />
-        </div>
+        <Link href="/dashboard/meal-plan">
+          <Button variant="outline" size="sm" className="border-emerald-200 text-[#075B2B] hover:bg-emerald-50 text-xs">
+            <Calendar className="mr-1.5 h-3.5 w-3.5" />
+            View Full 7-Day Plan
+          </Button>
+        </Link>
       </div>
 
-      {!hasActiveSub ? (
-        <EmptyState
-          icon={CreditCard}
-          title="No Active Membership Plan"
-          description="You currently do not have an active monthly subscription. Select your plan to unlock your customized 7-day Indian meal schedule and founder guidance."
-          action={{
-            label: 'Choose a Plan (From ₹499/mo)',
-            href: '/checkout',
-          }}
-        />
+      {/* Today's Meals List */}
+      {todayMeals.length === 0 ? (
+        <Card className="bg-white border-dashed border-gray-200 p-8 text-center text-xs text-gray-500">
+          <p>No meals scheduled for {todayName}. Check your weekly schedule.</p>
+        </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="border-emerald-100 bg-white shadow-xs">
-            <CardHeader>
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#075B2B]">
-                <UtensilsCrossed className="h-4 w-4" />
-                <span>Personalized Meal Schedule</span>
-              </div>
-              <CardTitle className="text-lg text-[#1A2E1C]">7-Day Indian Home-Food Plan</CardTitle>
-              <CardDescription>
-                Tailored to your routine, food preferences, and portion measurements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-xs text-[#1A2E1C]/80 leading-relaxed">
-                Your diet plan is prepared with familiar ingredients like dal, roti, sabzi, curd, and poha with exact household measures.
-              </p>
-              <Link href="/dashboard/subscription">
-                <Button className="w-full bg-[#075B2B] text-white hover:bg-[#075B2B]/90 text-xs">
-                  Manage Plan & Billing <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="border-emerald-100 bg-white shadow-xs">
-            <CardHeader>
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#075B2B]">
-                <ShieldCheck className="h-4 w-4" />
-                <span>Guidance Standards</span>
-              </div>
-              <CardTitle className="text-lg text-[#1A2E1C]">Sustainable Wellness</CardTitle>
-              <CardDescription>
-                Safe habits without crash diets or synthetic supplements
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3 text-xs text-[#1A2E1C]/80">
-              <div className="flex items-start gap-2">
-                <HeartHandshake className="h-4 w-4 text-[#2FAF37] shrink-0 mt-0.5" />
-                <span>Identical planning quality on both Normal & Premium tiers.</span>
-              </div>
-              <div className="flex items-start gap-2">
-                <HeartHandshake className="h-4 w-4 text-[#2FAF37] shrink-0 mt-0.5" />
-                <span>Self-service 1-click subscription management anytime.</span>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {todayMeals.map((meal) => (
+            <MealCard
+              key={meal.id}
+              meal={meal}
+              isNext={nextMeal?.id === meal.id}
+            />
+          ))}
         </div>
+      )}
+
+      {/* Founder Guidance Notes */}
+      {publishedPlan.guidance_notes && (
+        <Card className="bg-white border-emerald-100 shadow-xs">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold text-[#075B2B] flex items-center gap-1.5 uppercase tracking-wider">
+              <Sparkles className="h-4 w-4 text-[#2FAF37]" />
+              Founder Guidance & Hydration Reminders
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-[#1A2E1C]/80 leading-relaxed">
+            {publishedPlan.guidance_notes}
+          </CardContent>
+        </Card>
       )}
     </div>
   );

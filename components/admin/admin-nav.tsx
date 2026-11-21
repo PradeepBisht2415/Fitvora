@@ -3,15 +3,26 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ClipboardList, Users, CreditCard, ArrowLeft } from 'lucide-react';
+import {
+  ClipboardList,
+  Users,
+  CreditCard,
+  ArrowLeft,
+  UtensilsCrossed,
+  MessageSquare,
+  ClipboardCheck,
+} from 'lucide-react';
 
 function AdminNavContent() {
   const pathname = usePathname();
 
   const links = [
     { label: 'Intake Triage', href: '/admin/assessments', icon: ClipboardList },
-    { label: 'Members Directory', href: '/admin/members', icon: Users },
-    { label: 'Subscriptions & MRR', href: '/admin/subscriptions', icon: CreditCard },
+    { label: 'Members', href: '/admin/members', icon: Users },
+    { label: 'Meal Library', href: '/admin/meal-library', icon: UtensilsCrossed },
+    { label: 'Check-Ins', href: '/admin/check-ins', icon: ClipboardCheck },
+    { label: 'Support', href: '/admin/support', icon: MessageSquare },
+    { label: 'Subscriptions', href: '/admin/subscriptions', icon: CreditCard },
   ];
 
   return (

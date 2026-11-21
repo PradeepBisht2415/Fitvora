@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { CancelDialog } from './cancel-dialog';
+import { UpgradeModal } from './upgrade-modal';
 import type { Subscription } from '@/types/database.types';
 import { Calendar, CreditCard, Sparkles, Check, AlertCircle } from 'lucide-react';
 
@@ -145,11 +146,14 @@ export function SubscriptionDetailsCard({ subscription, onRefresh }: Subscriptio
 
           <div className="flex items-center gap-3">
             {!isPremium && isActive && (
-              <Link href="/checkout?plan=premium">
-                <Button variant="outline" size="sm" className="border-emerald-300 text-[#075B2B] hover:bg-emerald-50">
-                  Upgrade to Premium (₹999)
-                </Button>
-              </Link>
+              <UpgradeModal
+                onSuccess={() => onRefresh?.()}
+                triggerButton={
+                  <Button variant="outline" size="sm" className="border-emerald-300 text-[#075B2B] hover:bg-emerald-50">
+                    Upgrade to Premium (₹999)
+                  </Button>
+                }
+              />
             )}
 
             {isActive && (

@@ -361,6 +361,309 @@ export interface Database {
         };
         Relationships: [];
       };
+      meal_templates: {
+        Row: {
+          id: string;
+          title: string;
+          meal_type: 'breakfast' | 'morning_snack' | 'lunch' | 'evening_snack' | 'dinner' | 'post_dinner';
+          diet_category: 'vegetarian' | 'eggetarian' | 'non_vegetarian';
+          ingredients: Json;
+          default_portion: string;
+          preparation_notes: string | null;
+          regional_tags: string[];
+          allergen_tags: string[];
+          approx_calories: number | null;
+          approx_protein_g: number | null;
+          alternatives: Json;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          meal_type: 'breakfast' | 'morning_snack' | 'lunch' | 'evening_snack' | 'dinner' | 'post_dinner';
+          diet_category: 'vegetarian' | 'eggetarian' | 'non_vegetarian';
+          ingredients?: Json;
+          default_portion: string;
+          preparation_notes?: string | null;
+          regional_tags?: string[];
+          allergen_tags?: string[];
+          approx_calories?: number | null;
+          approx_protein_g?: number | null;
+          alternatives?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          meal_type?: 'breakfast' | 'morning_snack' | 'lunch' | 'evening_snack' | 'dinner' | 'post_dinner';
+          diet_category?: 'vegetarian' | 'eggetarian' | 'non_vegetarian';
+          ingredients?: Json;
+          default_portion?: string;
+          preparation_notes?: string | null;
+          regional_tags?: string[];
+          allergen_tags?: string[];
+          approx_calories?: number | null;
+          approx_protein_g?: number | null;
+          alternatives?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      diet_plans: {
+        Row: {
+          id: string;
+          user_id: string;
+          version: number;
+          status: 'draft' | 'published' | 'archived';
+          effective_start_date: string;
+          effective_end_date: string | null;
+          guidance_notes: string | null;
+          created_by: string;
+          published_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          version?: number;
+          status?: 'draft' | 'published' | 'archived';
+          effective_start_date: string;
+          effective_end_date?: string | null;
+          guidance_notes?: string | null;
+          created_by: string;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          version?: number;
+          status?: 'draft' | 'published' | 'archived';
+          effective_start_date?: string;
+          effective_end_date?: string | null;
+          guidance_notes?: string | null;
+          created_by?: string;
+          published_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      diet_plan_meals: {
+        Row: {
+          id: string;
+          diet_plan_id: string;
+          day_of_week: number;
+          meal_type: string;
+          scheduled_time: string;
+          meal_template_id: string | null;
+          custom_title: string | null;
+          custom_portion: string;
+          custom_notes: string | null;
+          custom_alternatives: Json;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          diet_plan_id: string;
+          day_of_week: number;
+          meal_type: string;
+          scheduled_time: string;
+          meal_template_id?: string | null;
+          custom_title?: string | null;
+          custom_portion: string;
+          custom_notes?: string | null;
+          custom_alternatives?: Json;
+          order_index?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          diet_plan_id?: string;
+          day_of_week?: number;
+          meal_type?: string;
+          scheduled_time?: string;
+          meal_template_id?: string | null;
+          custom_title?: string | null;
+          custom_portion?: string;
+          custom_notes?: string | null;
+          custom_alternatives?: Json;
+          order_index?: number;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      weight_entries: {
+        Row: {
+          id: string;
+          user_id: string;
+          weight_kg: number;
+          recorded_at: string;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          weight_kg: number;
+          recorded_at?: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          weight_kg?: number;
+          recorded_at?: string;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      progress_photos: {
+        Row: {
+          id: string;
+          user_id: string;
+          storage_path: string;
+          captured_at: string;
+          consent_version: string;
+          notes: string | null;
+          created_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          storage_path: string;
+          captured_at?: string;
+          consent_version?: string;
+          notes?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          storage_path?: string;
+          captured_at?: string;
+          consent_version?: string;
+          notes?: string | null;
+          created_at?: string;
+          deleted_at?: string | null;
+        };
+        Relationships: [];
+      };
+      support_threads: {
+        Row: {
+          id: string;
+          user_id: string;
+          subject: string;
+          status: 'open' | 'waiting_member' | 'resolved' | 'closed';
+          priority: 'normal' | 'premium';
+          last_message_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          subject: string;
+          status?: 'open' | 'waiting_member' | 'resolved' | 'closed';
+          priority?: 'normal' | 'premium';
+          last_message_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          subject?: string;
+          status?: 'open' | 'waiting_member' | 'resolved' | 'closed';
+          priority?: 'normal' | 'premium';
+          last_message_at?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      support_messages: {
+        Row: {
+          id: string;
+          thread_id: string;
+          sender_id: string;
+          body: string;
+          read_at: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          thread_id: string;
+          sender_id: string;
+          body: string;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          thread_id?: string;
+          sender_id?: string;
+          body?: string;
+          read_at?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      check_ins: {
+        Row: {
+          id: string;
+          user_id: string;
+          week_start_date: string;
+          adherence_rating: number;
+          energy_level: number;
+          appetite_notes: string | null;
+          challenges_text: string | null;
+          current_weight_kg: number | null;
+          admin_feedback: string | null;
+          status: 'submitted' | 'reviewed';
+          submitted_at: string;
+          reviewed_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          week_start_date: string;
+          adherence_rating: number;
+          energy_level: number;
+          appetite_notes?: string | null;
+          challenges_text?: string | null;
+          current_weight_kg?: number | null;
+          admin_feedback?: string | null;
+          status?: 'submitted' | 'reviewed';
+          submitted_at?: string;
+          reviewed_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          week_start_date?: string;
+          adherence_rating?: number;
+          energy_level?: number;
+          appetite_notes?: string | null;
+          challenges_text?: string | null;
+          current_weight_kg?: number | null;
+          admin_feedback?: string | null;
+          status?: 'submitted' | 'reviewed';
+          submitted_at?: string;
+          reviewed_at?: string | null;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -415,3 +718,28 @@ export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
 export type SubscriptionInsert = Database['public']['Tables']['subscriptions']['Insert'];
 export type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update'];
 export type PaymentEvent = Database['public']['Tables']['payment_events']['Row'];
+
+export type MealTemplate = Database['public']['Tables']['meal_templates']['Row'];
+export type MealTemplateInsert = Database['public']['Tables']['meal_templates']['Insert'];
+export type DietPlan = Database['public']['Tables']['diet_plans']['Row'];
+export type DietPlanInsert = Database['public']['Tables']['diet_plans']['Insert'];
+export type DietPlanMeal = Database['public']['Tables']['diet_plan_meals']['Row'];
+export type DietPlanMealInsert = Database['public']['Tables']['diet_plan_meals']['Insert'];
+
+export type WeightEntry = Database['public']['Tables']['weight_entries']['Row'];
+export type WeightEntryInsert = Database['public']['Tables']['weight_entries']['Insert'];
+export type WeightEntryUpdate = Database['public']['Tables']['weight_entries']['Update'];
+
+export type ProgressPhoto = Database['public']['Tables']['progress_photos']['Row'];
+export type ProgressPhotoInsert = Database['public']['Tables']['progress_photos']['Insert'];
+
+export type SupportThread = Database['public']['Tables']['support_threads']['Row'];
+export type SupportThreadInsert = Database['public']['Tables']['support_threads']['Insert'];
+export type SupportThreadUpdate = Database['public']['Tables']['support_threads']['Update'];
+
+export type SupportMessage = Database['public']['Tables']['support_messages']['Row'];
+export type SupportMessageInsert = Database['public']['Tables']['support_messages']['Insert'];
+
+export type CheckIn = Database['public']['Tables']['check_ins']['Row'];
+export type CheckInInsert = Database['public']['Tables']['check_ins']['Insert'];
+export type CheckInUpdate = Database['public']['Tables']['check_ins']['Update'];
