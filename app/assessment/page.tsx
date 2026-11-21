@@ -23,6 +23,7 @@ import {
   type AssessmentSubmissionData,
 } from '@/lib/validation/assessment-schema';
 import { ArrowLeft, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { createClient } from '@/lib/db/supabase-browser';
 
 export default function AssessmentPage() {
   const router = useRouter();
@@ -36,6 +37,25 @@ export default function AssessmentPage() {
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
+
+  // Pre-fill user data if already signed in
+  React.useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setFormData((prev) => ({
+          ...prev,
+          about: {
+            ...prev.about,
+            email: data.user.email || prev.about.email,
+            first_name:
+              (data.user.user_metadata?.first_name as string) ||
+              prev.about.first_name,
+          },
+        }));
+      }
+    });
+  }, []);
 
   // Validation per step before proceeding
   const validateStep = (step: number): boolean => {
@@ -108,7 +128,11 @@ export default function AssessmentPage() {
         sessionStorage.setItem('fitvora_first_name', formData.about.first_name);
       }
 
-      router.push('/assessment/complete');
+      if (data.redirectUrl) {
+        router.push(data.redirectUrl);
+      } else {
+        router.push('/assessment/complete');
+      }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong';
       setSubmissionError(message);

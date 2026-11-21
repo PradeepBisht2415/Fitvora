@@ -29,11 +29,18 @@ function DashboardLayoutContent({
   const [isAdmin, setIsAdmin] = React.useState(false);
 
   React.useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      const role =
-        (data.user?.app_metadata?.['role'] as string) ||
-        (data.user?.user_metadata?.['role'] as string);
-      if (role === 'admin') setIsAdmin(true);
+    supabase.auth.getUser().then(async ({ data }) => {
+      if (!data.user) {
+        setIsAdmin(false);
+        return;
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', data.user.id)
+        .maybeSingle();
+
+      setIsAdmin(profile?.role === 'admin');
     });
   }, [supabase]);
 

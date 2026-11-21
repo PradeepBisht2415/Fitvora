@@ -96,12 +96,24 @@ export async function POST(request: NextRequest) {
       providerCustomerId: customerId,
     });
 
+    // 5. Check if user has completed their health intake assessment
+    const { data: existingAssessment } = await adminSupabase
+      .from('assessments')
+      .select('id')
+      .eq('user_id', user.id)
+      .limit(1)
+      .maybeSingle();
+
+    // If assessment not yet completed, direct them to intake assessment form
+    const redirectUrl = existingAssessment ? '/dashboard' : '/assessment?subscribed=true';
+
     const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
 
     return NextResponse.json({
       success: true,
       activated: true,
-      redirectUrl: '/dashboard',
+      redirectUrl,
+      hasAssessment: !!existingAssessment,
       subscriptionId,
       keyId,
       amount: planConfig.amountPaise,

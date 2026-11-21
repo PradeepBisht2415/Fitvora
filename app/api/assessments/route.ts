@@ -3,6 +3,8 @@ import { assessmentSubmissionSchema } from '@/lib/validation/assessment-schema';
 import { generateOpaqueToken, hashToken, hashIp } from '@/lib/utils/crypto';
 import { sendNewAssessmentAlert } from '@/lib/email/resend-client';
 import { createAdminClient } from '@/lib/db/supabase-admin';
+import { createClient } from '@/lib/db/supabase-server';
+import { activateSubscriptionAndProvisionDietPlan } from '@/lib/plans/instant-activation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +61,20 @@ export async function POST(request: NextRequest) {
     const ipHash = hashIp(clientIp);
 
     let assessmentId = crypto.randomUUID();
+    let authUserId: string | null = null;
+
+    // Check if user is authenticated
+    try {
+      const userClient = await createClient();
+      const {
+        data: { user },
+      } = await userClient.auth.getUser();
+      if (user) {
+        authUserId = user.id;
+      }
+    } catch {
+      // Unauthenticated visitor is allowed
+    }
 
     // 4. Save to Supabase (if configured)
     const hasSupabase =
@@ -73,6 +89,7 @@ export async function POST(request: NextRequest) {
           .from('assessments')
           .insert({
             id: assessmentId,
+            user_id: authUserId,
             draft_token_hash: tokenHash,
             first_name: about.first_name,
             email: about.email,
@@ -89,7 +106,7 @@ export async function POST(request: NextRequest) {
             health_screening: wellness,
             consent_version: 'v1.0-2026',
             health_consent_granted: true,
-            status: 'pending_review',
+            status: authUserId ? 'approved' : 'pending_review',
           })
           .select('id')
           .single();
@@ -105,11 +122,31 @@ export async function POST(request: NextRequest) {
 
         // Record DPDP consent record
         await adminSupabase.from('consent_records').insert({
+          user_id: authUserId,
           assessment_id: assessmentId,
           purpose: 'dietary_planning_and_health_assessment',
           policy_version: 'v1.0-2026',
           ip_hash: ipHash,
         });
+
+        // If authenticated user with active subscription, re-provision personalized diet plan now
+        if (authUserId) {
+          const { data: sub } = await adminSupabase
+            .from('subscriptions')
+            .select('plan_id, status')
+            .eq('user_id', authUserId)
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (sub) {
+            await activateSubscriptionAndProvisionDietPlan({
+              userId: authUserId,
+              planId: sub.plan_id === 'premium' ? 'premium' : 'normal',
+            });
+          }
+        }
       } catch (dbErr) {
         console.warn('Database write failed, continuing with generated ID:', dbErr);
       }
@@ -123,14 +160,17 @@ export async function POST(request: NextRequest) {
       hasMedicalFlags: safetyFlags.length > 0,
     });
 
-    // 6. Return response with opaque token only (no sensitive health answers in response)
+    // 6. Return response
     return NextResponse.json(
       {
         success: true,
-        message: 'Assessment submitted successfully. Awaiting founder review.',
+        message: authUserId
+          ? 'Assessment completed. Your personalized meal plan is ready!'
+          : 'Assessment submitted successfully. Awaiting founder review.',
         token: rawOpaqueToken,
         assessment_id: assessmentId,
-        status: 'pending_review',
+        redirectUrl: authUserId ? '/dashboard' : null,
+        status: authUserId ? 'approved' : 'pending_review',
       },
       { status: 201 }
     );
