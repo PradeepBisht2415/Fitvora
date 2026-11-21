@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import {
   X,
   Sparkles,
   Eye,
+  RotateCcw,
 } from 'lucide-react';
 import type { PlanMealSlot } from '@/features/diet-plans/plan-builder-store';
 
@@ -47,7 +48,31 @@ export function WordUploadModal({
     published: boolean;
   } | null>(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedFile(null);
+      setSuccessData(null);
+      setError(null);
+      setUploading(false);
+    }
+  }, [isOpen, userId]);
+
   if (!isOpen) return null;
+
+  const handleClose = () => {
+    setSelectedFile(null);
+    setSuccessData(null);
+    setError(null);
+    setUploading(false);
+    onClose();
+  };
+
+  const handleResetForNewUpload = () => {
+    setSelectedFile(null);
+    setSuccessData(null);
+    setError(null);
+    setUploading(false);
+  };
 
   const isValidFileType = (fileName: string) => {
     const lower = fileName.toLowerCase();
@@ -148,7 +173,7 @@ export function WordUploadModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors"
           >
             <X className="h-4 w-4" />
@@ -180,7 +205,7 @@ export function WordUploadModal({
 
               <div className="pt-3 flex flex-wrap items-center justify-center gap-2">
                 <Button
-                  onClick={onClose}
+                  onClick={handleClose}
                   variant="outline"
                   size="sm"
                   className="text-xs border-gray-300 text-gray-700 hover:bg-gray-100"
@@ -188,8 +213,18 @@ export function WordUploadModal({
                   Done
                 </Button>
                 <Button
+                  onClick={handleResetForNewUpload}
+                  variant="outline"
+                  size="sm"
+                  className="border-emerald-300 bg-white text-[#075B2B] hover:bg-emerald-50 text-xs font-bold gap-1.5 shadow-2xs"
+                  title="Upload a new diet file to replace or update this plan"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  <span>Upload New / Update Diet</span>
+                </Button>
+                <Button
                   onClick={() => {
-                    onClose();
+                    handleClose();
                     router.push(`/dashboard/meal-plan?asMember=${userId}`);
                   }}
                   size="sm"
@@ -201,7 +236,7 @@ export function WordUploadModal({
                 </Button>
                 <Button
                   onClick={() => {
-                    onClose();
+                    handleClose();
                     router.push(`/dashboard?asMember=${userId}`);
                   }}
                   size="sm"
