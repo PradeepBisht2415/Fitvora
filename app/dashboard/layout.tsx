@@ -47,12 +47,6 @@ function DashboardLayoutContent({
       const userIsAdmin = profile?.role === 'admin';
       setIsAdmin(userIsAdmin);
 
-      // Direct admin users straight to Admin Portal unless they are previewing a client
-      if (userIsAdmin && !asMember) {
-        router.replace('/admin');
-        return;
-      }
-
       // If admin is previewing a client, load client details for banner
       if (userIsAdmin && asMember) {
         const { data: clientData } = await supabase
@@ -105,6 +99,32 @@ function DashboardLayoutContent({
               className="rounded bg-white/20 hover:bg-white/30 px-2.5 py-1 text-xs font-semibold text-white transition-colors"
             >
               Open Member Desk &rarr;
+            </Link>
+            <Link
+              href="/admin"
+              className="rounded bg-white px-2.5 py-1 text-xs font-bold text-[#075B2B] hover:bg-emerald-50 transition-colors shadow-xs"
+            >
+              Exit to Admin Portal &times;
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Preview Header without specific client */}
+      {isAdmin && !asMember && (
+        <div className="bg-[#075B2B] text-white px-4 py-2 text-xs flex flex-wrap items-center justify-between gap-2 shadow-sm border-b border-emerald-800">
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-emerald-300 shrink-0" />
+            <span>
+              <strong>Admin Mode:</strong> Viewing Member Portal (Live Experience Preview).
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/members"
+              className="rounded bg-white/20 hover:bg-white/30 px-2.5 py-1 text-xs font-semibold text-white transition-colors"
+            >
+              Select Client to Preview &rarr;
             </Link>
             <Link
               href="/admin"
