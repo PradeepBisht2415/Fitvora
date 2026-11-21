@@ -216,27 +216,30 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
     const tueMeal2 = parsed.meals.find((m) => m.dayOfWeek === 2 && m.orderIndex === 1);
     expect(tueMeal2?.customTitle).toContain('rajma');
 
-    // Guidance Notes
+    // Guidance Notes - strictly contains core lifestyle & hydration reminders
     expect(parsed.guidanceNotes).toContain('• Water: Aim for about 2.5–3 L');
-    expect(parsed.guidanceNotes).toContain('• Portion key');
+    expect(parsed.guidanceNotes).not.toContain('Portion key');
+    expect(parsed.guidanceNotes).not.toContain('Meal clock');
+    expect(parsed.guidanceNotes).not.toContain('Mess / tiffin');
   });
 
-  test('Guidance Formatting: Splits run-on guidance reminders into clean bullet points with line breaks', () => {
+  test('Guidance Formatting: Extracts clean lifestyle reminders (Water, Limit, Walk, Strength, Sleep) and strips noise', () => {
     const rawRunOn =
-      'Water: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst. Do not force excess water.Limit: Sugary drinks, packaged juices, fried snacks.Protein: Include dal, chana, rajma, curd with each main meal.Portions: Follow the Day 1–Day 7 serving sizes.Walk: Aim for 25–30 minutes of brisk walking most days.Strength: Add simple resistance exercises 2–3 days per week.Sleep: Protect 7–9 hours of sleep.Track: Compare weekly average weights.Note: The reported 11 PM–7 AM sleep window conflicts with overnight shift.';
+      'Meal clock & important schedule check\nThe intake says “overnight shift” and requests breakfast at 4:00 PM...\n4:00 PM · Meal 1\n2 besan chillas\nMess / tiffin ordering rules\nHow to monitor and adjust\nClinical and practical notes\nGuidance & Hydration Reminders\nWater: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst. Do not force excess water.Limit: Sugary drinks, packaged juices, fried snacks.Walk: Aim for 25–30 minutes of brisk walking most days.Strength: Add simple resistance exercises 2–3 days per week.Sleep: Protect 7–9 hours of sleep.';
 
     const formatted = formatGuidanceBullets(rawRunOn);
     expect(formatted).toContain('• Water:');
     expect(formatted).toContain('• Limit:');
-    expect(formatted).toContain('• Protein:');
-    expect(formatted).toContain('• Portions:');
     expect(formatted).toContain('• Walk:');
     expect(formatted).toContain('• Strength:');
     expect(formatted).toContain('• Sleep:');
-    expect(formatted).toContain('• Track:');
-    expect(formatted).toContain('• Note:');
-    // Ensure separate lines
-    expect(formatted.split('\n\n').length).toBeGreaterThanOrEqual(8);
+    // Ensure noise is completely stripped
+    expect(formatted).not.toContain('Meal clock');
+    expect(formatted).not.toContain('The intake says');
+    expect(formatted).not.toContain('besan chillas');
+    expect(formatted).not.toContain('Mess / tiffin');
+    expect(formatted).not.toContain('How to monitor');
+    expect(formatted).not.toContain('Clinical and practical');
   });
 
   test('Privacy Invariant: Assessment downloadable file strictly excludes Email and Contact Phone Number', () => {

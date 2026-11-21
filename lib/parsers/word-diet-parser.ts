@@ -137,19 +137,66 @@ export function formatMealTime(timeStr?: string | null): string {
 
 /**
  * Formats guidance notes into clean, bulleted, readable text with proper line breaks.
+ * Strictly extracts only genuine lifestyle & hydration reminders (Water, Limit, Walk, Strength, Sleep).
+ * Filters out meal menus, table rows, portion keys, mess rules, schedule conflicts, and duplicate text.
  */
 export function formatGuidanceBullets(text?: string | null): string {
   if (!text) return '';
+
+  // 1. Split any merged inline labels
   let formatted = text.replace(
-    /([.!?])\s*(Water:|Limit:|Protein:|Portions?:|Walk:|Strength:|Sleep:|Track:|Note:|Ask:|Portion key:|Mess \/ tiffin (?:ordering )?rules:?)/gi,
+    /([.!?])\s*(Water:|Limit:|Walk:|Strength:|Sleep:|Movement:|Hydration:|Protein:|Portions?:|Track:)/gi,
     '$1\n\n• $2'
   );
-  formatted = formatted.replace(
-    /^([ \t]*)(Water:|Limit:|Protein:|Portions?:|Walk:|Strength:|Sleep:|Track:|Note:|Ask:|Portion key:)/gim,
-    '$1• $2'
-  );
-  formatted = formatted.replace(/•\s*•/g, '•');
-  return formatted.trim();
+
+  const lines = formatted.split('\n').map((l) => l.trim()).filter(Boolean);
+  const coreReminders: string[] = [];
+  const secondaryReminders: string[] = [];
+
+  for (const line of lines) {
+    const clean = line.replace(/^[•\s*-]+/, '').trim();
+
+    // Explicitly reject non-guidance noise
+    if (
+      /^(?:portion key|mess|meal clock|the intake|how to monitor|clinical|day\s*\d|seven-day|client assessment|first meal|packed tiffin|lighter but|note:)/i.test(
+        clean
+      )
+    ) {
+      continue;
+    }
+    // Reject meal items like "2 rotis", "2 besan chillas", "1 cup rice", "1.5 cups"
+    if (/^\d+(\.\d+)?\s*(?:rotis?|besan|cups?|katori|moong|chillas?|vegetable|plain)/i.test(clean)) {
+      continue;
+    }
+    // Reject timing lines like "4:00 PM · Meal 1" or "08:30"
+    if (/^\d{1,2}:\d{2}\s*(?:AM|PM)/i.test(clean)) {
+      continue;
+    }
+
+    // Core lifestyle & hydration topics (Water, Limit, Walk, Strength, Sleep, Movement, Hydration)
+    if (/^(?:water|limit|walk|strength|sleep|movement|hydration):/i.test(clean)) {
+      const point = '• ' + clean;
+      if (!coreReminders.includes(point)) {
+        coreReminders.push(point);
+      }
+    } else if (/^(?:protein|portions?|track):/i.test(clean)) {
+      const point = '• ' + clean;
+      if (!secondaryReminders.includes(point)) {
+        secondaryReminders.push(point);
+      }
+    }
+  }
+
+  if (coreReminders.length > 0) {
+    return coreReminders.join('\n\n');
+  }
+
+  if (secondaryReminders.length > 0) {
+    return secondaryReminders.join('\n\n');
+  }
+
+  // Fallback default guidance if no valid reminders were parsed
+  return '• Water: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst, heat and sweating. Do not force excess water.\n\n• Limit: Sugary drinks, packaged juices, fried snacks, sweets, heavy gravies, and extra ghee or butter.\n\n• Walk: Aim for 25–30 minutes of brisk walking most days, building up gradually; a 5–10-minute walk after meals also helps activity.\n\n• Strength: Add simple resistance exercises 2–3 days per week to help maintain muscle during weight loss.\n\n• Sleep: Protect 7–9 hours of sleep; for night shifts, keep the bedroom dark and quiet and avoid caffeine near bedtime.';
 }
 
 function cleanHtmlText(html: string): string {
@@ -371,37 +418,35 @@ function extractAllGuidanceNotes(lines: string[]): string {
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i]!.trim();
-    if (!line) continue;
-    if (line.includes('|')) continue; // Skip table lines
+    if (!line || line.includes('|')) continue;
+    const lower = line.toLowerCase();
 
-    // Trigger section
+    // Trigger ONLY on actual Guidance & Hydration section headings
     if (
-      /^(?:guidance|hydration|reminders|rules|notes|portion key|how to monitor|movement|clinical):/i.test(
-        line
-      ) ||
-      line.toLowerCase().includes('guidance & hydration reminders') ||
-      line.toLowerCase().includes('mess / tiffin ordering rules') ||
-      line.toLowerCase().includes('portion key:') ||
-      line.toLowerCase().includes('how to monitor and adjust') ||
-      line.toLowerCase().includes('meal clock & important schedule check')
+      lower.includes('guidance & hydration reminders') ||
+      lower === 'guidance & hydration' ||
+      lower === 'hydration & lifestyle guidance' ||
+      lower.startsWith('guidance & hydration')
     ) {
       inGuidanceSection = true;
-      guidanceLines.push(line);
+      continue;
+    }
+
+    // Stop if a subsequent major section begins
+    if (
+      inGuidanceSection &&
+      (lower.startsWith('seven-day menu') ||
+        lower.startsWith('client assessment') ||
+        lower.startsWith('mess / tiffin') ||
+        lower.startsWith('how to monitor') ||
+        lower.startsWith('clinical'))
+    ) {
+      inGuidanceSection = false;
       continue;
     }
 
     if (inGuidanceSection) {
-      if (
-        /^(?:water|limit|protein|portions?|walk|strength|sleep|track|note|ask|weigh|movement):/i.test(
-          line
-        )
-      ) {
-        guidanceLines.push(line);
-      } else if (
-        line.length > 15 &&
-        !line.startsWith('Seven-day menu') &&
-        !line.startsWith('Client assessment')
-      ) {
+      if (/^(?:water|limit|walk|strength|sleep|movement|hydration):/i.test(line)) {
         guidanceLines.push(line);
       }
     }
@@ -411,8 +456,19 @@ function extractAllGuidanceNotes(lines: string[]): string {
     return formatGuidanceBullets(guidanceLines.join('\n\n'));
   }
 
+  // Fallback: search lines for core guidance labels
+  for (const line of lines) {
+    if (/^(?:water|limit|walk|strength|sleep|movement|hydration):/i.test(line)) {
+      guidanceLines.push(line);
+    }
+  }
+
+  if (guidanceLines.length > 0) {
+    return formatGuidanceBullets(guidanceLines.join('\n\n'));
+  }
+
   return formatGuidanceBullets(
-    'Drink 2.5–3 liters of water throughout the day. Finish dinner at least 2 hours before sleeping. Feel free to use the swap alternatives if any ingredient is unavailable.'
+    '• Water: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst, heat and sweating. Do not force excess water.\n\n• Limit: Sugary drinks, packaged juices, fried snacks, sweets, heavy gravies, and extra ghee or butter.\n\n• Walk: Aim for 25–30 minutes of brisk walking most days, building up gradually; a 5–10-minute walk after meals also helps activity.\n\n• Strength: Add simple resistance exercises 2–3 days per week to help maintain muscle during weight loss.\n\n• Sleep: Protect 7–9 hours of sleep; for night shifts, keep the bedroom dark and quiet and avoid caffeine near bedtime.'
   );
 }
 
@@ -449,14 +505,20 @@ export async function parseDietPlanFile(
       }
     }
 
-    const combinedLines = (rawText + '\n\n' + tableText)
+    const rawLines = rawText
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
+    const tableLines = tableText
+      .split('\n')
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const combinedLines = [...rawLines, ...tableLines];
 
     // 1. Try table plan parsing first (e.g. 7-day grid with Day 1..Day 7 and Meal 1..Meal 3)
     const tableResult = parseTablePlan(combinedLines);
-    const guidanceNotes = extractAllGuidanceNotes(combinedLines);
+    // 2. Extract clean guidance notes strictly from raw text (avoids duplicated table text)
+    const guidanceNotes = extractAllGuidanceNotes(rawLines.length > 0 ? rawLines : combinedLines);
 
     if (tableResult && tableResult.meals.length > 0) {
       return {
