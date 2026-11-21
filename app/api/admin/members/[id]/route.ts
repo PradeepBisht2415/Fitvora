@@ -92,11 +92,35 @@ export async function GET(
       .order('created_at', { ascending: false })
       .limit(20);
 
+    // 6. Fetch latest active or published Diet Plan and Meals
+    const { data: latestDietPlan } = await adminSupabase
+      .from('diet_plans')
+      .select('*')
+      .eq('user_id', memberUserId)
+      .in('status', ['published', 'draft'])
+      .order('version', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    let dietPlanMeals: any[] = [];
+    if (latestDietPlan) {
+      const { data: meals } = await adminSupabase
+        .from('diet_plan_meals')
+        .select('*')
+        .eq('diet_plan_id', latestDietPlan.id)
+        .order('day_of_week', { ascending: true })
+        .order('order_index', { ascending: true });
+      dietPlanMeals = meals || [];
+    }
+
     return NextResponse.json({
       profile,
       membership,
       subscription,
       assessment,
+      dietPlan: latestDietPlan || null,
+      dietPlanMeals,
       auditLogs: auditLogs || [],
     });
   } catch (error) {

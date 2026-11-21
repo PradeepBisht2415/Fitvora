@@ -157,12 +157,40 @@ async function DashboardContent({
       .eq('diet_plan_id', publishedPlan.id)
       .order('order_index', { ascending: true });
 
-    const currentDayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
-    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const todayName = dayNames[currentDayOfWeek] || 'Today';
+    // Calculate 1st day start (starts from next date of applied date)
+    const now = new Date();
+    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    const todayMeals = (allMeals as DietPlanMeal[] || []).filter(
-      (m) => m.day_of_week === currentDayOfWeek
+    let startDate: Date;
+    if (publishedPlan.effective_start_date) {
+      const parts = publishedPlan.effective_start_date.split('-').map(Number);
+      startDate = new Date(parts[0]!, parts[1]! - 1, parts[2]!);
+    } else {
+      const applied = new Date(publishedPlan.published_at || publishedPlan.created_at);
+      startDate = new Date(applied.getFullYear(), applied.getMonth(), applied.getDate() + 1);
+    }
+    startDate.setHours(0, 0, 0, 0);
+
+    const isBeforeStart = todayDate.getTime() < startDate.getTime();
+    let planDayNumber = 1;
+
+    if (isBeforeStart) {
+      // Applied date is today; 1st day starts tomorrow. Show Day 1 preview so member can prepare
+      planDayNumber = 1;
+    } else {
+      const diffMs = todayDate.getTime() - startDate.getTime();
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      planDayNumber = (diffDays % 7) + 1; // Cycle day 1 to 7
+    }
+
+    // In 7-day schedule, Day 1..6 have day_of_week 1..6, and Day 7 has day_of_week 0
+    const targetDayOfWeek = planDayNumber === 7 ? 0 : planDayNumber;
+
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayWeekdayName = dayNames[todayDate.getDay()] || 'Today';
+
+    const todayMeals = ((allMeals as DietPlanMeal[]) || []).filter(
+      (m) => m.day_of_week === targetDayOfWeek
     );
 
     // Determine current/next meal by time
@@ -225,11 +253,22 @@ async function DashboardContent({
         {/* Today's Schedule Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 pb-3">
           <div>
-            <h2 className="text-xl font-bold text-[#1A2E1C]">
-              Today&apos;s Meals — {todayName}
-            </h2>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-xl font-bold text-[#1A2E1C]">
+                {isBeforeStart
+                  ? `Day 1 Preview — Plan Starts Tomorrow (${startDate.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' })})`
+                  : `Today's Meals — Day ${planDayNumber} (${todayWeekdayName})`}
+              </h2>
+              {isBeforeStart && (
+                <span className="rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5">
+                  Starts Tomorrow
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-500 mt-0.5">
-              Follow exact household portions (katori, roti). Swaps available for every meal.
+              {isBeforeStart
+                ? 'Your 7-day schedule officially begins tomorrow. Review your Day 1 meals below to prep your groceries & portions.'
+                : 'Follow exact household portions (katori, roti). Swaps available for every meal.'}
             </p>
           </div>
 
@@ -244,7 +283,7 @@ async function DashboardContent({
         {/* Today's Meals List */}
         {todayMeals.length === 0 ? (
           <Card className="bg-white border-dashed border-gray-200 p-8 text-center text-xs text-gray-500">
-            <p>No meals scheduled for {todayName}. Check your weekly schedule.</p>
+            <p>No meals scheduled for {isBeforeStart ? 'Day 1' : todayWeekdayName}. Check your weekly schedule.</p>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

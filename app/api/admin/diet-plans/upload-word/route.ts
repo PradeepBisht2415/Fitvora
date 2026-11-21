@@ -112,6 +112,12 @@ export async function POST(request: NextRequest) {
 
       const nextVersion = (latestExisting?.version ?? 0) + 1;
 
+      // 1st day starts from the next date of applied date
+      const appliedDate = new Date();
+      const nextDate = new Date(appliedDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      const effectiveStartDate = nextDate.toISOString().split('T')[0]!;
+
       // 1. Insert Diet Plan Header
       const { data: newPlan, error: planErr } = await adminSupabase
         .from('diet_plans')
@@ -119,10 +125,10 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           version: nextVersion,
           status: 'published',
-          effective_start_date: new Date().toISOString().split('T')[0]!,
+          effective_start_date: effectiveStartDate,
           guidance_notes: parsedResult.guidanceNotes || null,
           created_by: user.id,
-          published_at: new Date().toISOString(),
+          published_at: appliedDate.toISOString(),
         })
         .select('id')
         .single();

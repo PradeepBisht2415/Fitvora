@@ -52,6 +52,7 @@ function PlanBuilderContent() {
   const [saving, setSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [existingPlanId, setExistingPlanId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) return;
@@ -74,6 +75,30 @@ function PlanBuilderContent() {
             targetDirection: direction,
             dietType,
           });
+
+          // Preload client's existing published or draft diet plan into the builder
+          if (data.dietPlan && Array.isArray(data.dietPlanMeals) && data.dietPlanMeals.length > 0) {
+            setExistingPlanId(data.dietPlan.id);
+            const mappedSlots: PlanMealSlot[] = data.dietPlanMeals.map((m: any) => ({
+              id: m.id,
+              dayOfWeek: m.day_of_week,
+              mealType: m.meal_type,
+              scheduledTime: m.scheduled_time,
+              mealTemplateId: m.meal_template_id,
+              customTitle: m.custom_title,
+              customPortion: m.custom_portion,
+              customNotes: m.custom_notes || '',
+              customAlternatives: Array.isArray(m.custom_alternatives) ? m.custom_alternatives : [],
+              allergenTags: Array.isArray(m.allergen_tags) ? m.allergen_tags : [],
+              approxCalories: m.approx_calories,
+              approxProteinG: m.approx_protein_g,
+              orderIndex: m.order_index,
+            }));
+            setMeals(mappedSlots);
+            if (data.dietPlan.guidance_notes) {
+              setGuidanceNotes(data.dietPlan.guidance_notes);
+            }
+          }
         }
       })
       .catch((err) => console.error('Failed to load member profile:', err));
@@ -292,7 +317,7 @@ function PlanBuilderContent() {
 
       {/* 7-Day Navigation Tabs */}
       <div className="flex border-b border-gray-200 overflow-x-auto gap-1 bg-white p-1 rounded-xl shadow-xs">
-        {DAYS_OF_WEEK.map(({ dayOfWeek, name }) => {
+        {DAYS_OF_WEEK.map(({ dayOfWeek, name }, index) => {
           const isActive = activeDayOfWeek === dayOfWeek;
           const count = meals.filter((m) => m.dayOfWeek === dayOfWeek).length;
 
@@ -307,7 +332,7 @@ function PlanBuilderContent() {
                   : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
               }`}
             >
-              <div>{name}</div>
+              <div>Day {index + 1} • {name.slice(0, 3)}</div>
               <div className={`text-[10px] font-normal ${isActive ? 'text-emerald-100' : 'text-gray-400'}`}>
                 {count} meals
               </div>

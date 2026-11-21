@@ -145,7 +145,11 @@ async function MealPlanContent({
       </div>
 
       {/* 7-Day Interactive Tabs */}
-      <WeeklyPlanTabs meals={meals} />
+      <WeeklyPlanTabs
+        meals={meals}
+        effectiveStartDate={publishedPlan.effective_start_date}
+        publishedAt={publishedPlan.published_at}
+      />
 
       {/* Guidance Notes */}
       {publishedPlan.guidance_notes && (

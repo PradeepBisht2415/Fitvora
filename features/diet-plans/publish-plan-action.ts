@@ -59,6 +59,12 @@ export async function saveDietPlanAction(params: SavePlanParams): Promise<{
 
       const nextVersion = (latestExisting?.version ?? 0) + 1;
 
+      // 1st day starts from the next date of applied date
+      const appliedDate = new Date();
+      const nextDate = new Date(appliedDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      const effectiveStartDate = nextDate.toISOString().split('T')[0]!;
+
       // 1. Create plan header
       const { data: newPlan, error: planErr } = await adminSupabase
         .from('diet_plans')
@@ -66,10 +72,10 @@ export async function saveDietPlanAction(params: SavePlanParams): Promise<{
           user_id: userId,
           version: nextVersion,
           status,
-          effective_start_date: new Date().toISOString().split('T')[0]!,
+          effective_start_date: effectiveStartDate,
           guidance_notes: guidanceNotes || null,
           created_by: user.id,
-          published_at: status === 'published' ? new Date().toISOString() : null,
+          published_at: status === 'published' ? appliedDate.toISOString() : null,
         })
         .select('id')
         .single();
