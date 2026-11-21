@@ -282,7 +282,16 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FFFDF7]" />}>
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#FFFDF7]">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-7 w-7 rounded-full border-2 border-[#075B2B] border-t-transparent animate-spin" />
+            <span className="text-xs text-gray-500 font-medium">Loading portal...</span>
+          </div>
+        </div>
+      }
+    >
       <DashboardLayoutContent>{children}</DashboardLayoutContent>
     </Suspense>
   );

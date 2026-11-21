@@ -16,30 +16,45 @@ import {
 import type { DietPlanMeal } from '@/types/database.types';
 import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
 
+export const instant = false;
+
 async function MealPlanContent({
   searchParams,
 }: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  const {
-    authenticatedUser,
-    effectiveUserId,
-    isImpersonating,
-  } = await getEffectiveDashboardUser(resolvedParams.asMember);
+  try {
+    const resolvedParams = searchParams ? await searchParams : {};
+    const {
+      authenticatedUser,
+      effectiveUserId,
+      isImpersonating,
+    } = await getEffectiveDashboardUser(resolvedParams.asMember);
 
-  if (!authenticatedUser || !effectiveUserId) {
-    return (
-      <EmptyState
-        icon={CreditCard}
-        title="Sign In Required"
-        description="Please sign in to view your 7-day Indian meal schedule."
-        action={{ label: 'Sign In', href: '/login' }}
-      />
-    );
-  }
+    if (!authenticatedUser || !effectiveUserId) {
+      return (
+        <EmptyState
+          icon={CreditCard}
+          title="Sign In Required"
+          description="Please sign in to view your 7-day Indian meal schedule."
+          action={{ label: 'Sign In', href: '/login' }}
+        />
+      );
+    }
 
-  const adminSupabase = createAdminClient();
+    let adminSupabase;
+    try {
+      adminSupabase = createAdminClient();
+    } catch {
+      return (
+        <EmptyState
+          icon={CreditCard}
+          title="Service Unavailable"
+          description="Database connection is not configured yet. Please check your environment variables."
+          action={{ label: 'Return Home', href: '/' }}
+        />
+      );
+    }
 
   // Check subscription
   const { data: subscription } = await adminSupabase
@@ -156,6 +171,17 @@ async function MealPlanContent({
       <GroceryOverview meals={meals} />
     </div>
   );
+  } catch (err) {
+    console.error('Error rendering MealPlanContent:', err);
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title="Meal Plan Unavailable"
+        description="We encountered an issue loading your meal plan. Please try refreshing or signing in again."
+        action={{ label: 'Sign In Again', href: '/login' }}
+      />
+    );
+  }
 }
 
 export default async function MealPlanPage(props: {

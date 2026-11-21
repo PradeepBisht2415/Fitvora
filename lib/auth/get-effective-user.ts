@@ -19,73 +19,38 @@ export interface EffectiveDashboardUserResult {
 export async function getEffectiveDashboardUser(
   asMemberId?: string
 ): Promise<EffectiveDashboardUserResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-  if (!user) {
-    return {
-      authenticatedUser: null,
-      effectiveUserId: null,
-      isAdmin: false,
-      isImpersonating: false,
-      clientProfile: null,
-    };
-  }
-
-  const adminSupabase = createAdminClient();
-  const { data: currentProfile } = await adminSupabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle();
-
-  const isAdmin = currentProfile?.role === 'admin';
-
-  // Admin impersonating/viewing a client
-  if (isAdmin && asMemberId) {
-    const { data: clientProfile } = await adminSupabase
-      .from('profiles')
-      .select('*')
-      .eq('id', asMemberId)
-      .maybeSingle();
-
-    if (clientProfile) {
+    if (!user) {
       return {
-        authenticatedUser: user,
-        effectiveUserId: clientProfile.id,
-        isAdmin: true,
-        isImpersonating: true,
-        clientProfile: clientProfile as Profile,
+        authenticatedUser: null,
+        effectiveUserId: null,
+        isAdmin: false,
+        isImpersonating: false,
+        clientProfile: null,
       };
     }
-  }
 
-  // Admin viewing member dashboard without explicit member ID:
-  // If admin doesn't have their own active subscription, fallback to first active member for preview
-  if (isAdmin && !asMemberId) {
-    const { data: adminSub } = await adminSupabase
-      .from('subscriptions')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (!adminSub) {
-      const { data: firstMemberSub } = await adminSupabase
-        .from('subscriptions')
-        .select('user_id')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1)
+    try {
+      const adminSupabase = createAdminClient();
+      const { data: currentProfile } = await adminSupabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
         .maybeSingle();
 
-      if (firstMemberSub?.user_id) {
+      const isAdmin = currentProfile?.role === 'admin';
+
+      // Admin impersonating/viewing a client
+      if (isAdmin && asMemberId) {
         const { data: clientProfile } = await adminSupabase
           .from('profiles')
           .select('*')
-          .eq('id', firstMemberSub.user_id)
+          .eq('id', asMemberId)
           .maybeSingle();
 
         if (clientProfile) {
@@ -98,14 +63,71 @@ export async function getEffectiveDashboardUser(
           };
         }
       }
-    }
-  }
 
-  return {
-    authenticatedUser: user,
-    effectiveUserId: user.id,
-    isAdmin,
-    isImpersonating: false,
-    clientProfile: currentProfile as Profile | null,
-  };
+      // Admin viewing member dashboard without explicit member ID:
+      // If admin doesn't have their own active subscription, fallback to first active member for preview
+      if (isAdmin && !asMemberId) {
+        const { data: adminSub } = await adminSupabase
+          .from('subscriptions')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        if (!adminSub) {
+          const { data: firstMemberSub } = await adminSupabase
+            .from('subscriptions')
+            .select('user_id')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (firstMemberSub?.user_id) {
+            const { data: clientProfile } = await adminSupabase
+              .from('profiles')
+              .select('*')
+              .eq('id', firstMemberSub.user_id)
+              .maybeSingle();
+
+            if (clientProfile) {
+              return {
+                authenticatedUser: user,
+                effectiveUserId: clientProfile.id,
+                isAdmin: true,
+                isImpersonating: true,
+                clientProfile: clientProfile as Profile,
+              };
+            }
+          }
+        }
+      }
+
+      return {
+        authenticatedUser: user,
+        effectiveUserId: user.id,
+        isAdmin,
+        isImpersonating: false,
+        clientProfile: currentProfile as Profile | null,
+      };
+    } catch (adminErr) {
+      console.warn('Admin client error in getEffectiveDashboardUser:', adminErr);
+      return {
+        authenticatedUser: user,
+        effectiveUserId: user.id,
+        isAdmin: false,
+        isImpersonating: false,
+        clientProfile: null,
+      };
+    }
+  } catch (err) {
+    console.warn('Authentication check failed in getEffectiveDashboardUser:', err);
+    return {
+      authenticatedUser: null,
+      effectiveUserId: null,
+      isAdmin: false,
+      isImpersonating: false,
+      clientProfile: null,
+    };
+  }
 }

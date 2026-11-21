@@ -18,31 +18,46 @@ import {
 import type { DietPlanMeal } from '@/types/database.types';
 import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
 
+export const instant = false;
+
 async function DashboardContent({
   searchParams,
 }: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  const {
-    authenticatedUser,
-    effectiveUserId,
-    isImpersonating,
-    clientProfile,
-  } = await getEffectiveDashboardUser(resolvedParams.asMember);
+  try {
+    const resolvedParams = searchParams ? await searchParams : {};
+    const {
+      authenticatedUser,
+      effectiveUserId,
+      isImpersonating,
+      clientProfile,
+    } = await getEffectiveDashboardUser(resolvedParams.asMember);
 
-  if (!authenticatedUser || !effectiveUserId) {
-    return (
-      <EmptyState
-        icon={CreditCard}
-        title="Sign In Required"
-        description="Please sign in to view your daily meal schedule."
-        action={{ label: 'Sign In', href: '/login' }}
-      />
-    );
-  }
+    if (!authenticatedUser || !effectiveUserId) {
+      return (
+        <EmptyState
+          icon={CreditCard}
+          title="Sign In Required"
+          description="Please sign in to view your daily meal schedule."
+          action={{ label: 'Sign In', href: '/login' }}
+        />
+      );
+    }
 
-  const adminSupabase = createAdminClient();
+    let adminSupabase;
+    try {
+      adminSupabase = createAdminClient();
+    } catch {
+      return (
+        <EmptyState
+          icon={CreditCard}
+          title="Service Unavailable"
+          description="Database connection is not configured yet. Please ensure Supabase environment variables are added in your project settings."
+          action={{ label: 'Return Home', href: '/' }}
+        />
+      );
+    }
 
   // 1. Fetch member profile
   const profile =
@@ -262,6 +277,17 @@ async function DashboardContent({
       )}
     </div>
   );
+  } catch (err) {
+    console.error('Error rendering DashboardContent:', err);
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title="Dashboard Temporary Issue"
+        description="We encountered an issue loading your dashboard. Please try refreshing or signing in again."
+        action={{ label: 'Sign In Again', href: '/login' }}
+      />
+    );
+  }
 }
 
 export default async function DashboardPage(props: {

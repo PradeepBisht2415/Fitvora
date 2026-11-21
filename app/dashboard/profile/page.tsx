@@ -11,30 +11,45 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import type { Assessment } from '@/types/database.types';
 
+export const instant = false;
+
 async function ProfilePageContent({
   searchParams,
 }: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  const resolvedParams = searchParams ? await searchParams : {};
-  const {
-    authenticatedUser,
-    effectiveUserId,
-    clientProfile,
-  } = await getEffectiveDashboardUser(resolvedParams.asMember);
+  try {
+    const resolvedParams = searchParams ? await searchParams : {};
+    const {
+      authenticatedUser,
+      effectiveUserId,
+      clientProfile,
+    } = await getEffectiveDashboardUser(resolvedParams.asMember);
 
-  if (!authenticatedUser || !effectiveUserId) {
-    return (
-      <EmptyState
-        icon={Shield}
-        title="Sign In Required"
-        description="Please log in to manage your profile and privacy settings."
-        action={{ label: 'Sign In', href: '/login' }}
-      />
-    );
-  }
+    if (!authenticatedUser || !effectiveUserId) {
+      return (
+        <EmptyState
+          icon={Shield}
+          title="Sign In Required"
+          description="Please log in to manage your profile and privacy settings."
+          action={{ label: 'Sign In', href: '/login' }}
+        />
+      );
+    }
 
-  const adminSupabase = createAdminClient();
+    let adminSupabase;
+    try {
+      adminSupabase = createAdminClient();
+    } catch {
+      return (
+        <EmptyState
+          icon={Shield}
+          title="Service Unavailable"
+          description="Database connection is not configured yet. Please check your environment variables."
+          action={{ label: 'Return Home', href: '/' }}
+        />
+      );
+    }
 
   const profile =
     clientProfile ||
@@ -116,6 +131,17 @@ async function ProfilePageContent({
       </div>
     </div>
   );
+  } catch (err) {
+    console.error('Error rendering ProfilePageContent:', err);
+    return (
+      <EmptyState
+        icon={Shield}
+        title="Profile Temporarily Unavailable"
+        description="We encountered an issue loading your profile. Please try refreshing or signing in again."
+        action={{ label: 'Sign In Again', href: '/login' }}
+      />
+    );
+  }
 }
 
 export default async function ProfilePage(props: {
