@@ -11,12 +11,14 @@ import {
   UtensilsCrossed,
   MessageSquare,
   ClipboardCheck,
+  LayoutDashboard,
 } from 'lucide-react';
 
 function AdminNavContent() {
   const pathname = usePathname();
 
   const links = [
+    { label: 'Overview', href: '/admin', icon: LayoutDashboard },
     { label: 'Intake Triage', href: '/admin/assessments', icon: ClipboardList },
     { label: 'Members', href: '/admin/members', icon: Users },
     { label: 'Meal Library', href: '/admin/meal-library', icon: UtensilsCrossed },
@@ -29,15 +31,15 @@ function AdminNavContent() {
     <header className="border-b border-border-soft bg-white px-4 py-3 sm:px-6 lg:px-8 sticky top-0 z-40 shadow-xs">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
         <div className="flex items-center gap-4">
-          <Link href="/" className="text-[#075B2B] hover:opacity-80 p-1">
+          <Link href="/" className="text-[#075B2B] hover:opacity-80 p-1" title="Back to Public Site">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#2FAF37]">
+          <Link href="/admin">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#2FAF37] block">
               Founder Admin Portal
             </span>
             <h1 className="text-lg font-extrabold text-[#1A2E1C]">Fitvora Operations</h1>
-          </div>
+          </Link>
         </div>
 
         <nav className="flex items-center gap-1 sm:gap-2">

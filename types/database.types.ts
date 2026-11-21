@@ -35,6 +35,8 @@ export interface Database {
           timezone: string;
           role: UserRole;
           avatar_url: string | null;
+          meal_reminders_enabled: boolean;
+          reminder_channel: string;
           created_at: string;
           updated_at: string;
         };
@@ -47,6 +49,8 @@ export interface Database {
           timezone?: string;
           role?: UserRole;
           avatar_url?: string | null;
+          meal_reminders_enabled?: boolean;
+          reminder_channel?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -59,6 +63,8 @@ export interface Database {
           timezone?: string;
           role?: UserRole;
           avatar_url?: string | null;
+          meal_reminders_enabled?: boolean;
+          reminder_channel?: string;
           created_at?: string;
           updated_at?: string;
         };

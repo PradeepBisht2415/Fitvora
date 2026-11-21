@@ -4,10 +4,11 @@ import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import { ProfileForm } from '@/components/dashboard/profile-form';
 import { PreferencesView } from '@/components/dashboard/preferences-view';
+import { ReminderToggle } from '@/components/dashboard/reminder-toggle';
+import { DpdpActions } from '@/components/dashboard/dpdp-actions';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Shield, Download, Trash2, ArrowLeft, Loader2 } from 'lucide-react';
+import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import type { Assessment } from '@/types/database.types';
 
 async function ProfilePageContent() {
@@ -74,6 +75,9 @@ async function ProfilePageContent() {
             }}
           />
 
+          {/* Meal Schedule Reminder Opt-In */}
+          <ReminderToggle />
+
           {/* DPDP Act Privacy & Data Rights Card */}
           <Card className="bg-white border-gray-200 shadow-xs">
             <CardHeader className="pb-3 border-b border-gray-100">
@@ -89,32 +93,8 @@ async function ProfilePageContent() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-3 pt-4 text-xs">
-              <div className="flex items-center justify-between p-3 rounded-xl border border-gray-100 bg-gray-50/70">
-                <div>
-                  <p className="font-bold text-gray-800">Export Health Data</p>
-                  <p className="text-gray-500 text-[11px]">Download all assessment records, check-ins, and diet plans in JSON format.</p>
-                </div>
-                <a href="mailto:privacy@fitvora.com?subject=Data%20Export%20Request">
-                  <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 text-xs h-8">
-                    <Download className="mr-1 h-3.5 w-3.5" />
-                    Export
-                  </Button>
-                </a>
-              </div>
-
-              <div className="flex items-center justify-between p-3 rounded-xl border border-red-100 bg-red-50/40">
-                <div>
-                  <p className="font-bold text-red-900">Request Account Deletion</p>
-                  <p className="text-red-700 text-[11px]">Permanently remove your profile, intake health records, and cancel active subscriptions.</p>
-                </div>
-                <a href="mailto:privacy@fitvora.com?subject=Account%20Deletion%20Request">
-                  <Button variant="outline" size="sm" className="border-red-200 text-red-600 hover:bg-red-50 text-xs h-8">
-                    <Trash2 className="mr-1 h-3.5 w-3.5" />
-                    Delete
-                  </Button>
-                </a>
-              </div>
+            <CardContent className="pt-0">
+              <DpdpActions />
             </CardContent>
           </Card>
         </div>

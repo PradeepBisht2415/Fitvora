@@ -836,7 +836,7 @@ Legend:
 > **Prerequisites:** Phases 0 through 4 completed.  
 > **Phase Exit Criteria:** All 15 PRD acceptance scenarios verified with automated E2E tests; Lighthouse mobile score ≥ 85; zero health data leakage in logs or headers; DPDP deletion and export workflows verified.
 
-- [ ] **TASK-5.1: Transactional Email Notification Pipeline** `[P1]`
+- [x] **TASK-5.1: Transactional Email Notification Pipeline** `[P1]`
   - **Module:** Notifications
   - **Dependencies:** `TASK-1.8`
   - **Target Files:**
@@ -847,14 +847,14 @@ Legend:
     - `lib/email/templates/payment-failed.tsx`
   - **Description:** Implement all automated member transactional emails using Resend and React Email with brand styling and zero sensitive health data in subject lines.
   - **Atomic Subtasks:**
-    - [ ] Build `Assessment Approved` template with secure claim account link.
-    - [ ] Build `Diet Plan Published` template alerting member that their custom plan is ready in the dashboard.
-    - [ ] Build `Payment Receipt` template containing tier, amount in INR, and billing period dates.
-    - [ ] Build `Payment Failed` template with retry instructions and grace period explanation.
-    - [ ] Ensure all email templates render flawlessly across Gmail, Apple Mail, and Outlook mobile clients.
+    - [x] Build `Assessment Approved` template with secure claim account link.
+    - [x] Build `Diet Plan Published` template alerting member that their custom plan is ready in the dashboard.
+    - [x] Build `Payment Receipt` template containing tier, amount in INR, and billing period dates.
+    - [x] Build `Payment Failed` template with retry instructions and grace period explanation.
+    - [x] Ensure all email templates render flawlessly across Gmail, Apple Mail, and Outlook mobile clients.
   - **Acceptance Criteria:** Triggering lifecycle events sends corresponding branded emails; unsubscribe and contact links included in compliance with regulations.
 
-- [ ] **TASK-5.2: Opt-In Meal Reminder Notifications & Cron Job** `[P1]`
+- [x] **TASK-5.2: Opt-In Meal Reminder Notifications & Cron Job** `[P1]`
   - **Module:** Notifications & Automation
   - **Dependencies:** `TASK-3.1`, `TASK-5.1`
   - **Target Files:**
@@ -862,16 +862,16 @@ Legend:
     - `components/dashboard/reminder-toggle.tsx`
   - **Description:** Implement member opt-in meal reminders that check scheduled meal times against member timezones and send respectful daily meal notifications.
   - **Atomic Subtasks:**
-    - [ ] Add reminder preferences in `profiles`: `meal_reminders_enabled` (boolean, default false), `reminder_channel` ('email').
-    - [ ] Build cron endpoint `GET /api/cron/meal-reminders` secured with `CRON_SECRET` authorization header:
+    - [x] Add reminder preferences in `profiles`: `meal_reminders_enabled` (boolean, default false), `reminder_channel` ('email').
+    - [x] Build cron endpoint `GET /api/cron/meal-reminders` secured with `CRON_SECRET` authorization header:
       - Identifies active members with reminders enabled.
       - Calculates current local time in member's timezone.
       - Queries scheduled meals within the next 45 minutes.
       - Sends daily digest or meal reminder email.
-    - [ ] Respect quiet hours: never send notifications between 10:00 PM and 7:00 AM in member's local time unless member works an overnight shift.
+    - [x] Respect quiet hours: never send notifications between 10:00 PM and 7:00 AM in member's local time unless member works an overnight shift.
   - **Acceptance Criteria:** Reminders send only to opted-in members; quiet hours respected; unauthorized cron triggers return HTTP 401.
 
-- [ ] **TASK-5.3: Admin Executive Dashboard & Operational Metrics** `[P0]`
+- [x] **TASK-5.3: Admin Executive Dashboard & Operational Metrics** `[P0]`
   - **Module:** Admin Operations
   - **Dependencies:** `TASK-1.7`, `TASK-2.7`, `TASK-3.4`, `TASK-4.6`
   - **Target Files:**
@@ -880,17 +880,17 @@ Legend:
     - `components/admin/action-needed-list.tsx`
   - **Description:** Build the founder admin mission control with live count cards (pending assessments, active members, plans due for publishing, open support tickets) and truthful empty states.
   - **Atomic Subtasks:**
-    - [ ] Build summary metrics grid:
+    - [x] Build summary metrics grid:
       - New Assessments Pending Review.
       - Active Normal vs. Premium Members.
       - Diet Plans Needing Publication.
       - Unanswered Support Tickets (highlighting Premium).
-    - [ ] Build "Immediate Actions Required" feed highlighting items requiring attention.
-    - [ ] Ensure initial launch shows clean, encouraging empty states ("Zero members yet — your system is ready for launch") with no fabricated KPIs.
-    - [ ] Provide non-sensitive CSV export of active membership counts and payment dates.
+    - [x] Build "Immediate Actions Required" feed highlighting items requiring attention.
+    - [x] Ensure initial launch shows clean, encouraging empty states ("Zero members yet — your system is ready for launch") with no fabricated KPIs.
+    - [x] Provide non-sensitive CSV export of active membership counts and payment dates.
   - **Acceptance Criteria:** Admin home loads in <500ms; aggregates match underlying database records accurately.
 
-- [ ] **TASK-5.4: Security, Privacy & DPDP Compliance Hardening** `[P0]`
+- [x] **TASK-5.4: Security, Privacy & DPDP Compliance Hardening** `[P0]`
   - **Module:** Security & Compliance
   - **Dependencies:** All previous tasks
   - **Target Files:**
@@ -900,13 +900,13 @@ Legend:
     - `app/api/me/export-data/route.ts`
   - **Description:** Harden application security with Content Security Policy (CSP), rate limiting, sensitive parameter sanitization, and GDPR/DPDP data export/deletion endpoints.
   - **Atomic Subtasks:**
-    - [ ] Configure strict HTTP response headers: `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security`, `Referrer-Policy: strict-origin-when-cross-origin`.
-    - [ ] Implement `POST /api/me/export-data`: generates a machine-readable JSON package of the member's profile, assessment answers, meal plans, and weight entries.
-    - [ ] Implement `POST /api/me/delete-account`: initiates account erasure, anonymizes assessment records, deletes stored photos, and logs audit trail.
-    - [ ] Verify that no health data is written to browser query strings, server access logs, or client error reports.
+    - [x] Configure strict HTTP response headers: `Content-Security-Policy`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security`, `Referrer-Policy: strict-origin-when-cross-origin`.
+    - [x] Implement `POST /api/me/export-data`: generates a machine-readable JSON package of the member's profile, assessment answers, meal plans, and weight entries.
+    - [x] Implement `POST /api/me/delete-account`: initiates account erasure, anonymizes assessment records, deletes stored photos, and logs audit trail.
+    - [x] Verify that no health data is written to browser query strings, server access logs, or client error reports.
   - **Acceptance Criteria:** Security headers pass observatory checks with grade A; account deletion fully removes personal and health records while keeping necessary accounting logs.
 
-- [ ] **TASK-5.5: End-to-End Acceptance Test Suite (Playwright)** `[P0]`
+- [x] **TASK-5.5: End-to-End Acceptance Test Suite (Playwright)** `[P0]`
   - **Module:** QA & Testing
   - **Dependencies:** All previous tasks
   - **Target Files:**
@@ -918,24 +918,24 @@ Legend:
     - `playwright.config.ts`
   - **Description:** Implement automated Playwright end-to-end tests covering all 15 acceptance scenarios from Section 13 of the Fitvora PRD.
   - **Atomic Subtasks:**
-    - [ ] Scenario 1: Anonymous visitor submits assessment on mobile viewport; verify draft token and validation blocks under-18.
-    - [ ] Scenario 2: Admin reviews new assessment; unapproved user cannot access checkout.
-    - [ ] Scenario 3: High-risk medical disclosures trigger manual review flag; no automated diet is created.
-    - [ ] Scenario 4: Member A cannot access Member B's meal plan, weight, or photos by manipulating IDs in URLs or APIs.
-    - [ ] Scenario 5: Sandbox payments for Normal (₹499) and Premium (₹999) process correctly; duplicate webhooks do not double-activate.
-    - [ ] Scenario 6: Upgrading to Premium preserves identical diet plan while unlocking priority support.
-    - [ ] Scenario 7: Unpublished plan drafts are invisible to members; published plans render accurately.
-    - [ ] Scenario 8: Allergen warnings display in plan builder when meal template matches member allergy.
-    - [ ] Scenario 9: Overnight schedule displays meals in correct chronological sequence.
-    - [ ] Scenario 10: Weight logging updates progress chart; member can delete own entry.
-    - [ ] Scenario 11: Progress photos are private; signed URLs expire; deletion erases storage object.
-    - [ ] Scenario 12: Screen-reader accessibility and keyboard-only navigation pass without errors.
-    - [ ] Scenario 13: Viewport tests at 320px, 375px, 768px, 1280px pass with zero horizontal overflow.
-    - [ ] Scenario 14: Clean database shows truthful zero-member states.
-    - [ ] Scenario 15: Data export and deletion workflows complete cleanly.
+    - [x] Scenario 1: Anonymous visitor submits assessment on mobile viewport; verify draft token and validation blocks under-18.
+    - [x] Scenario 2: Admin reviews new assessment; unapproved user cannot access checkout.
+    - [x] Scenario 3: High-risk medical disclosures trigger manual review flag; no automated diet is created.
+    - [x] Scenario 4: Member A cannot access Member B's meal plan, weight, or photos by manipulating IDs in URLs or APIs.
+    - [x] Scenario 5: Sandbox payments for Normal (₹499) and Premium (₹999) process correctly; duplicate webhooks do not double-activate.
+    - [x] Scenario 6: Upgrading to Premium preserves identical diet plan while unlocking priority support.
+    - [x] Scenario 7: Unpublished plan drafts are invisible to members; published plans render accurately.
+    - [x] Scenario 8: Allergen warnings display in plan builder when meal template matches member allergy.
+    - [x] Scenario 9: Overnight schedule displays meals in correct chronological sequence.
+    - [x] Scenario 10: Weight logging updates progress chart; member can delete own entry.
+    - [x] Scenario 11: Progress photos are private; signed URLs expire; deletion erases storage object.
+    - [x] Scenario 12: Screen-reader accessibility and keyboard-only navigation pass without errors.
+    - [x] Scenario 13: Viewport tests at 320px, 375px, 768px, 1280px pass with zero horizontal overflow.
+    - [x] Scenario 14: Clean database shows truthful zero-member states.
+    - [x] Scenario 15: Data export and deletion workflows complete cleanly.
   - **Acceptance Criteria:** `pnpm test:e2e` executes all 15 scenarios successfully with 100% pass rate.
 
-- [ ] **TASK-5.6: Mobile Performance, SEO & Lighthouse Optimization** `[P1]`
+- [x] **TASK-5.6: Mobile Performance, SEO & Lighthouse Optimization** `[P1]`
   - **Module:** Performance & SEO
   - **Dependencies:** `TASK-1.1`, `TASK-1.2`
   - **Target Files:**
@@ -944,11 +944,11 @@ Legend:
     - `app/layout.tsx`
   - **Description:** Optimize bundle sizes, media assets, font loading, and search engine metadata to achieve Lighthouse performance score ≥ 85 on mobile.
   - **Atomic Subtasks:**
-    - [ ] Implement `sitemap.ts` indexing only public marketing routes (`/`, `/how-it-works`, `/weight-loss`, `/weight-gain`, `/plans`, `/privacy`, `/terms`).
-    - [ ] Implement `robots.ts` blocking web crawlers from `/assessment/*`, `/dashboard/*`, and `/admin/*`.
-    - [ ] Configure Open Graph and Twitter card metadata with the Fitvora brand preview image.
-    - [ ] Ensure Next.js `<Image>` uses modern WebP/AVIF formats and responsive `sizes` attribute.
-    - [ ] Run Lighthouse mobile audit on `/` and optimize Largest Contentful Paint (LCP ≤ 2.5s) and Cumulative Layout Shift (CLS ≤ 0.1).
+    - [x] Implement `sitemap.ts` indexing only public marketing routes (`/`, `/how-it-works`, `/weight-loss`, `/weight-gain`, `/plans`, `/privacy`, `/terms`).
+    - [x] Implement `robots.ts` blocking web crawlers from `/assessment/*`, `/dashboard/*`, and `/admin/*`.
+    - [x] Configure Open Graph and Twitter card metadata with the Fitvora brand preview image.
+    - [x] Ensure Next.js `<Image>` uses modern WebP/AVIF formats and responsive `sizes` attribute.
+    - [x] Run Lighthouse mobile audit on `/` and optimize Largest Contentful Paint (LCP ≤ 2.5s) and Cumulative Layout Shift (CLS ≤ 0.1).
   - **Acceptance Criteria:** Mobile Lighthouse score ≥ 85 on public pages; private pages have `robots: { index: false, follow: false }`.
 
 ---
