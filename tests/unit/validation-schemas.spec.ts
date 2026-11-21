@@ -9,6 +9,7 @@ import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-publish
 import { renderPaymentReceiptEmail } from '../../lib/email/templates/payment-receipt';
 import { renderPaymentFailedEmail } from '../../lib/email/templates/payment-failed';
 import { parseWordDietPlan, parseDietPlanFile, extractMealTime, formatMealTime, formatGuidanceBullets } from '../../lib/parsers/word-diet-parser';
+import { deriveGroceryListFromMeals } from '../../components/dashboard/grocery-overview';
 import {
   sanitizeAssessmentForExport,
   generateAssessmentDocHtml,
@@ -311,5 +312,87 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
     expect(textContent).not.toContain('ananya.secret@personalmail.com');
     expect(textContent).not.toContain('9876543210');
     expect(textContent).toContain('Ananya');
+  });
+
+  test('Grocery Checklist: Derives grocery items dynamically from actual meals in plan only', () => {
+    const dhruvMeals = [
+      {
+        id: '1',
+        diet_plan_id: 'p1',
+        day_of_week: 1,
+        meal_type: 'breakfast' as const,
+        scheduled_time: '16:00',
+        custom_title: '2 besan chillas (60 g besan total) + 100 g paneer stuffing (prefer low-fat) + 1 orange',
+        custom_portion: 'Standard',
+        custom_notes: 'Meal 1',
+        custom_alternatives: [],
+        order_index: 0,
+        created_at: '',
+      },
+      {
+        id: '2',
+        diet_plan_id: 'p1',
+        day_of_week: 1,
+        meal_type: 'lunch' as const,
+        scheduled_time: '21:00',
+        custom_title: '2 rotis + 1 katori moong dal + 1 katori mixed sabzi + 200 g plain curd + salad',
+        custom_portion: 'Standard',
+        custom_notes: 'Meal 2',
+        custom_alternatives: [],
+        order_index: 1,
+        created_at: '',
+      },
+      {
+        id: '3',
+        diet_plan_id: 'p1',
+        day_of_week: 1,
+        meal_type: 'dinner' as const,
+        scheduled_time: '02:00',
+        custom_title: '1.5 cups vegetable daliya + 200 g curd + 30 g roasted chana',
+        custom_portion: 'Standard',
+        custom_notes: 'Meal 3',
+        custom_alternatives: [],
+        order_index: 2,
+        created_at: '',
+      },
+      {
+        id: '4',
+        diet_plan_id: 'p1',
+        day_of_week: 2,
+        meal_type: 'lunch' as const,
+        scheduled_time: '21:00',
+        custom_title: '1 cup cooked rice + 1.5 katori rajma + 1 katori seasonal sabzi + salad',
+        custom_portion: 'Standard',
+        custom_notes: 'Meal 2',
+        custom_alternatives: [],
+        order_index: 1,
+        created_at: '',
+      },
+    ];
+
+    const categories = deriveGroceryListFromMeals(dhruvMeals);
+    const allExtractedItems = categories.flatMap((c) => c.items);
+
+    // 1. Check mentioned items are present
+    expect(allExtractedItems).toContain('Besan (Gram Flour)');
+    expect(allExtractedItems).toContain('Fresh Paneer');
+    expect(allExtractedItems).toContain('Fresh Curd / Dahi');
+    expect(allExtractedItems).toContain('Whole Wheat Atta (Rotis / Phulkas)');
+    expect(allExtractedItems).toContain('Moong Dal (Yellow / Green)');
+    expect(allExtractedItems).toContain('Daliya (Broken Wheat)');
+    expect(allExtractedItems).toContain('Roasted Chana');
+    expect(allExtractedItems).toContain('Rajma (Red Kidney Beans)');
+    expect(allExtractedItems).toContain('Rice (Basmati / White / Brown)');
+
+    // 2. Check items NOT mentioned in Dhruv meals are strictly excluded
+    expect(allExtractedItems).not.toContain('Yellow Toor Dal (Arhar)');
+    expect(allExtractedItems).not.toContain('Eggs');
+    expect(allExtractedItems).not.toContain('Chaas (Buttermilk)');
+    expect(allExtractedItems).not.toContain('Multigrain / Jowar Atta');
+    expect(allExtractedItems).not.toContain('Lauki (Bottle Gourd)');
+    expect(allExtractedItems).not.toContain('Palak (Spinach)');
+
+    // 3. Empty test
+    expect(deriveGroceryListFromMeals([])).toEqual([]);
   });
 });

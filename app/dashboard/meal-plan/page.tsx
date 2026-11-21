@@ -153,7 +153,7 @@ async function MealPlanContent({
       )}
 
       {/* Weekly Grocery Checklist */}
-      <GroceryOverview />
+      <GroceryOverview meals={meals} />
     </div>
   );
 }
