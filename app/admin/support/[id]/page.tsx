@@ -12,8 +12,23 @@ import {
   Sparkles,
   User,
   Loader2,
+  Eye,
 } from 'lucide-react';
 import type { SupportThread, SupportMessage } from '@/types/database.types';
+
+interface ExtendedThread extends SupportThread {
+  member?: {
+    id: string;
+    first_name: string;
+    last_name?: string | null;
+    email: string;
+    phone?: string | null;
+    planId?: 'normal' | 'premium' | null;
+    membershipTier?: string;
+  } | null;
+  membershipTier?: string;
+  planId?: 'normal' | 'premium' | null;
+}
 
 interface ExtendedMessage extends SupportMessage {
   sender?: {
@@ -39,7 +54,7 @@ const GUIDANCE_TEMPLATES = [
 ];
 
 function AdminThreadContent({ threadId }: { threadId: string }) {
-  const [thread, setThread] = useState<SupportThread | null>(null);
+  const [thread, setThread] = useState<ExtendedThread | null>(null);
   const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [replyText, setReplyText] = useState('');
   const [loading, setLoading] = useState(true);
@@ -121,8 +136,6 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
     );
   }
 
-  const isPremium = thread.priority === 'premium';
-
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 space-y-6">
       {/* Top Header */}
@@ -149,36 +162,86 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
         </div>
       </div>
 
-      {/* Ticket Details Box */}
-      <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-xs">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold text-[#1A2E1C]">{thread.subject}</h1>
-              {isPremium && (
-                <span className="flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                  <Zap className="h-3 w-3" /> Premium Tier Priority
+      {/* Client Overview & Ticket Details Box */}
+      <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-xs space-y-4">
+        {/* Top bar: Client Name, Membership Tier, Client View Button, and Status */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-xl font-extrabold text-[#1A2E1C]">
+                {thread.member
+                  ? [thread.member.first_name, thread.member.last_name].filter(Boolean).join(' ') || 'Member'
+                  : 'Member Inquiry'}
+              </h1>
+              {thread.planId === 'premium' || thread.priority === 'premium' ? (
+                <span className="flex items-center gap-1 rounded-full bg-purple-100 px-2.5 py-0.5 text-xs font-bold text-purple-800 border border-purple-200">
+                  <Zap className="h-3.5 w-3.5" /> Premium Plan (₹999)
+                </span>
+              ) : thread.planId === 'normal' ? (
+                <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-bold text-emerald-800 border border-emerald-200">
+                  Normal Plan (₹499)
+                </span>
+              ) : (
+                <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700 border border-gray-200">
+                  Standard Member
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-400 mt-1">
-              Ticket ID: {thread.id} • Created {new Date(thread.created_at).toLocaleString('en-IN')}
-            </p>
+
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+              {thread.member?.email && <span>✉️ {thread.member.email}</span>}
+              {thread.member?.phone && (
+                <a href={`tel:${thread.member.phone}`} className="font-semibold text-emerald-800 hover:underline">
+                  📞 +91 {thread.member.phone}
+                </a>
+              )}
+              {thread.member?.phone && (
+                <a
+                  href={`https://wa.me/91${thread.member.phone.replace(/\D/g, '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="rounded bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold hover:bg-emerald-200"
+                >
+                  WhatsApp
+                </a>
+              )}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-500">Status:</span>
-            <select
-              value={thread.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              className="rounded-xl border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-[#1A2E1C] focus:border-[#2FAF37] focus:outline-none"
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/dashboard?asMember=${thread.user_id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs"
             >
-              <option value="open">Open</option>
-              <option value="waiting_member">Waiting for Member</option>
-              <option value="resolved">Resolved</option>
-              <option value="closed">Closed</option>
-            </select>
+              <Eye className="h-3.5 w-3.5 text-[#2FAF37]" />
+              <span>View Client Dashboard</span>
+            </Link>
+
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-gray-500">Status:</span>
+              <select
+                value={thread.status}
+                onChange={(e) => handleStatusChange(e.target.value)}
+                className="rounded-xl border border-gray-200 bg-white px-2.5 py-1 text-xs font-semibold text-[#1A2E1C] focus:border-[#2FAF37] focus:outline-none"
+              >
+                <option value="open">Open</option>
+                <option value="waiting_member">Waiting for Member</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
           </div>
+        </div>
+
+        {/* Inquiry Subject */}
+        <div>
+          <span className="text-xs text-gray-400 font-medium uppercase tracking-wider block">Inquiry Subject</span>
+          <p className="text-sm font-bold text-[#1A2E1C] mt-0.5">{thread.subject}</p>
+          <p className="text-[11px] text-gray-400 mt-0.5">
+            Ticket ID: {thread.id} • Created {new Date(thread.created_at).toLocaleString('en-IN')}
+          </p>
         </div>
       </div>
 

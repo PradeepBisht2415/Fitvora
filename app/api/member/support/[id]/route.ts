@@ -69,8 +69,47 @@ export async function GET(
       sender: senderMap.get(m.sender_id) || null,
     }));
 
+    // Enrich thread with member profile and active subscription
+    const { data: memberProfile } = await adminSupabase
+      .from('profiles')
+      .select('id, first_name, last_name, email, phone')
+      .eq('id', thread.user_id)
+      .maybeSingle();
+
+    const { data: memberSub } = await adminSupabase
+      .from('subscriptions')
+      .select('plan_id, status')
+      .eq('user_id', thread.user_id)
+      .eq('status', 'active')
+      .maybeSingle();
+
+    const enrichedThread = {
+      ...thread,
+      member: memberProfile
+        ? {
+            ...memberProfile,
+            planId: memberSub?.plan_id || null,
+            membershipTier:
+              memberSub?.plan_id === 'premium'
+                ? 'Premium Plan (₹999)'
+                : memberSub?.plan_id === 'normal'
+                ? 'Normal Plan (₹499)'
+                : 'Standard Member',
+          }
+        : null,
+      membershipTier:
+        memberSub?.plan_id === 'premium'
+          ? 'Premium Plan (₹999)'
+          : memberSub?.plan_id === 'normal'
+          ? 'Normal Plan (₹499)'
+          : thread.priority === 'premium'
+          ? 'Premium Plan (₹999)'
+          : 'Standard Member',
+      planId: memberSub?.plan_id || (thread.priority === 'premium' ? 'premium' : 'normal'),
+    };
+
     return NextResponse.json({
-      thread,
+      thread: enrichedThread,
       messages: enrichedMessages,
     });
   } catch (err) {

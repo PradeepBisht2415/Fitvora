@@ -37,19 +37,48 @@ export async function GET() {
       return NextResponse.json({ error: 'Failed to fetch threads' }, { status: 500 });
     }
 
-    // Enrich with member profiles
+    // Enrich with member profiles and active subscriptions
     const userIds = Array.from(new Set((threads || []).map((t) => t.user_id)));
     const { data: profiles } = await adminSupabase
       .from('profiles')
-      .select('id, first_name, last_name, email')
+      .select('id, first_name, last_name, email, phone')
       .in('id', userIds);
 
-    const profileMap = new Map((profiles || []).map((p) => [p.id, p]));
+    const { data: subscriptions } = await adminSupabase
+      .from('subscriptions')
+      .select('user_id, plan_id, status')
+      .in('user_id', userIds)
+      .eq('status', 'active');
 
-    const enriched = (threads || []).map((t) => ({
-      ...t,
-      member: profileMap.get(t.user_id) || null,
-    }));
+    const subMap = new Map((subscriptions || []).map((s) => [s.user_id, s.plan_id]));
+
+    const profileMap = new Map(
+      (profiles || []).map((p) => [
+        p.id,
+        {
+          ...p,
+          planId: subMap.get(p.id) || null,
+          membershipTier:
+            subMap.get(p.id) === 'premium'
+              ? 'Premium Plan (₹999)'
+              : subMap.get(p.id) === 'normal'
+              ? 'Normal Plan (₹499)'
+              : 'Standard Member',
+        },
+      ])
+    );
+
+    const enriched = (threads || []).map((t) => {
+      const member = profileMap.get(t.user_id) || null;
+      return {
+        ...t,
+        member,
+        membershipTier:
+          member?.membershipTier ||
+          (t.priority === 'premium' ? 'Premium Plan (₹999)' : 'Normal Plan (₹499)'),
+        planId: member?.planId || (t.priority === 'premium' ? 'premium' : 'normal'),
+      };
+    });
 
     return NextResponse.json({ threads: enriched });
   } catch (err) {

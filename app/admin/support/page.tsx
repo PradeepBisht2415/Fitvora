@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import Link from 'next/link';
 import { AdminNav } from '@/components/admin/admin-nav';
 import { Button } from '@/components/ui/button';
-import { Search, Zap, Clock, CheckCircle2, MessageSquare, RefreshCw } from 'lucide-react';
+import { Search, Zap, Clock, CheckCircle2, MessageSquare, RefreshCw, Eye } from 'lucide-react';
 import type { SupportThread } from '@/types/database.types';
 
 interface ExtendedThread extends SupportThread {
@@ -13,7 +13,12 @@ interface ExtendedThread extends SupportThread {
     first_name: string;
     last_name?: string | null;
     email: string;
+    phone?: string | null;
+    planId?: 'normal' | 'premium' | null;
+    membershipTier?: string;
   } | null;
+  membershipTier?: string;
+  planId?: 'normal' | 'premium' | null;
 }
 
 function AdminSupportContent() {
@@ -48,7 +53,8 @@ function AdminSupportContent() {
         ? `${t.member.first_name} ${t.member.last_name || ''}`.toLowerCase().includes(q)
         : false;
       const matchEmail = t.member?.email.toLowerCase().includes(q) || false;
-      return matchSubject || matchName || matchEmail;
+      const matchTier = (t.membershipTier || '').toLowerCase().includes(q);
+      return matchSubject || matchName || matchEmail || matchTier;
     }
     return true;
   });
@@ -119,18 +125,22 @@ function AdminSupportContent() {
           ) : (
             <div className="divide-y divide-gray-100">
               {filtered.map((thread) => {
-                const isPremium = thread.priority === 'premium';
+                const memberName = thread.member
+                  ? [thread.member.first_name, thread.member.last_name].filter(Boolean).join(' ') || 'Member'
+                  : 'Member';
+                const isPremium = thread.planId === 'premium' || thread.priority === 'premium';
+                const isNormal = thread.planId === 'normal';
+
                 return (
-                  <Link
+                  <div
                     key={thread.id}
-                    href={`/admin/support/${thread.id}`}
                     className="flex flex-col sm:flex-row sm:items-center justify-between p-4 hover:bg-emerald-50/20 transition-colors gap-3"
                   >
                     <div className="flex items-start gap-3">
                       <div
-                        className={`mt-0.5 flex h-8 w-8 items-center justify-center rounded-xl shrink-0 ${
+                        className={`mt-0.5 flex h-9 w-9 items-center justify-center rounded-xl shrink-0 ${
                           isPremium
-                            ? 'bg-amber-100 text-amber-800'
+                            ? 'bg-purple-100 text-purple-800'
                             : 'bg-emerald-100 text-[#075B2B]'
                         }`}
                       >
@@ -141,40 +151,71 @@ function AdminSupportContent() {
                         )}
                       </div>
 
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="text-sm font-bold text-[#1A2E1C]">
-                            {thread.subject}
-                          </h4>
-                          {isPremium && (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">
-                              ⚡ Premium
+                      <div className="space-y-1">
+                        {/* 1. Client Name & Membership Type Badge */}
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Link
+                            href={`/admin/support/${thread.id}`}
+                            className="text-sm font-bold text-[#1A2E1C] hover:text-[#075B2B] hover:underline"
+                          >
+                            {memberName}
+                          </Link>
+
+                          {isPremium ? (
+                            <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-[11px] font-bold text-purple-800 border border-purple-200 flex items-center gap-1">
+                              <Zap className="h-3 w-3" /> Premium Plan (₹999)
+                            </span>
+                          ) : isNormal ? (
+                            <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800 border border-emerald-200">
+                              Normal Plan (₹499)
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-700 border border-gray-200">
+                              Standard Member
                             </span>
                           )}
                         </div>
 
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          {thread.member
-                            ? `${thread.member.first_name} ${thread.member.last_name || ''} (${thread.member.email})`
-                            : 'Unknown Member'}
-                        </p>
+                        {/* 2. Inquiry / Subject */}
+                        <div className="text-xs text-[#1A2E1C]">
+                          <span className="text-gray-400 font-medium">Inquiry:</span>{' '}
+                          <Link
+                            href={`/admin/support/${thread.id}`}
+                            className="font-semibold text-gray-800 hover:underline"
+                          >
+                            {thread.subject}
+                          </Link>
+                        </div>
+
+                        {/* 3. Contact details (email & phone) */}
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] text-gray-500">
+                          {thread.member?.email && <span>✉️ {thread.member.email}</span>}
+                          {thread.member?.phone && (
+                            <a
+                              href={`tel:${thread.member.phone}`}
+                              className="font-semibold text-[#075B2B] hover:underline"
+                            >
+                              📞 +91 {thread.member.phone}
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0">
+                    <div className="flex items-center justify-between sm:justify-end gap-2.5 shrink-0">
                       <div>
                         {thread.status === 'open' && (
-                          <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                          <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-[10px] font-semibold text-blue-700 border border-blue-200">
                             <Clock className="h-3 w-3" /> Open / Needs Reply
                           </span>
                         )}
                         {thread.status === 'waiting_member' && (
-                          <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                          <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-0.5 text-[10px] font-semibold text-amber-700 border border-amber-200">
                             Waiting for Member
                           </span>
                         )}
                         {thread.status === 'resolved' && (
-                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-[#075B2B]">
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-semibold text-[#075B2B] border border-emerald-200">
                             <CheckCircle2 className="h-3 w-3" /> Resolved
                           </span>
                         )}
@@ -188,8 +229,29 @@ function AdminSupportContent() {
                           minute: '2-digit',
                         })}
                       </span>
+
+                      <Link
+                        href={`/dashboard?asMember=${thread.user_id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs"
+                        title="View client dashboard"
+                      >
+                        <Eye className="h-3 w-3 text-[#2FAF37]" />
+                        <span>Client View</span>
+                      </Link>
+
+                      <Link href={`/admin/support/${thread.id}`}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-2.5 text-xs border-gray-200 text-gray-700 hover:bg-gray-100"
+                        >
+                          Reply
+                        </Button>
+                      </Link>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
