@@ -16,6 +16,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
+import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
 
 async function DashboardContent({
   searchParams,
@@ -96,6 +97,7 @@ async function DashboardContent({
     .eq('user_id', effectiveUserId)
     .eq('status', 'published')
     .order('version', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -253,8 +255,8 @@ async function DashboardContent({
               Founder Guidance & Hydration Reminders
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-xs text-[#1A2E1C]/80 leading-relaxed">
-            {publishedPlan.guidance_notes}
+          <CardContent className="text-xs text-[#1A2E1C]/90 leading-relaxed whitespace-pre-line space-y-2 font-normal">
+            {formatGuidanceBullets(publishedPlan.guidance_notes)}
           </CardContent>
         </Card>
       )}

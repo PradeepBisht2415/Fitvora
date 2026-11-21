@@ -64,7 +64,7 @@ export function MealCard({ meal, isNext }: MealCardProps) {
             </div>
           </div>
 
-          {meal.custom_notes && (
+          {meal.custom_notes && !/^meal\s*\d+$/i.test(meal.custom_notes.trim()) && (
             <p className="text-gray-600 text-[11px] leading-relaxed flex items-start gap-1.5">
               <Sparkles className="h-3.5 w-3.5 text-[#2FAF37] shrink-0 mt-0.5" />
               <span>{meal.custom_notes}</span>

@@ -48,12 +48,23 @@ export async function saveDietPlanAction(params: SavePlanParams): Promise<{
     let targetPlanId = params.dietPlanId;
 
     if (!targetPlanId) {
+      // Find latest version for this user to increment it
+      const { data: latestExisting } = await adminSupabase
+        .from('diet_plans')
+        .select('version')
+        .eq('user_id', userId)
+        .order('version', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const nextVersion = (latestExisting?.version ?? 0) + 1;
+
       // 1. Create plan header
       const { data: newPlan, error: planErr } = await adminSupabase
         .from('diet_plans')
         .insert({
           user_id: userId,
-          version: 1,
+          version: nextVersion,
           status,
           effective_start_date: new Date().toISOString().split('T')[0]!,
           guidance_notes: guidanceNotes || null,
@@ -116,7 +127,7 @@ export async function saveDietPlanAction(params: SavePlanParams): Promise<{
     if (status === 'published') {
       await adminSupabase
         .from('diet_plans')
-        .update({ status: 'archived' })
+        .update({ status: 'archived', updated_at: new Date().toISOString() })
         .eq('user_id', userId)
         .neq('id', targetPlanId)
         .eq('status', 'published');
@@ -136,6 +147,7 @@ export async function saveDietPlanAction(params: SavePlanParams): Promise<{
 
     revalidatePath('/dashboard');
     revalidatePath('/dashboard/meal-plan');
+    revalidatePath(`/admin/members/${userId}`);
     return { success: true, dietPlanId: targetPlanId };
   } catch (err) {
     console.error('Error saving diet plan:', err);

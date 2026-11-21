@@ -8,7 +8,7 @@ import { renderAssessmentApprovedEmail } from '../../lib/email/templates/assessm
 import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-published';
 import { renderPaymentReceiptEmail } from '../../lib/email/templates/payment-receipt';
 import { renderPaymentFailedEmail } from '../../lib/email/templates/payment-failed';
-import { parseWordDietPlan, parseDietPlanFile, extractMealTime, formatMealTime } from '../../lib/parsers/word-diet-parser';
+import { parseWordDietPlan, parseDietPlanFile, extractMealTime, formatMealTime, formatGuidanceBullets } from '../../lib/parsers/word-diet-parser';
 import {
   sanitizeAssessmentForExport,
   generateAssessmentDocHtml,
@@ -217,8 +217,26 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
     expect(tueMeal2?.customTitle).toContain('rajma');
 
     // Guidance Notes
-    expect(parsed.guidanceNotes).toContain('Water: Aim for about 2.5–3 L');
-    expect(parsed.guidanceNotes).toContain('Portion key');
+    expect(parsed.guidanceNotes).toContain('• Water: Aim for about 2.5–3 L');
+    expect(parsed.guidanceNotes).toContain('• Portion key');
+  });
+
+  test('Guidance Formatting: Splits run-on guidance reminders into clean bullet points with line breaks', () => {
+    const rawRunOn =
+      'Water: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst. Do not force excess water.Limit: Sugary drinks, packaged juices, fried snacks.Protein: Include dal, chana, rajma, curd with each main meal.Portions: Follow the Day 1–Day 7 serving sizes.Walk: Aim for 25–30 minutes of brisk walking most days.Strength: Add simple resistance exercises 2–3 days per week.Sleep: Protect 7–9 hours of sleep.Track: Compare weekly average weights.Note: The reported 11 PM–7 AM sleep window conflicts with overnight shift.';
+
+    const formatted = formatGuidanceBullets(rawRunOn);
+    expect(formatted).toContain('• Water:');
+    expect(formatted).toContain('• Limit:');
+    expect(formatted).toContain('• Protein:');
+    expect(formatted).toContain('• Portions:');
+    expect(formatted).toContain('• Walk:');
+    expect(formatted).toContain('• Strength:');
+    expect(formatted).toContain('• Sleep:');
+    expect(formatted).toContain('• Track:');
+    expect(formatted).toContain('• Note:');
+    // Ensure separate lines
+    expect(formatted.split('\n\n').length).toBeGreaterThanOrEqual(8);
   });
 
   test('Privacy Invariant: Assessment downloadable file strictly excludes Email and Contact Phone Number', () => {

@@ -6,12 +6,15 @@ import { WeeklyPlanTabs } from '@/components/dashboard/weekly-plan-tabs';
 import { GroceryOverview } from '@/components/dashboard/grocery-overview';
 import { PlanPendingCard } from '@/components/dashboard/plan-pending-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
   CreditCard,
   ArrowLeft,
   Loader2,
+  Sparkles,
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
+import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
 
 async function MealPlanContent({
   searchParams,
@@ -76,6 +79,7 @@ async function MealPlanContent({
     .eq('user_id', effectiveUserId)
     .eq('status', 'published')
     .order('version', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
 
@@ -132,6 +136,21 @@ async function MealPlanContent({
 
       {/* 7-Day Interactive Tabs */}
       <WeeklyPlanTabs meals={meals} />
+
+      {/* Founder Guidance Notes */}
+      {publishedPlan.guidance_notes && (
+        <Card className="bg-white border-emerald-100 shadow-xs">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-bold text-[#075B2B] flex items-center gap-1.5 uppercase tracking-wider">
+              <Sparkles className="h-4 w-4 text-[#2FAF37]" />
+              Founder Guidance & Hydration Reminders
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-[#1A2E1C]/90 leading-relaxed whitespace-pre-line space-y-2 font-normal">
+            {formatGuidanceBullets(publishedPlan.guidance_notes)}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Weekly Grocery Checklist */}
       <GroceryOverview />

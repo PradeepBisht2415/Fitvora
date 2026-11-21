@@ -135,17 +135,46 @@ export function formatMealTime(timeStr?: string | null): string {
   return trimmed;
 }
 
+/**
+ * Formats guidance notes into clean, bulleted, readable text with proper line breaks.
+ */
+export function formatGuidanceBullets(text?: string | null): string {
+  if (!text) return '';
+  let formatted = text.replace(
+    /([.!?])\s*(Water:|Limit:|Protein:|Portions?:|Walk:|Strength:|Sleep:|Track:|Note:|Ask:|Portion key:|Mess \/ tiffin (?:ordering )?rules:?)/gi,
+    '$1\n\n• $2'
+  );
+  formatted = formatted.replace(
+    /^([ \t]*)(Water:|Limit:|Protein:|Portions?:|Walk:|Strength:|Sleep:|Track:|Note:|Ask:|Portion key:)/gim,
+    '$1• $2'
+  );
+  formatted = formatted.replace(/•\s*•/g, '•');
+  return formatted.trim();
+}
+
 function cleanHtmlText(html: string): string {
-  return html
-    .replace(/<br\s*\/?>/gi, '\n')
+  // First handle table cells and rows
+  // Within table cells (td/th), replace p and br tags with spaces so cell text stays on one line
+  let cleaned = html.replace(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi, (_match, inner) => {
+    const cellText = inner.replace(/<\/?p[^>]*>/gi, ' ').replace(/<br\s*\/?>/gi, ' ').replace(/\s+/g, ' ').trim();
+    return cellText + ' | ';
+  });
+
+  // End table rows with newline
+  cleaned = cleaned.replace(/<\/tr>/gi, '\n');
+
+  // Headings, paragraphs, and breaks outside cells
+  cleaned = cleaned
+    .replace(/<\/h[1-6]>/gi, '\n\n')
     .replace(/<\/p>/gi, '\n')
-    .replace(/<\/tr>/gi, '\n')
-    .replace(/<\/td>/gi, ' | ')
+    .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<[^>]+>/g, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>');
+
+  return cleaned;
 }
 
 function cleanMealContent(line: string): string {
@@ -225,7 +254,12 @@ function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: st
     if (!line.includes('|') && !line.includes('\t')) continue;
 
     const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
-    if (parts.length >= 2 && /^day/i.test(parts[0]!)) {
+    const isDayHeader =
+      parts.length >= 2 &&
+      /\bday\b/i.test(parts[0]!) &&
+      parts.some((p) => /meal\s*\d|am|pm|breakfast|lunch|dinner/i.test(p));
+
+    if (isDayHeader) {
       headerIndex = i;
       for (let c = 1; c < parts.length; c++) {
         const colHeader = parts[c]!;
@@ -282,7 +316,14 @@ function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: st
     if (parts.length < 2) continue;
 
     const dayLabel = parts[0]!.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
-    const dayOfWeek = DAY_MAP[dayLabel];
+    let dayOfWeek = DAY_MAP[dayLabel];
+    if (dayOfWeek === undefined) {
+      const dayMatch = dayLabel.match(/(?:day\s*(\d)|(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun))/i);
+      if (dayMatch) {
+        const key = (dayMatch[1] ? `day ${dayMatch[1]}` : dayMatch[2]!).toLowerCase();
+        dayOfWeek = DAY_MAP[key];
+      }
+    }
     if (dayOfWeek === undefined) continue;
 
     daysDetected.add(parts[0]!);
@@ -300,7 +341,7 @@ function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: st
         scheduledTime: col.time,
         customTitle: content.trim(),
         customPortion: portion !== 'Standard household portion' ? portion : 'Measured menu serving',
-        customNotes: `${col.mealLabel} · ${formatMealTime(col.time)}`,
+        customNotes: col.mealLabel,
         customAlternatives: [],
         allergenTags: [],
         orderIndex: col.orderIndex,
@@ -367,10 +408,12 @@ function extractAllGuidanceNotes(lines: string[]): string {
   }
 
   if (guidanceLines.length > 0) {
-    return guidanceLines.join('\n\n');
+    return formatGuidanceBullets(guidanceLines.join('\n\n'));
   }
 
-  return 'Drink 2.5–3 liters of water throughout the day. Finish dinner at least 2 hours before sleeping. Feel free to use the swap alternatives if any ingredient is unavailable.';
+  return formatGuidanceBullets(
+    'Drink 2.5–3 liters of water throughout the day. Finish dinner at least 2 hours before sleeping. Feel free to use the swap alternatives if any ingredient is unavailable.'
+  );
 }
 
 /**
