@@ -253,6 +253,114 @@ export interface Database {
         };
         Relationships: [];
       };
+      plans_catalog: {
+        Row: {
+          id: string;
+          name: string;
+          price_paise: number;
+          currency: string;
+          billing_interval: string;
+          features: Json;
+          is_active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          price_paise: number;
+          currency?: string;
+          billing_interval?: string;
+          features?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          price_paise?: number;
+          currency?: string;
+          billing_interval?: string;
+          features?: Json;
+          is_active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      subscriptions: {
+        Row: {
+          id: string;
+          user_id: string;
+          plan_id: string;
+          provider_customer_id: string | null;
+          provider_subscription_id: string | null;
+          status: 'created' | 'authenticated' | 'active' | 'pending' | 'halted' | 'cancelled' | 'completed' | 'expired';
+          current_period_start: string | null;
+          current_period_end: string | null;
+          cancel_at_period_end: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          plan_id: string;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          status: 'created' | 'authenticated' | 'active' | 'pending' | 'halted' | 'cancelled' | 'completed' | 'expired';
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          plan_id?: string;
+          provider_customer_id?: string | null;
+          provider_subscription_id?: string | null;
+          status?: 'created' | 'authenticated' | 'active' | 'pending' | 'halted' | 'cancelled' | 'completed' | 'expired';
+          current_period_start?: string | null;
+          current_period_end?: string | null;
+          cancel_at_period_end?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      payment_events: {
+        Row: {
+          id: string;
+          provider_event_id: string;
+          event_type: string;
+          signature_verified: boolean;
+          processed_status: 'processed' | 'ignored' | 'failed';
+          payload: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          provider_event_id: string;
+          event_type: string;
+          signature_verified?: boolean;
+          processed_status: 'processed' | 'ignored' | 'failed';
+          payload: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          provider_event_id?: string;
+          event_type?: string;
+          signature_verified?: boolean;
+          processed_status?: 'processed' | 'ignored' | 'failed';
+          payload?: Json;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -301,3 +409,9 @@ export type AssessmentReviewInsert = Database['public']['Tables']['assessment_re
 
 export type ConsentRecord = Database['public']['Tables']['consent_records']['Row'];
 export type AuditLog = Database['public']['Tables']['audit_logs']['Row'];
+
+export type PlanCatalog = Database['public']['Tables']['plans_catalog']['Row'];
+export type Subscription = Database['public']['Tables']['subscriptions']['Row'];
+export type SubscriptionInsert = Database['public']['Tables']['subscriptions']['Insert'];
+export type SubscriptionUpdate = Database['public']['Tables']['subscriptions']['Update'];
+export type PaymentEvent = Database['public']['Tables']['payment_events']['Row'];

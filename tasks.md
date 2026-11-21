@@ -360,7 +360,7 @@ Legend:
 > **Prerequisites:** Phase 0 and Phase 1 completed.  
 > **Phase Exit Criteria:** Approved lead claims assessment via invitation, completes sandbox payment for both ₹499 and ₹999 plans; failed payments deny access; duplicate webhooks do not duplicate entitlements; active membership unlocks `/dashboard`.
 
-- [ ] **TASK-2.1: Member Auth Skeleton & Assessment Account Claiming** `[P0]`
+- [x] **TASK-2.1: Member Auth Skeleton & Assessment Account Claiming** `[P0]`
   - **Module:** Authentication & Onboarding
   - **Dependencies:** `TASK-0.4`, `TASK-1.7`
   - **Target Files:**
@@ -371,22 +371,22 @@ Legend:
     - `features/auth/claim-action.ts`
   - **Description:** Implement email/password and magic-link authentication with email verification, along with an invitation-based account claim flow that securely links an approved assessment to a newly created member profile.
   - **Atomic Subtasks:**
-    - [ ] Implement Supabase Auth `/login`, `/signup`, `/reset-password` pages matching the Fitvora brand palette.
-    - [ ] Create `/claim?token=...` route:
+    - [x] Implement Supabase Auth `/login`, `/signup`, `/reset-password` pages matching the Fitvora brand palette.
+    - [x] Create `/claim?token=...` route:
       - Validates token hash against `assessments` where `status = 'approved'` and `user_id IS NULL`.
       - Prefills email and first name; prompts user to set a secure password.
       - On successful auth signup, links `assessments.user_id = auth.uid()` and creates `memberships` entry with status `invited`.
-    - [ ] Enforce email verification before allowing access to billing checkout.
+    - [x] Enforce email verification before allowing access to billing checkout.
   - **Acceptance Criteria:** User cannot claim an unapproved or already-claimed assessment; verified signup correctly associates the assessment ID with the new user profile.
 
-- [ ] **TASK-2.2: Plans Catalog & Subscription Schema Migration** `[P0]`
+- [x] **TASK-2.2: Plans Catalog & Subscription Schema Migration** `[P0]`
   - **Module:** Database Schema
   - **Dependencies:** `TASK-0.5`
   - **Target Files:**
     - `supabase/migrations/20261121000003_subscriptions_schema.sql`
   - **Description:** Implement database tables for subscription tiers, active subscriptions, and idempotent payment event logging.
   - **Atomic Subtasks:**
-    - [ ] Create `plans_catalog` table:
+    - [x] Create `plans_catalog` table:
       - `id`: text primary key (`normal`, `premium`).
       - `name`: text not null ('Normal Plan', 'Premium Plan').
       - `price_paise`: integer not null (49900 for ₹499, 99900 for ₹999).
@@ -394,7 +394,7 @@ Legend:
       - `billing_interval`: text not null default 'month'.
       - `features`: jsonb not null.
       - `is_active`: boolean not null default true.
-    - [ ] Create `subscriptions` table:
+    - [x] Create `subscriptions` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `user_id`: uuid not null references `profiles(id)`.
       - `plan_id`: text not null references `plans_catalog(id)`.
@@ -406,7 +406,7 @@ Legend:
       - `cancel_at_period_end`: boolean default false.
       - `created_at`: timestamptz not null default `now()`.
       - `updated_at`: timestamptz not null default `now()`.
-    - [ ] Create `payment_events` table:
+    - [x] Create `payment_events` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `provider_event_id`: text not null unique,
       - `event_type`: text not null,
@@ -414,10 +414,10 @@ Legend:
       - `processed_status`: text not null check (`processed_status in ('processed', 'ignored', 'failed')`),
       - `payload`: jsonb not null,
       - `created_at`: timestamptz not null default `now()`.
-    - [ ] Apply RLS: Members can view only their own subscription records; payment events are restricted to service role.
+    - [x] Apply RLS: Members can view only their own subscription records; payment events are restricted to service role.
   - **Acceptance Criteria:** Migration runs cleanly; `payment_events` enforces unique `provider_event_id` constraint preventing duplicate processing.
 
-- [ ] **TASK-2.3: Razorpay Subscription Gateway Integration** `[P0]`
+- [x] **TASK-2.3: Razorpay Subscription Gateway Integration** `[P0]`
   - **Module:** Billing & Integrations
   - **Dependencies:** `TASK-2.2`
   - **Target Files:**
@@ -426,8 +426,8 @@ Legend:
     - `types/billing.types.ts`
   - **Description:** Configure Razorpay SDK to create recurring subscription orders, manage customer entities, and initiate hosted checkout.
   - **Atomic Subtasks:**
-    - [ ] Install `razorpay` npm package and configure singleton in `lib/integrations/razorpay.ts` with strict error handling.
-    - [ ] Implement `POST /api/billing/checkout`:
+    - [x] Install `razorpay` npm package and configure singleton in `lib/integrations/razorpay.ts` with strict error handling.
+    - [x] Implement `POST /api/billing/checkout`:
       - Verify user is authenticated and has an approved assessment.
       - Validate requested plan (`normal` vs `premium`).
       - Create or retrieve Razorpay customer record for `user_id`.
@@ -435,7 +435,7 @@ Legend:
       - Return `{ subscription_id: string, key_id: string, amount: number, currency: 'INR' }`.
   - **Acceptance Criteria:** Checkout API generates valid Razorpay subscription ID in sandbox mode; rejects unauthenticated or unapproved users.
 
-- [ ] **TASK-2.4: Checkout Interface & Legal Billing Disclosures** `[P0]`
+- [x] **TASK-2.4: Checkout Interface & Legal Billing Disclosures** `[P0]`
   - **Module:** Billing Frontend
   - **Dependencies:** `TASK-2.3`
   - **Target Files:**
@@ -444,14 +444,14 @@ Legend:
     - `components/billing/razorpay-button.tsx`
   - **Description:** Build the responsive checkout page with order summary, explicit recurring billing disclosures, refund policy consent checkbox, and Razorpay standard checkout popup.
   - **Atomic Subtasks:**
-    - [ ] Build `/checkout` route reading selected plan from query parameters (`?plan=normal` or `?plan=premium`).
-    - [ ] Display order breakdown: plan name, billing cycle (Monthly), gross amount in INR (₹499 or ₹999), and tax notice.
-    - [ ] Add mandatory consent checkbox: "I understand this is a monthly recurring wellness subscription. I have read the Refund Policy and understand diets are individualized home food plans, not clinical cures."
-    - [ ] Implement client-side Razorpay modal invocation script (`https://checkout.razorpay.com/v1/checkout.js`) with brand colors (`#075B2B`).
-    - [ ] Handle Razorpay modal dismissal and payment error states gracefully with clear user guidance.
+    - [x] Build `/checkout` route reading selected plan from query parameters (`?plan=normal` or `?plan=premium`).
+    - [x] Display order breakdown: plan name, billing cycle (Monthly), gross amount in INR (₹499 or ₹999), and tax notice.
+    - [x] Add mandatory consent checkbox: "I understand this is a monthly recurring wellness subscription. I have read the Refund Policy and understand diets are individualized home food plans, not clinical cures."
+    - [x] Implement client-side Razorpay modal invocation script (`https://checkout.razorpay.com/v1/checkout.js`) with brand colors (`#075B2B`).
+    - [x] Handle Razorpay modal dismissal and payment error states gracefully with clear user guidance.
   - **Acceptance Criteria:** User cannot open payment modal without checking terms and refund consent; successful modal completion displays a processing loader while webhook confirms.
 
-- [ ] **TASK-2.5: Razorpay Webhook Ingestion & Idempotent Event Engine** `[P0]`
+- [x] **TASK-2.5: Razorpay Webhook Ingestion & Idempotent Event Engine** `[P0]`
   - **Module:** Billing Backend
   - **Dependencies:** `TASK-2.2`, `TASK-2.3`
   - **Target Files:**
@@ -459,19 +459,19 @@ Legend:
     - `features/billing/webhook-processor.ts`
   - **Description:** Build a hardened webhook handler that verifies HMAC-SHA256 signatures, deduplicates events using `payment_events`, and updates member subscription states.
   - **Atomic Subtasks:**
-    - [ ] Implement `POST /api/webhooks/payments`:
+    - [x] Implement `POST /api/webhooks/payments`:
       - Extract `x-razorpay-signature` and raw body text.
       - Validate signature against `RAZORPAY_WEBHOOK_SECRET` using crypto HMAC-SHA256. Return HTTP 400 if invalid.
       - Check `payment_events` table for `provider_event_id`. If already present, return HTTP 200 immediately (idempotency).
       - Insert raw sanitized payload into `payment_events`.
-    - [ ] Implement event handler switch in `webhook-processor.ts`:
+    - [x] Implement event handler switch in `webhook-processor.ts`:
       - `subscription.authenticated` / `subscription.activated`: set `subscriptions.status = 'active'`, update `current_period_start`/`end`, set `memberships.lifecycle_status = 'active'`.
       - `subscription.charged`: update renewal period dates.
       - `subscription.halted` / `payment.failed`: set status to `halted`, send failure notification.
       - `subscription.cancelled`: set `cancel_at_period_end = true` or `status = 'cancelled'`.
   - **Acceptance Criteria:** Duplicate webhooks do not double-activate memberships; invalid signatures return HTTP 400; verified subscriptions transition member state to `active`.
 
-- [ ] **TASK-2.6: Member Subscription & Billing Portal** `[P0]`
+- [x] **TASK-2.6: Member Subscription & Billing Portal** `[P0]`
   - **Module:** Member Dashboard
   - **Dependencies:** `TASK-2.5`
   - **Target Files:**
@@ -481,13 +481,13 @@ Legend:
     - `features/billing/subscription-actions.ts`
   - **Description:** Provide members with a self-service billing page showing current tier (Normal/Premium), next renewal date, payment history, and cancellation controls.
   - **Atomic Subtasks:**
-    - [ ] Display current subscription status card with tier badge, renewal date, and billing amount.
-    - [ ] Provide "Cancel Subscription" button with modal confirmation explaining access remains active until the end of the current paid billing period.
-    - [ ] Implement server action to call Razorpay cancel API (`cancel_at_cycle_end: true`) and update local `subscriptions` table.
-    - [ ] Display link to refund policy and support contact for billing questions.
+    - [x] Display current subscription status card with tier badge, renewal date, and billing amount.
+    - [x] Provide "Cancel Subscription" button with modal confirmation explaining access remains active until the end of the current paid billing period.
+    - [x] Implement server action to call Razorpay cancel API (`cancel_at_cycle_end: true`) and update local `subscriptions` table.
+    - [x] Display link to refund policy and support contact for billing questions.
   - **Acceptance Criteria:** Member can view billing details and initiate cancellation; cancelled status updates immediately in UI reflecting active access until period end.
 
-- [ ] **TASK-2.7: Admin Members & Subscriptions Management** `[P0]`
+- [x] **TASK-2.7: Admin Members & Subscriptions Management** `[P0]`
   - **Module:** Admin Operations
   - **Dependencies:** `TASK-2.5`
   - **Target Files:**
@@ -497,10 +497,10 @@ Legend:
     - `components/admin/member-table.tsx`
   - **Description:** Build administrative directories for the founder to search members, inspect subscription health, view payment status, and audit member lifecycles.
   - **Atomic Subtasks:**
-    - [ ] Build `/admin/members`: searchable table showing Name, Email, Tier (Normal/Premium), Joined Date, Plan Status (Draft/Published/None), and Last Check-in.
-    - [ ] Build `/admin/subscriptions`: overview of provider-synced subscriptions, billing failures, and renewal dates.
-    - [ ] Member Detail view `/admin/members/[id]`: full history of assessment, active diet plan, weight entries, and subscription history.
-    - [ ] Implement manual status override restricted strictly to admin with mandatory reason prompt written to `audit_logs`.
+    - [x] Build `/admin/members`: searchable table showing Name, Email, Tier (Normal/Premium), Joined Date, Plan Status (Draft/Published/None), and Last Check-in.
+    - [x] Build `/admin/subscriptions`: overview of provider-synced subscriptions, billing failures, and renewal dates.
+    - [x] Member Detail view `/admin/members/[id]`: full history of assessment, active diet plan, weight entries, and subscription history.
+    - [x] Implement manual status override restricted strictly to admin with mandatory reason prompt written to `audit_logs`.
   - **Acceptance Criteria:** Admin can filter members by tier and status; search by name/email responds instantaneously; all admin modifications are logged to `audit_logs`.
 
 ---

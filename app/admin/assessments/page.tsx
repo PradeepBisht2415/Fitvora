@@ -1,10 +1,11 @@
 import Link from 'next/link';
+import { AdminNav } from '@/components/admin/admin-nav';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
-import { Inbox, Eye, ArrowLeft, ShieldAlert } from 'lucide-react';
+import { Inbox, Eye, ShieldAlert } from 'lucide-react';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import type { Assessment } from '@/types/database.types';
 
@@ -40,27 +41,7 @@ export default async function AdminAssessmentsPage() {
 
   return (
     <div className="min-h-screen bg-warm-cream">
-      {/* Admin Top Header */}
-      <header className="border-b border-border-soft bg-white px-4 py-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="text-forest-green hover:opacity-80">
-              <ArrowLeft className="h-5 w-5" />
-            </Link>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-fresh-green">
-                Founder Admin Portal
-              </span>
-              <h1 className="text-xl font-extrabold text-forest-green">Fitvora Operations</h1>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-muted-text">
-              Total Intake: {assessments.length}
-            </span>
-          </div>
-        </div>
-      </header>
+      <AdminNav />
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8 space-y-6">

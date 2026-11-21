@@ -1,0 +1,90 @@
+import { NextResponse, type NextRequest } from 'next/server';
+import { createClient } from '@/lib/db/supabase-server';
+import { createAdminClient } from '@/lib/db/supabase-admin';
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: memberUserId } = await params;
+
+    // Check admin authentication
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const adminSupabase = createAdminClient();
+    const { data: adminProfile } = await adminSupabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (adminProfile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden. Admin role required.' }, { status: 403 });
+    }
+
+    // 1. Fetch Profile
+    const { data: profile, error: profileErr } = await adminSupabase
+      .from('profiles')
+      .select('*')
+      .eq('id', memberUserId)
+      .single();
+
+    if (profileErr || !profile) {
+      return NextResponse.json({ error: 'Member not found' }, { status: 404 });
+    }
+
+    // 2. Fetch Membership
+    const { data: membership } = await adminSupabase
+      .from('memberships')
+      .select('*')
+      .eq('user_id', memberUserId)
+      .maybeSingle();
+
+    // 3. Fetch Subscription
+    const { data: subscription } = await adminSupabase
+      .from('subscriptions')
+      .select('*')
+      .eq('user_id', memberUserId)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    // 4. Fetch Linked Assessment
+    const { data: assessment } = await adminSupabase
+      .from('assessments')
+      .select('*')
+      .eq('user_id', memberUserId)
+      .maybeSingle();
+
+    // 5. Fetch Audit Logs
+    const { data: auditLogs } = await adminSupabase
+      .from('audit_logs')
+      .select('*')
+      .or(`actor_id.eq.${memberUserId},entity_id.eq.${memberUserId}`)
+      .order('created_at', { ascending: false })
+      .limit(20);
+
+    return NextResponse.json({
+      profile,
+      membership,
+      subscription,
+      assessment,
+      auditLogs: auditLogs || [],
+    });
+  } catch (error) {
+    console.error('Error fetching member details:', error);
+    return NextResponse.json(
+      { error: 'Internal server error while retrieving member details' },
+      { status: 500 }
+    );
+  }
+}
