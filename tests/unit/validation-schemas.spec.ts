@@ -8,7 +8,7 @@ import { renderAssessmentApprovedEmail } from '../../lib/email/templates/assessm
 import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-published';
 import { renderPaymentReceiptEmail } from '../../lib/email/templates/payment-receipt';
 import { renderPaymentFailedEmail } from '../../lib/email/templates/payment-failed';
-import { parseWordDietPlan } from '../../lib/parsers/word-diet-parser';
+import { parseWordDietPlan, parseDietPlanFile, extractMealTime, formatMealTime } from '../../lib/parsers/word-diet-parser';
 import {
   sanitizeAssessmentForExport,
   generateAssessmentDocHtml,
@@ -128,6 +128,47 @@ test.describe('Unit & Invariant Acceptance Tests', () => {
     const result = await parseWordDietPlan(Buffer.from(''));
     expect(result.meals.length).toBe(28); // 4 meals * 7 days
     expect(result.guidanceNotes).toBeDefined();
+  });
+
+  test('Diet Plan Timing: Extracts custom meal times from PDF/Word and formats for client dashboard', async () => {
+    // 1. Check time extraction from various formats in diet plans
+    expect(extractMealTime('Breakfast (8:00 AM): Vegetable Poha (1 bowl)')).toBe('08:00');
+    expect(extractMealTime('Breakfast - 9:00 AM: Besan Chilla (2 pcs)')).toBe('09:00');
+    expect(extractMealTime('Breakfast (8:00 AM - 8:30 AM): Sprouts Salad')).toBe('08:00');
+    expect(extractMealTime('Lunch (1:30 PM): Dal Tadka & 2 Phulkas')).toBe('13:30');
+    expect(extractMealTime('Lunch - 2:00 PM: Rajma Chawal')).toBe('14:00');
+    expect(extractMealTime('Evening Snack (5:00 PM): Roasted Makhana')).toBe('17:00');
+    expect(extractMealTime('Dinner (8:30 PM): Moong Dal Khichdi')).toBe('20:30');
+    expect(extractMealTime('Time: 8:00 AM')).toBe('08:00');
+    expect(extractMealTime('Dinner (20:00): Moong Dal Khichdi')).toBe('20:00');
+
+    // 2. Check 12-hour AM/PM formatting for client dashboard cards
+    expect(formatMealTime('08:00')).toBe('8:00 AM');
+    expect(formatMealTime('09:00')).toBe('9:00 AM');
+    expect(formatMealTime('13:30')).toBe('1:30 PM');
+    expect(formatMealTime('17:00')).toBe('5:00 PM');
+    expect(formatMealTime('20:30')).toBe('8:30 PM');
+    expect(formatMealTime('8:00 AM')).toBe('8:00 AM');
+
+    // 3. Check parsing plain text representation of diet plan with custom times
+    const planText = `
+Monday
+Breakfast (8:00 AM): 2 Besan Chilla with Mint Chutney
+Lunch (1:30 PM): Dal Tadka with 2 Phulkas and Salad
+Evening Snack (5:00 PM): Roasted Makhana
+Dinner (8:00 PM): Moong Dal Khichdi
+`;
+    const parsed = await parseDietPlanFile(Buffer.from(planText), 'plan.txt');
+    const monBreakfast = parsed.meals.find((m) => m.dayOfWeek === 1 && m.mealType === 'breakfast');
+    const monLunch = parsed.meals.find((m) => m.dayOfWeek === 1 && m.mealType === 'lunch');
+    const monSnack = parsed.meals.find((m) => m.dayOfWeek === 1 && m.mealType === 'evening_snack');
+    const monDinner = parsed.meals.find((m) => m.dayOfWeek === 1 && m.mealType === 'dinner');
+
+    expect(monBreakfast?.scheduledTime).toBe('08:00');
+    expect(monBreakfast?.customTitle).toContain('Besan Chilla');
+    expect(monLunch?.scheduledTime).toBe('13:30');
+    expect(monSnack?.scheduledTime).toBe('17:00');
+    expect(monDinner?.scheduledTime).toBe('20:00');
   });
 
   test('Privacy Invariant: Assessment downloadable file strictly excludes Email and Contact Phone Number', () => {

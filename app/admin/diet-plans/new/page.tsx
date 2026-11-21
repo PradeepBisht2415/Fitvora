@@ -212,10 +212,10 @@ function PlanBuilderContent() {
             type="button"
             onClick={() => setIsWordModalOpen(true)}
             className="bg-emerald-50 text-[#075B2B] border border-emerald-300 hover:bg-emerald-100 font-bold text-xs h-9 gap-1.5 shadow-2xs"
-            title="Upload weekly diet Word (.docx) file"
+            title="Upload weekly diet PDF or Word file with meal timings"
           >
             <FileText className="h-3.5 w-3.5" />
-            <span>Upload Word (.docx)</span>
+            <span>Upload Diet Plan (.pdf / .docx)</span>
           </Button>
 
           <Button
@@ -258,9 +258,9 @@ function PlanBuilderContent() {
             <FileText className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-[#1A2E1C]">Upload Weekly Diet Word Document (.docx)</h3>
+            <h3 className="text-xs font-bold text-[#1A2E1C]">Upload Weekly Diet Plan (PDF / Word .docx)</h3>
             <p className="text-[11px] text-gray-500">
-              Upload your prepared weekly diet plan in Word. It will automatically populate the 7-day cards below with portions and swaps.
+              Upload your prepared weekly diet plan in PDF or Word. It will automatically populate the 7-day cards below with exact meal times, portions, and swaps.
             </p>
           </div>
         </div>
@@ -270,7 +270,7 @@ function PlanBuilderContent() {
           className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 font-bold text-xs shrink-0 gap-1.5 shadow-xs"
         >
           <Upload className="h-3.5 w-3.5" />
-          Upload Word File
+          Upload Plan File
         </Button>
       </div>
 

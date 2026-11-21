@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlternativeSwapModal } from './alternative-swap-modal';
 import { Clock, RefreshCw, Sparkles } from 'lucide-react';
+import { formatMealTime } from '@/lib/parsers/word-diet-parser';
 import type { DietPlanMeal } from '@/types/database.types';
 
 interface MealCardProps {
@@ -40,7 +41,7 @@ export function MealCard({ meal, isNext }: MealCardProps) {
 
             <div className="flex items-center gap-1 text-xs font-mono font-bold text-gray-700">
               <Clock className="h-3.5 w-3.5 text-[#075B2B]" />
-              <span>{meal.scheduled_time}</span>
+              <span>{formatMealTime(meal.scheduled_time)}</span>
             </div>
           </div>
 

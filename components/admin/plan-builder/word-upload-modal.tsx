@@ -49,11 +49,16 @@ export function WordUploadModal({
 
   if (!isOpen) return null;
 
+  const isValidFileType = (fileName: string) => {
+    const lower = fileName.toLowerCase();
+    return lower.endsWith('.pdf') || lower.endsWith('.docx') || lower.endsWith('.doc');
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      if (!file.name.endsWith('.docx') && !file.name.endsWith('.doc')) {
-        setError('Please select a Microsoft Word (.docx) document.');
+      if (!isValidFileType(file.name)) {
+        setError('Please select a PDF (.pdf) or Microsoft Word (.docx) document.');
         return;
       }
       setSelectedFile(file);
@@ -66,8 +71,8 @@ export function WordUploadModal({
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
-      if (!file.name.endsWith('.docx') && !file.name.endsWith('.doc')) {
-        setError('Please select a Microsoft Word (.docx) document.');
+      if (!isValidFileType(file.name)) {
+        setError('Please select a PDF (.pdf) or Microsoft Word (.docx) document.');
         return;
       }
       setSelectedFile(file);
@@ -78,7 +83,7 @@ export function WordUploadModal({
 
   const handleUpload = async () => {
     if (!selectedFile) {
-      setError('Please select a weekly diet Word file to upload.');
+      setError('Please select a weekly diet plan (PDF or Word) file to upload.');
       return;
     }
 
@@ -136,7 +141,7 @@ export function WordUploadModal({
               <FileText className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#1A2E1C]">Upload Weekly Diet Word File</h2>
+              <h2 className="text-base font-bold text-[#1A2E1C]">Upload Weekly Diet Plan (PDF / Word)</h2>
               <p className="text-xs text-gray-500">
                 For client: <strong className="text-[#075B2B]">{memberName}</strong>
               </p>
@@ -157,10 +162,10 @@ export function WordUploadModal({
               <CheckCircle2 className="h-10 w-10 text-emerald-600 mx-auto" />
               <div>
                 <h3 className="font-bold text-emerald-950 text-base">
-                  {successData.published ? 'Diet Plan Published to Client!' : 'Word Document Parsed!'}
+                  {successData.published ? 'Diet Plan & Meal Timings Published!' : 'Diet Plan Parsed Successfully!'}
                 </h3>
                 <p className="text-xs text-emerald-800/80 mt-1">
-                  Successfully converted weekly diet into {successData.totalMealsParsed} structured meal cards
+                  Successfully converted weekly diet into {successData.totalMealsParsed} structured meal cards with exact meal times
                   across {successData.daysFound.length || 7} days.
                 </p>
               </div>
@@ -211,7 +216,7 @@ export function WordUploadModal({
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".docx,.doc"
+                  accept=".pdf,.docx,.doc"
                   onChange={handleFileChange}
                   className="hidden"
                 />
@@ -230,11 +235,11 @@ export function WordUploadModal({
                   ) : (
                     <div>
                       <p className="font-bold text-xs text-[#1A2E1C]">
-                        Drag & drop weekly diet Word file here, or{' '}
+                        Drag & drop weekly diet PDF or Word file here, or{' '}
                         <span className="text-[#075B2B] underline">browse</span>
                       </p>
                       <p className="text-[11px] text-gray-400 mt-0.5">
-                        Supports Microsoft Word (.docx) files with 7-day schedule
+                        Supports PDF (.pdf) and Microsoft Word (.docx) files
                       </p>
                     </div>
                   )}
@@ -248,7 +253,7 @@ export function WordUploadModal({
                   <span>How it works:</span>
                 </div>
                 <p className="text-[11px] text-gray-500 leading-relaxed">
-                  Our system reads your Word document (tables or headings: Monday–Sunday, Breakfast, Lunch, Snack, Dinner, portions & swaps), turns each meal into an interactive card, and displays them on the client&apos;s live portal.
+                  Our system reads your PDF or Word document (detecting exact meal times like 8:00 AM, 1:30 PM, 5:30 PM, 8:30 PM, 7 days Monday–Sunday, meals, portions, and swap options) and renders them in the interactive cards on the client&apos;s live dashboard.
                 </p>
               </div>
 

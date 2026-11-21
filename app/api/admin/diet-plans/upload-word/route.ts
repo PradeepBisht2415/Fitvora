@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
-import { parseWordDietPlan } from '@/lib/parsers/word-diet-parser';
+import { parseDietPlanFile } from '@/lib/parsers/word-diet-parser';
 import { saveDietPlanAction } from '@/features/diet-plans/publish-plan-action';
 
 export async function POST(request: Request) {
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
     const autoPublish = formData.get('autoPublish') === 'true';
 
     if (!file) {
-      return NextResponse.json({ error: 'No Word file uploaded.' }, { status: 400 });
+      return NextResponse.json({ error: 'No diet plan (PDF or Word) file uploaded.' }, { status: 400 });
     }
 
     if (!userId) {
@@ -43,11 +43,11 @@ export async function POST(request: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    const parsedResult = await parseWordDietPlan(buffer);
+    const parsedResult = await parseDietPlanFile(buffer, file.name);
 
     if (!parsedResult.success) {
       return NextResponse.json(
-        { error: parsedResult.error || 'Failed to parse Word document.' },
+        { error: parsedResult.error || 'Failed to parse diet plan document.' },
         { status: 422 }
       );
     }

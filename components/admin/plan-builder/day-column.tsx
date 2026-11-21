@@ -71,16 +71,6 @@ export function DayColumn({
                 </div>
 
                 <div className="flex items-center gap-1">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onOpenPicker(slot.id, slot.mealType)}
-                    className="h-6 px-1.5 text-[10px] border-emerald-200 text-[#075B2B] hover:bg-emerald-50"
-                  >
-                    <Library className="mr-1 h-3 w-3" />
-                    Library
-                  </Button>
                   <button
                     type="button"
                     onClick={() => onDeleteMeal(slot.id)}

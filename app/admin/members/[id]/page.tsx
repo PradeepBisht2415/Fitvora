@@ -235,10 +235,10 @@ function MemberDetailContent() {
           <Button
             onClick={() => setIsWordModalOpen(true)}
             className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 text-xs h-8 font-bold gap-1.5 shadow-xs"
-            title="Upload weekly diet Word file to generate client meal cards"
+            title="Upload weekly diet PDF or Word file to generate client meal cards with exact timings"
           >
             <FileText className="h-3.5 w-3.5" />
-            <span>Upload Weekly Diet (.docx)</span>
+            <span>Upload Weekly Diet (.pdf / .docx)</span>
           </Button>
           <Link href={`/admin/diet-plans/new?userId=${profile.id}`}>
             <Button variant="outline" className="border-gray-300 text-gray-700 text-xs h-8">
