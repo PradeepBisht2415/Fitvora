@@ -4,7 +4,6 @@ import { Navbar } from '@/components/marketing/navbar';
 import { Footer } from '@/components/marketing/footer';
 import { PathwaysSection } from '@/components/marketing/pathways-section';
 import { HowItWorksPreview } from '@/components/marketing/how-it-works-preview';
-import { MealSamplePreview } from '@/components/marketing/meal-sample-preview';
 import { PricingPreview } from '@/components/marketing/pricing-preview';
 import { FaqAccordion } from '@/components/marketing/faq-accordion';
 import { Button } from '@/components/ui/button';
@@ -92,10 +91,7 @@ export default function HomePage() {
         {/* 3. 3-Step Process Teaser */}
         <HowItWorksPreview />
 
-        {/* 4. Representative Indian Home Meals Samples */}
-        <MealSamplePreview />
-
-        {/* 5. Plans & Pricing Comparison */}
+        {/* 4. Plans & Pricing Comparison */}
         <PricingPreview />
 
         {/* 6. FAQ Accordion */}
