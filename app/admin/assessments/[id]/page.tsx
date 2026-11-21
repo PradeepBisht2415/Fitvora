@@ -8,7 +8,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Loader2, Eye } from 'lucide-react';
 import type { Assessment } from '@/types/database.types';
 
 function createSampleLead(id: string): Assessment {
@@ -115,7 +115,21 @@ function AssessmentDetailContent() {
             <ArrowLeft className="h-4 w-4" />
             Back to Triage Queue
           </Link>
-          <StatusBadge status={lead.status} />
+          <div className="flex items-center gap-2">
+            {lead.user_id && (
+              <Link
+                href={`/dashboard?asMember=${lead.user_id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs"
+                title="View live client portal for this member"
+              >
+                <Eye className="h-3.5 w-3.5 text-[#2FAF37]" />
+                <span>View Client Dashboard</span>
+              </Link>
+            )}
+            <StatusBadge status={lead.status} />
+          </div>
         </div>
       </header>
 

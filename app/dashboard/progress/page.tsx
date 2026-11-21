@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { WeightChart } from '@/components/progress/weight-chart';
 import { WeightLogModal } from '@/components/progress/weight-log-modal';
 import { MilestoneCard } from '@/components/progress/milestone-card';
@@ -12,6 +13,8 @@ import { Button } from '@/components/ui/button';
 import { Trash2, TrendingUp, Calendar, RefreshCw } from 'lucide-react';
 
 function ProgressContent() {
+  const searchParams = useSearchParams();
+  const asMember = searchParams.get('asMember') || undefined;
   const [entries, setEntries] = useState<WeightEntry[]>([]);
   const [photos, setPhotos] = useState<ProgressPhotoItem[]>([]);
   const [rangeDays, setRangeDays] = useState<number | undefined>(30);
@@ -19,8 +22,8 @@ function ProgressContent() {
 
   const loadData = useCallback(() => {
     Promise.all([
-      getWeightHistory(undefined, rangeDays),
-      fetch('/api/me/photos').then((r) => (r.ok ? r.json() : { photos: [] })),
+      getWeightHistory(asMember, rangeDays),
+      fetch(`/api/me/photos${asMember ? `?asMember=${asMember}` : ''}`).then((r) => (r.ok ? r.json() : { photos: [] })),
     ])
       .then(([res, photoData]) => {
         if (res.success) {
@@ -33,7 +36,7 @@ function ProgressContent() {
         console.error('Error loading progress data:', err);
         setLoading(false);
       });
-  }, [rangeDays]);
+  }, [asMember, rangeDays]);
 
   useEffect(() => {
     loadData();

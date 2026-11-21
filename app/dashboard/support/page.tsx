@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { TicketList } from '@/components/support/ticket-list';
 import { MessageThread } from '@/components/support/message-thread';
 import { NewTicketModal } from '@/components/support/new-ticket-modal';
@@ -16,6 +17,8 @@ interface ExtendedMessage extends SupportMessage {
 }
 
 function SupportContent() {
+  const searchParams = useSearchParams();
+  const asMember = searchParams.get('asMember') || undefined;
   const [threads, setThreads] = useState<SupportThread[]>([]);
   const [isPremium, setIsPremium] = useState(false);
   const [currentUserId, setCurrentUserId] = useState('');
@@ -25,7 +28,7 @@ function SupportContent() {
   const [loading, setLoading] = useState(true);
 
   const loadThreads = useCallback(() => {
-    fetch('/api/member/support')
+    fetch(`/api/member/support${asMember ? `?asMember=${asMember}` : ''}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return;
@@ -42,7 +45,7 @@ function SupportContent() {
         console.error('Failed to load support threads:', err);
         setLoading(false);
       });
-  }, [activeThreadId]);
+  }, [activeThreadId, asMember]);
 
   const loadThreadMessages = useCallback((threadId: string) => {
     fetch(`/api/member/support/${threadId}`)

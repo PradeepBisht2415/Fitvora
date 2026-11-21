@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { CheckInForm } from '@/components/check-ins/check-in-form';
 import { FeedbackCard } from '@/components/check-ins/feedback-card';
 import { UpgradeModal } from '@/components/billing/upgrade-modal';
@@ -8,13 +9,15 @@ import type { CheckIn } from '@/types/database.types';
 import { ClipboardCheck, Zap, History } from 'lucide-react';
 
 function CheckInContent() {
+  const searchParams = useSearchParams();
+  const asMember = searchParams.get('asMember') || undefined;
   const [isPremium, setIsPremium] = useState(false);
   const [currentCheckIn, setCurrentCheckIn] = useState<CheckIn | null>(null);
   const [pastCheckIns, setPastCheckIns] = useState<CheckIn[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadData = useCallback(() => {
-    fetch('/api/member/check-ins')
+    fetch(`/api/member/check-ins${asMember ? `?asMember=${asMember}` : ''}`)
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => {
         if (!data) return;
@@ -27,7 +30,7 @@ function CheckInContent() {
         console.error('Failed to load check-ins:', err);
         setLoading(false);
       });
-  }, []);
+  }, [asMember]);
 
   useEffect(() => {
     loadData();

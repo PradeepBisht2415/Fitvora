@@ -54,7 +54,18 @@ function LoginContent() {
       }
 
       if (data.user) {
-        router.push(redirectTo);
+        // Direct admin users straight to Founder Admin Portal
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'admin' && (redirectTo === '/dashboard' || !searchParams.get('redirectTo'))) {
+          router.push('/admin');
+        } else {
+          router.push(redirectTo);
+        }
         router.refresh();
       }
     } catch (err) {

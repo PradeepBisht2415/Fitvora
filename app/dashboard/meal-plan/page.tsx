@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { WeeklyPlanTabs } from '@/components/dashboard/weekly-plan-tabs';
 import { GroceryOverview } from '@/components/dashboard/grocery-overview';
 import { PlanPendingCard } from '@/components/dashboard/plan-pending-card';
@@ -13,13 +13,19 @@ import {
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
 
-async function MealPlanContent() {
-  const supabase = await createClient();
+async function MealPlanContent({
+  searchParams,
+}: {
+  searchParams?: Promise<{ asMember?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    authenticatedUser,
+    effectiveUserId,
+    isImpersonating,
+  } = await getEffectiveDashboardUser(resolvedParams.asMember);
 
-  if (!user) {
+  if (!authenticatedUser || !effectiveUserId) {
     return (
       <EmptyState
         icon={CreditCard}
@@ -36,7 +42,7 @@ async function MealPlanContent() {
   const { data: subscription } = await adminSupabase
     .from('subscriptions')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -49,8 +55,16 @@ async function MealPlanContent() {
       <EmptyState
         icon={CreditCard}
         title="Subscription Required"
-        description="Choose a monthly plan to unlock your full 7-day personalized Indian meal plan."
-        action={{ label: 'Choose a Plan', href: '/checkout' }}
+        description={
+          isImpersonating
+            ? 'This client does not currently have an active membership subscription.'
+            : 'Choose a monthly plan to unlock your full 7-day personalized Indian meal plan.'
+        }
+        action={
+          isImpersonating
+            ? { label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }
+            : { label: 'Choose a Plan', href: '/checkout' }
+        }
       />
     );
   }
@@ -59,7 +73,7 @@ async function MealPlanContent() {
   const { data: publishedPlan } = await adminSupabase
     .from('diet_plans')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .eq('status', 'published')
     .order('version', { ascending: false })
     .limit(1)
@@ -69,7 +83,7 @@ async function MealPlanContent() {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-2 text-xs text-gray-500">
-          <Link href="/dashboard" className="hover:underline flex items-center gap-1">
+          <Link href={resolvedParams.asMember ? `/dashboard?asMember=${resolvedParams.asMember}` : '/dashboard'} className="hover:underline flex items-center gap-1">
             <ArrowLeft className="h-3.5 w-3.5" /> Back to Dashboard
           </Link>
         </div>
@@ -125,7 +139,9 @@ async function MealPlanContent() {
   );
 }
 
-export default function MealPlanPage() {
+export default async function MealPlanPage(props: {
+  searchParams?: Promise<{ asMember?: string }>;
+}) {
   return (
     <Suspense
       fallback={
@@ -135,7 +151,7 @@ export default function MealPlanPage() {
         </div>
       }
     >
-      <MealPlanContent />
+      <MealPlanContent searchParams={props.searchParams} />
     </Suspense>
   );
 }

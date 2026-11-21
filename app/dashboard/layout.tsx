@@ -2,7 +2,7 @@
 
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/db/supabase-browser';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +15,7 @@ import {
   TrendingUp,
   MessageSquare,
   Shield,
+  Eye,
 } from 'lucide-react';
 
 function DashboardLayoutContent({
@@ -24,9 +25,12 @@ function DashboardLayoutContent({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const asMember = searchParams.get('asMember');
   const supabase = createClient();
 
   const [isAdmin, setIsAdmin] = React.useState(false);
+  const [memberInfo, setMemberInfo] = React.useState<{ name: string; email: string } | null>(null);
 
   React.useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -40,9 +44,30 @@ function DashboardLayoutContent({
         .eq('id', data.user.id)
         .maybeSingle();
 
-      setIsAdmin(profile?.role === 'admin');
+      const userIsAdmin = profile?.role === 'admin';
+      setIsAdmin(userIsAdmin);
+
+      // Direct admin users straight to Admin Portal unless they are previewing a client
+      if (userIsAdmin && !asMember) {
+        router.replace('/admin');
+        return;
+      }
+
+      // If admin is previewing a client, load client details for banner
+      if (userIsAdmin && asMember) {
+        const { data: clientData } = await supabase
+          .from('profiles')
+          .select('first_name, last_name, email')
+          .eq('id', asMember)
+          .maybeSingle();
+
+        if (clientData) {
+          const name = [clientData.first_name, clientData.last_name].filter(Boolean).join(' ') || 'Member';
+          setMemberInfo({ name, email: clientData.email });
+        }
+      }
     });
-  }, [supabase]);
+  }, [supabase, asMember, router]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -62,19 +87,54 @@ function DashboardLayoutContent({
 
   return (
     <div className="flex min-h-screen flex-col bg-[#FFFDF7]">
+      {/* Admin Impersonation / Client Preview Header */}
+      {isAdmin && asMember && (
+        <div className="bg-[#075B2B] text-white px-4 py-2.5 text-xs flex flex-wrap items-center justify-between gap-2 shadow-sm border-b border-emerald-800">
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-emerald-300 shrink-0" />
+            <span>
+              <strong>Admin Client View:</strong> Viewing portal as{' '}
+              <span className="font-bold underline">
+                {memberInfo ? `${memberInfo.name} (${memberInfo.email})` : asMember}
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/admin/members/${asMember}`}
+              className="rounded bg-white/20 hover:bg-white/30 px-2.5 py-1 text-xs font-semibold text-white transition-colors"
+            >
+              Open Member Desk &rarr;
+            </Link>
+            <Link
+              href="/admin"
+              className="rounded bg-white px-2.5 py-1 text-xs font-bold text-[#075B2B] hover:bg-emerald-50 transition-colors shadow-xs"
+            >
+              Exit to Admin Portal &times;
+            </Link>
+          </div>
+        </div>
+      )}
+
       {/* Member Portal Header */}
       <header className="sticky top-0 z-40 border-b border-emerald-100 bg-white/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href={asMember ? `/dashboard?asMember=${asMember}` : '/dashboard'} className="flex items-center gap-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#075B2B] text-white font-extrabold text-base shadow-xs">
                 F
               </span>
               <span className="font-extrabold tracking-tight text-xl text-[#075B2B]">
                 Fitvora
               </span>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                Member
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  asMember
+                    ? 'bg-amber-100 text-amber-800'
+                    : 'bg-emerald-100 text-emerald-800'
+                }`}
+              >
+                {asMember ? 'Client View' : 'Member'}
               </span>
             </Link>
 
@@ -83,10 +143,11 @@ function DashboardLayoutContent({
               {navLinks.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
+                const itemHref = asMember ? `${item.href}?asMember=${asMember}` : item.href;
                 return (
                   <Link
                     key={item.href}
-                    href={item.href}
+                    href={itemHref}
                     className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                       isActive
                         ? 'bg-[#EAF8E7] text-[#075B2B]'
@@ -132,10 +193,11 @@ function DashboardLayoutContent({
           {navLinks.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
+            const itemHref = asMember ? `${item.href}?asMember=${asMember}` : item.href;
             return (
               <Link
                 key={item.href}
-                href={item.href}
+                href={itemHref}
                 className={`flex flex-col items-center py-1 px-2 text-[11px] font-medium rounded ${
                   isActive ? 'text-[#075B2B] font-bold' : 'text-gray-500'
                 }`}

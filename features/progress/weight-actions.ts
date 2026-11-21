@@ -132,19 +132,29 @@ export async function getWeightHistory(
 }> {
   try {
     const supabase = await createClient();
-    let targetUserId = userId;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
 
-    if (!targetUserId) {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        return { success: false, data: [], error: 'Not authenticated.' };
-      }
-      targetUserId = user.id;
+    if (!user) {
+      return { success: false, data: [], error: 'Not authenticated.' };
     }
 
     const adminSupabase = createAdminClient();
+    let targetUserId = user.id;
+
+    if (userId && userId !== user.id) {
+      const { data: profile } = await adminSupabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile?.role === 'admin') {
+        targetUserId = userId;
+      }
+    }
+
     let query = adminSupabase
       .from('weight_entries')
       .select('*')

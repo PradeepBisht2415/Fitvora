@@ -11,6 +11,7 @@ import { CreditCard, CheckCircle2 } from 'lucide-react';
 
 function SubscriptionPageContent() {
   const searchParams = useSearchParams();
+  const asMember = searchParams.get('asMember');
   const statusParam = searchParams.get('status');
 
   const [loading, setLoading] = useState(true);
@@ -36,10 +37,23 @@ function SubscriptionPageContent() {
         return;
       }
 
+      let targetUserId = user.id;
+      if (asMember) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (profile?.role === 'admin') {
+          targetUserId = asMember;
+        }
+      }
+
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', targetUserId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -52,7 +66,7 @@ function SubscriptionPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [supabase]);
+  }, [supabase, asMember]);
 
   useEffect(() => {
     let isMounted = true;

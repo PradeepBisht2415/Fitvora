@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
 import { GreetingBanner } from '@/components/dashboard/greeting-banner';
@@ -17,13 +17,20 @@ import {
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
 
-async function DashboardContent() {
-  const supabase = await createClient();
+async function DashboardContent({
+  searchParams,
+}: {
+  searchParams?: Promise<{ asMember?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    authenticatedUser,
+    effectiveUserId,
+    isImpersonating,
+    clientProfile,
+  } = await getEffectiveDashboardUser(resolvedParams.asMember);
 
-  if (!user) {
+  if (!authenticatedUser || !effectiveUserId) {
     return (
       <EmptyState
         icon={CreditCard}
@@ -37,17 +44,21 @@ async function DashboardContent() {
   const adminSupabase = createAdminClient();
 
   // 1. Fetch member profile
-  const { data: profile } = await adminSupabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  const profile =
+    clientProfile ||
+    (
+      await adminSupabase
+        .from('profiles')
+        .select('*')
+        .eq('id', effectiveUserId)
+        .maybeSingle()
+    ).data;
 
   // 2. Fetch active subscription
   const { data: subscription } = await adminSupabase
     .from('subscriptions')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -60,12 +71,20 @@ async function DashboardContent() {
     return (
       <EmptyState
         icon={CreditCard}
-        title="No Active Membership Plan"
-        description="Select a monthly plan to unlock your customized 7-day Indian meal schedule, exact portions, and founder guidance."
-        action={{
-          label: 'Choose a Plan (From ₹499/mo)',
-          href: '/checkout',
-        }}
+        title={isImpersonating ? 'Client Has No Active Membership Plan' : 'No Active Membership Plan'}
+        description={
+          isImpersonating
+            ? `Client ${profile?.first_name || 'Member'} does not currently have an active subscription.`
+            : 'Select a monthly plan to unlock your customized 7-day Indian meal schedule, exact portions, and founder guidance.'
+        }
+        action={
+          isImpersonating
+            ? { label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }
+            : {
+                label: 'Choose a Plan (From ₹499/mo)',
+                href: '/checkout',
+              }
+        }
       />
     );
   }
@@ -74,7 +93,7 @@ async function DashboardContent() {
   const { data: publishedPlan } = await adminSupabase
     .from('diet_plans')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .eq('status', 'published')
     .order('version', { ascending: false })
     .limit(1)
@@ -84,7 +103,7 @@ async function DashboardContent() {
   const { data: userAssessment } = await adminSupabase
     .from('assessments')
     .select('id')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .order('submitted_at', { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -145,7 +164,7 @@ async function DashboardContent() {
   const { data: assessment } = await adminSupabase
     .from('assessments')
     .select('target_direction')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .maybeSingle();
 
   const goalText =
@@ -200,7 +219,7 @@ async function DashboardContent() {
           </p>
         </div>
 
-        <Link href="/dashboard/meal-plan">
+        <Link href={resolvedParams.asMember ? `/dashboard/meal-plan?asMember=${resolvedParams.asMember}` : '/dashboard/meal-plan'}>
           <Button variant="outline" size="sm" className="border-emerald-200 text-[#075B2B] hover:bg-emerald-50 text-xs">
             <Calendar className="mr-1.5 h-3.5 w-3.5" />
             View Full 7-Day Plan
@@ -243,7 +262,9 @@ async function DashboardContent() {
   );
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams?: Promise<{ asMember?: string }>;
+}) {
   return (
     <Suspense
       fallback={
@@ -253,7 +274,7 @@ export default function DashboardPage() {
         </div>
       }
     >
-      <DashboardContent />
+      <DashboardContent searchParams={props.searchParams} />
     </Suspense>
   );
 }

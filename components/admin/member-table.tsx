@@ -186,12 +186,21 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                         : '—'}
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <Link href={`/admin/members/${member.userId}`}>
-                        <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-emerald-200 text-[#075B2B] hover:bg-emerald-50">
-                          <Eye className="mr-1 h-3 w-3" />
-                          View
-                        </Button>
-                      </Link>
+                      <div className="flex items-center justify-end gap-2">
+                        <Link
+                          href={`/dashboard?asMember=${member.userId}`}
+                          className="inline-flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs"
+                          title={`View live dashboard as client ${member.name}`}
+                        >
+                          <Eye className="h-3 w-3 text-[#2FAF37]" />
+                          <span>Client Dashboard</span>
+                        </Link>
+                        <Link href={`/admin/members/${member.userId}`}>
+                          <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-gray-200 text-gray-700 hover:bg-gray-100">
+                            View Desk
+                          </Button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 ))}

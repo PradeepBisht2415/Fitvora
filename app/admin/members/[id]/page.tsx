@@ -20,6 +20,7 @@ import {
   ShieldAlert,
   Loader2,
   CheckCircle2,
+  Eye,
 } from 'lucide-react';
 import type { MembershipStatus } from '@/types/database.types';
 
@@ -217,6 +218,16 @@ function MemberDetailContent() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            href={`/dashboard?asMember=${profile.id}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-xs"
+            title="Open live client dashboard for this member"
+          >
+            <Eye className="h-3.5 w-3.5 text-[#2FAF37]" />
+            <span>View Client Dashboard</span>
+          </Link>
           <Link href={`/admin/diet-plans/new?userId=${profile.id}`}>
             <Button className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 text-xs h-8">
               Build 7-Day Diet Plan

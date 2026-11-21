@@ -1,7 +1,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { ProfileForm } from '@/components/dashboard/profile-form';
 import { PreferencesView } from '@/components/dashboard/preferences-view';
 import { ReminderToggle } from '@/components/dashboard/reminder-toggle';
@@ -11,13 +11,19 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import type { Assessment } from '@/types/database.types';
 
-async function ProfilePageContent() {
-  const supabase = await createClient();
+async function ProfilePageContent({
+  searchParams,
+}: {
+  searchParams?: Promise<{ asMember?: string }>;
+}) {
+  const resolvedParams = searchParams ? await searchParams : {};
   const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    authenticatedUser,
+    effectiveUserId,
+    clientProfile,
+  } = await getEffectiveDashboardUser(resolvedParams.asMember);
 
-  if (!user) {
+  if (!authenticatedUser || !effectiveUserId) {
     return (
       <EmptyState
         icon={Shield}
@@ -30,16 +36,20 @@ async function ProfilePageContent() {
 
   const adminSupabase = createAdminClient();
 
-  const { data: profile } = await adminSupabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single();
+  const profile =
+    clientProfile ||
+    (
+      await adminSupabase
+        .from('profiles')
+        .select('*')
+        .eq('id', effectiveUserId)
+        .maybeSingle()
+    ).data;
 
   const { data: assessment } = await adminSupabase
     .from('assessments')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('user_id', effectiveUserId)
     .maybeSingle();
 
   return (
@@ -47,7 +57,7 @@ async function ProfilePageContent() {
       {/* Top Header */}
       <div className="flex items-center gap-3 border-b border-gray-200 pb-4">
         <Link
-          href="/dashboard"
+          href={resolvedParams.asMember ? `/dashboard?asMember=${resolvedParams.asMember}` : '/dashboard'}
           className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -69,7 +79,7 @@ async function ProfilePageContent() {
             initialData={{
               firstName: profile?.first_name || '',
               lastName: profile?.last_name || null,
-              email: profile?.email || user.email || '',
+              email: profile?.email || authenticatedUser.email || '',
               phone: profile?.phone || null,
               timezone: profile?.timezone || 'Asia/Kolkata',
             }}
@@ -108,7 +118,9 @@ async function ProfilePageContent() {
   );
 }
 
-export default function ProfilePage() {
+export default async function ProfilePage(props: {
+  searchParams?: Promise<{ asMember?: string }>;
+}) {
   return (
     <Suspense
       fallback={
@@ -118,7 +130,7 @@ export default function ProfilePage() {
         </div>
       }
     >
-      <ProfilePageContent />
+      <ProfilePageContent searchParams={props.searchParams} />
     </Suspense>
   );
 }
