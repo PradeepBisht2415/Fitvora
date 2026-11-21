@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import { parseDietPlanFile } from '@/lib/parsers/word-diet-parser';
+import { getNextDateIndia } from '@/lib/utils/diet-formatters';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -112,11 +113,9 @@ export async function POST(request: NextRequest) {
 
       const nextVersion = (latestExisting?.version ?? 0) + 1;
 
-      // 1st day starts from the next date of applied date
+      // 1st day starts from the next date of applied date (evaluated in Indian Standard Time)
       const appliedDate = new Date();
-      const nextDate = new Date(appliedDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      const effectiveStartDate = nextDate.toISOString().split('T')[0]!;
+      const effectiveStartDate = getNextDateIndia(appliedDate);
 
       // 1. Insert Diet Plan Header
       const { data: newPlan, error: planErr } = await adminSupabase

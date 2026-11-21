@@ -5,6 +5,7 @@ import { MealCard } from './meal-card';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
+import { getIndiaTodayDate } from '@/lib/utils/diet-formatters';
 
 interface WeeklyPlanTabsProps {
   meals: DietPlanMeal[];
@@ -23,8 +24,7 @@ const DAYS_ORDER = [
 ];
 
 export function WeeklyPlanTabs({ meals, effectiveStartDate, publishedAt }: WeeklyPlanTabsProps) {
-  const now = new Date();
-  const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayDate = getIndiaTodayDate();
 
   let startDate: Date;
   if (effectiveStartDate) {
@@ -32,7 +32,9 @@ export function WeeklyPlanTabs({ meals, effectiveStartDate, publishedAt }: Weekl
     startDate = new Date(parts[0]!, parts[1]! - 1, parts[2]!);
   } else if (publishedAt) {
     const applied = new Date(publishedAt);
-    startDate = new Date(applied.getFullYear(), applied.getMonth(), applied.getDate() + 1);
+    const appliedIst = applied.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const [ay, am, ad] = appliedIst.split('-').map(Number);
+    startDate = new Date(ay!, am! - 1, ad! + 1);
   } else {
     startDate = todayDate;
   }
@@ -59,6 +61,11 @@ export function WeeklyPlanTabs({ meals, effectiveStartDate, publishedAt }: Weekl
   };
 
   const activeDayInfo = DAYS_ORDER.find((d) => d.dayOfWeek === activeDay) || DAYS_ORDER[0]!;
+  const activeDayCalendarDate = new Date(startDate);
+  activeDayCalendarDate.setDate(activeDayCalendarDate.getDate() + (activeDayInfo.dayIndex - 1));
+  const activeDayWeekday = activeDayCalendarDate.toLocaleDateString('en-IN', {
+    weekday: 'long',
+  });
 
   return (
     <div className="space-y-5">
@@ -127,7 +134,7 @@ export function WeeklyPlanTabs({ meals, effectiveStartDate, publishedAt }: Weekl
       <div className="border-b border-gray-200 pb-2 print:border-b-2 print:border-black flex items-center justify-between">
         <div>
           <h3 className="text-lg font-bold text-[#1A2E1C]">
-            Day {activeDayInfo.dayIndex} Meal Schedule ({activeDayInfo.defaultName})
+            Day {activeDayInfo.dayIndex} Meal Schedule ({activeDayWeekday})
           </h3>
           <p className="text-xs text-gray-500">
             Tailored portions in Indian household measures (katori, roti). Swaps available for every meal.

@@ -85,3 +85,38 @@ export function formatGuidanceBullets(text?: string | null): string {
   // Fallback default guidance if no valid reminders were parsed
   return '• Water: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst, heat and sweating. Do not force excess water.\n\n• Limit: Sugary drinks, packaged juices, fried snacks, sweets, heavy gravies, and extra ghee or butter.\n\n• Walk: Aim for 25–30 minutes of brisk walking most days, building up gradually; a 5–10-minute walk after meals also helps activity.\n\n• Strength: Add simple resistance exercises 2–3 days per week to help maintain muscle during weight loss.\n\n• Sleep: Protect 7–9 hours of sleep; for night shifts, keep the bedroom dark and quiet and avoid caffeine near bedtime.';
 }
+
+/**
+ * Returns today's midnight Date object evaluated in Indian Standard Time (Asia/Kolkata).
+ * Ensures consistency across local dev, UTC cloud servers (Vercel), and edge environments.
+ */
+export function getIndiaTodayDate(): Date {
+  const now = new Date();
+  const istString = now.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }); // YYYY-MM-DD
+  const [y, m, d] = istString.split('-').map(Number);
+  return new Date(y!, m! - 1, d!);
+}
+
+/**
+ * Returns tomorrow's date string (YYYY-MM-DD) evaluated in Indian Standard Time (Asia/Kolkata).
+ * Used when calculating effective_start_date for diet plans ("1st day starts from next date of applied date").
+ */
+export function getNextDateIndia(fromDate?: Date | string | null): string {
+  let baseDate: Date;
+  if (!fromDate) {
+    baseDate = getIndiaTodayDate();
+  } else if (typeof fromDate === 'string') {
+    const parts = fromDate.split('T')[0]!.split('-').map(Number);
+    baseDate = new Date(parts[0]!, parts[1]! - 1, parts[2]!);
+  } else {
+    const istString = fromDate.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    const [y, m, d] = istString.split('-').map(Number);
+    baseDate = new Date(y!, m! - 1, d!);
+  }
+
+  baseDate.setDate(baseDate.getDate() + 1);
+  const year = baseDate.getFullYear();
+  const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+  const day = String(baseDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}

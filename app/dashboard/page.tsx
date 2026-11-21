@@ -17,7 +17,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
-import { formatGuidanceBullets } from '@/lib/utils/diet-formatters';
+import { formatGuidanceBullets, getIndiaTodayDate } from '@/lib/utils/diet-formatters';
 
 export const dynamic = 'force-dynamic';
 
@@ -157,9 +157,8 @@ async function DashboardContent({
       .eq('diet_plan_id', publishedPlan.id)
       .order('order_index', { ascending: true });
 
-    // Calculate 1st day start (starts from next date of applied date)
-    const now = new Date();
-    const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    // Calculate 1st day start (evaluated in Indian Standard Time Asia/Kolkata)
+    const todayDate = getIndiaTodayDate();
 
     let startDate: Date;
     if (publishedPlan.effective_start_date) {
@@ -167,7 +166,9 @@ async function DashboardContent({
       startDate = new Date(parts[0]!, parts[1]! - 1, parts[2]!);
     } else {
       const applied = new Date(publishedPlan.published_at || publishedPlan.created_at);
-      startDate = new Date(applied.getFullYear(), applied.getMonth(), applied.getDate() + 1);
+      const appliedIst = applied.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+      const [ay, am, ad] = appliedIst.split('-').map(Number);
+      startDate = new Date(ay!, am! - 1, ad! + 1);
     }
     startDate.setHours(0, 0, 0, 0);
 

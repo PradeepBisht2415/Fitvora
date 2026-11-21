@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/db/supabase-server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import type { PlanMealSlot } from '@/features/diet-plans/plan-builder-store';
+import { getNextDateIndia } from '@/lib/utils/diet-formatters';
 import { revalidatePath } from 'next/cache';
 
 export interface SavePlanParams {
@@ -59,11 +60,9 @@ export async function saveDietPlanAction(params: SavePlanParams): Promise<{
 
       const nextVersion = (latestExisting?.version ?? 0) + 1;
 
-      // 1st day starts from the next date of applied date
+      // 1st day starts from the next date of applied date (evaluated in Indian Standard Time)
       const appliedDate = new Date();
-      const nextDate = new Date(appliedDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      const effectiveStartDate = nextDate.toISOString().split('T')[0]!;
+      const effectiveStartDate = getNextDateIndia(appliedDate);
 
       // 1. Create plan header
       const { data: newPlan, error: planErr } = await adminSupabase
