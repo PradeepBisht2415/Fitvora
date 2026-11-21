@@ -126,10 +126,21 @@ export function WordUploadModal({
         body: formData,
       });
 
-      const data = await res.json();
+      const resText = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(resText);
+      } catch {
+        console.error('Non-JSON response from upload-word:', res.status, resText);
+        throw new Error(
+          resText && resText.length < 250
+            ? resText
+            : `Upload failed (Status ${res.status}). Please check server logs and try again.`
+        );
+      }
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to parse weekly diet file.');
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || 'Failed to parse weekly diet file.');
       }
 
       setSuccessData({

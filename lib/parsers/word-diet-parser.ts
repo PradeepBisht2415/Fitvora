@@ -1,5 +1,4 @@
 import mammoth from 'mammoth';
-import { PDFParse } from 'pdf-parse';
 import {
   DAYS_OF_WEEK,
   DEFAULT_MEAL_TIMES,
@@ -1179,12 +1178,18 @@ export async function parseDietPlanFile(
     if (buffer.length === 0) {
       rawText = '';
     } else if (isPdfBuffer(buffer, fileName)) {
-      const parser = new PDFParse({ data: buffer });
       try {
-        const parsed = await parser.getText();
-        rawText = parsed.text || '';
-      } finally {
-        await parser.destroy();
+        const { PDFParse } = await import('pdf-parse');
+        const parser = new PDFParse({ data: buffer });
+        try {
+          const parsed = await parser.getText();
+          rawText = parsed.text || '';
+        } finally {
+          await parser.destroy();
+        }
+      } catch (pdfErr) {
+        console.error('PDF parsing error:', pdfErr);
+        rawText = buffer.toString('utf-8');
       }
     } else {
       try {
