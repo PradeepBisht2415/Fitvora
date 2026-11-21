@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getAdminClient } from '@/lib/db/supabase-admin';
 import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { WeeklyPlanTabs } from '@/components/dashboard/weekly-plan-tabs';
 import { GroceryOverview } from '@/components/dashboard/grocery-overview';
@@ -14,7 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
-import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
+import { formatGuidanceBullets } from '@/lib/utils/diet-formatters';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,10 +42,8 @@ async function MealPlanContent({
       );
     }
 
-    let adminSupabase;
-    try {
-      adminSupabase = createAdminClient();
-    } catch {
+    const adminSupabase = getAdminClient();
+    if (!adminSupabase) {
       return (
         <EmptyState
           icon={CreditCard}
@@ -187,5 +185,17 @@ async function MealPlanContent({
 export default async function MealPlanPage(props: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  return <MealPlanContent searchParams={props.searchParams} />;
+  try {
+    return await MealPlanContent({ searchParams: props.searchParams });
+  } catch (err) {
+    console.error('Fatal error rendering MealPlanPage:', err);
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title="Meal Plan Unavailable"
+        description="We encountered an issue loading your meal plan. Please try refreshing or signing in again."
+        action={{ label: 'Sign In Again', href: '/login' }}
+      />
+    );
+  }
 }

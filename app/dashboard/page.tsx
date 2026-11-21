@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getAdminClient } from '@/lib/db/supabase-admin';
 import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import {
   ClipboardList,
 } from 'lucide-react';
 import type { DietPlanMeal } from '@/types/database.types';
-import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
+import { formatGuidanceBullets } from '@/lib/utils/diet-formatters';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,10 +45,8 @@ async function DashboardContent({
       );
     }
 
-    let adminSupabase;
-    try {
-      adminSupabase = createAdminClient();
-    } catch {
+    const adminSupabase = getAdminClient();
+    if (!adminSupabase) {
       return (
         <EmptyState
           icon={CreditCard}
@@ -293,5 +291,17 @@ async function DashboardContent({
 export default async function DashboardPage(props: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  return <DashboardContent searchParams={props.searchParams} />;
+  try {
+    return await DashboardContent({ searchParams: props.searchParams });
+  } catch (err) {
+    console.error('Fatal error rendering DashboardPage:', err);
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title="Dashboard Temporary Issue"
+        description="We encountered an issue loading your dashboard. Please try refreshing or signing in again."
+        action={{ label: 'Sign In Again', href: '/login' }}
+      />
+    );
+  }
 }

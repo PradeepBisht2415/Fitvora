@@ -1,6 +1,6 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getAdminClient } from '@/lib/db/supabase-admin';
 import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { ProfileForm } from '@/components/dashboard/profile-form';
 import { PreferencesView } from '@/components/dashboard/preferences-view';
@@ -37,10 +37,8 @@ async function ProfilePageContent({
       );
     }
 
-    let adminSupabase;
-    try {
-      adminSupabase = createAdminClient();
-    } catch {
+    const adminSupabase = getAdminClient();
+    if (!adminSupabase) {
       return (
         <EmptyState
           icon={Shield}
@@ -147,5 +145,17 @@ async function ProfilePageContent({
 export default async function ProfilePage(props: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  return <ProfilePageContent searchParams={props.searchParams} />;
+  try {
+    return await ProfilePageContent({ searchParams: props.searchParams });
+  } catch (err) {
+    console.error('Fatal error rendering ProfilePage:', err);
+    return (
+      <EmptyState
+        icon={Shield}
+        title="Profile Temporarily Unavailable"
+        description="We encountered an issue loading your profile. Please try refreshing or signing in again."
+        action={{ label: 'Sign In Again', href: '/login' }}
+      />
+    );
+  }
 }

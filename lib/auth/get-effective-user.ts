@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/db/supabase-server';
-import { createAdminClient } from '@/lib/db/supabase-admin';
+import { getAdminClient } from '@/lib/db/supabase-admin';
 import type { Profile } from '@/types/database.types';
 
 export interface EffectiveDashboardUserResult {
@@ -36,7 +36,16 @@ export async function getEffectiveDashboardUser(
     }
 
     try {
-      const adminSupabase = createAdminClient();
+      const adminSupabase = getAdminClient();
+      if (!adminSupabase) {
+        return {
+          authenticatedUser: user,
+          effectiveUserId: user.id,
+          isAdmin: false,
+          isImpersonating: false,
+          clientProfile: null,
+        };
+      }
       const { data: currentProfile } = await adminSupabase
         .from('profiles')
         .select('*')

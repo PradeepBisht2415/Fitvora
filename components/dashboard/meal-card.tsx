@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AlternativeSwapModal } from './alternative-swap-modal';
 import { Clock, RefreshCw, Sparkles } from 'lucide-react';
-import { formatMealTime } from '@/lib/parsers/word-diet-parser';
+import { formatMealTime } from '@/lib/utils/diet-formatters';
 import type { DietPlanMeal } from '@/types/database.types';
 
 interface MealCardProps {

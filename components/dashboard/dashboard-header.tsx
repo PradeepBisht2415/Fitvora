@@ -30,8 +30,15 @@ export function DashboardHeader() {
     }
   }, [pathname]);
 
-  // Memoize supabase client so it doesn't re-instantiate on every render
-  const supabase = React.useMemo(() => createClient(), []);
+  // Safe client-only supabase reference
+  const supabase = React.useMemo(() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return createClient();
+    } catch {
+      return null;
+    }
+  }, []);
 
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [memberInfo, setMemberInfo] = React.useState<{ name: string; email: string } | null>(null);
@@ -61,12 +68,13 @@ export function DashboardHeader() {
 
   React.useEffect(() => {
     let isMounted = true;
-    supabase.auth.getUser().then(async ({ data }) => {
+    const client = supabase || createClient();
+    client.auth.getUser().then(async ({ data }) => {
       if (!isMounted || !data.user) {
         if (isMounted) setIsAdmin(false);
         return;
       }
-      const { data: profile } = await supabase
+      const { data: profile } = await client
         .from('profiles')
         .select('role')
         .eq('id', data.user.id)
@@ -78,7 +86,7 @@ export function DashboardHeader() {
 
       // If admin is previewing a client, load client details for banner
       if (userIsAdmin && asMember) {
-        const { data: clientData } = await supabase
+        const { data: clientData } = await client
           .from('profiles')
           .select('first_name, last_name, email')
           .eq('id', asMember)
@@ -100,7 +108,8 @@ export function DashboardHeader() {
 
   const handleSignOut = async () => {
     try {
-      await supabase.auth.signOut();
+      const client = supabase || createClient();
+      await client.auth.signOut();
     } catch (err) {
       console.error('Sign out error:', err);
     }
