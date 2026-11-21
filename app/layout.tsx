@@ -17,6 +17,15 @@ export const metadata: Metadata = {
     'Fitvora',
   ],
   authors: [{ name: 'Fitvora' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/icon.svg' },
+    ],
+  },
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL || 'https://fitvora.com'
   ),
