@@ -21,7 +21,9 @@ import {
   Loader2,
   CheckCircle2,
   Eye,
+  FileText,
 } from 'lucide-react';
+import { WordUploadModal } from '@/components/admin/plan-builder/word-upload-modal';
 import type { MembershipStatus } from '@/types/database.types';
 
 interface MemberDetailsData {
@@ -85,6 +87,7 @@ function MemberDetailContent() {
   const [overrideLoading, setOverrideLoading] = useState(false);
   const [overrideSuccess, setOverrideSuccess] = useState<string | null>(null);
   const [overrideError, setOverrideError] = useState<string | null>(null);
+  const [isWordModalOpen, setIsWordModalOpen] = useState(false);
 
   const fetchMember = useCallback(async () => {
     try {
@@ -217,7 +220,7 @@ function MemberDetailContent() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/dashboard?asMember=${profile.id}`}
             target="_blank"
@@ -228,9 +231,17 @@ function MemberDetailContent() {
             <Eye className="h-3.5 w-3.5 text-[#2FAF37]" />
             <span>View Client Dashboard</span>
           </Link>
+          <Button
+            onClick={() => setIsWordModalOpen(true)}
+            className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 text-xs h-8 font-bold gap-1.5 shadow-xs"
+            title="Upload weekly diet Word file to generate client meal cards"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            <span>Upload Weekly Diet (.docx)</span>
+          </Button>
           <Link href={`/admin/diet-plans/new?userId=${profile.id}`}>
-            <Button className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 text-xs h-8">
-              Build 7-Day Diet Plan
+            <Button variant="outline" className="border-gray-300 text-gray-700 text-xs h-8">
+              Plan Editor
             </Button>
           </Link>
         </div>
@@ -517,6 +528,13 @@ function MemberDetailContent() {
           </Card>
         </div>
       </div>
+
+      <WordUploadModal
+        isOpen={isWordModalOpen}
+        onClose={() => setIsWordModalOpen(false)}
+        userId={profile.id}
+        memberName={fullName}
+      />
     </div>
   );
 }

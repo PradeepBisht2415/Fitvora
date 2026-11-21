@@ -15,7 +15,8 @@ import {
   type PlanMealSlot,
 } from '@/features/diet-plans/plan-builder-store';
 import { saveDietPlanAction } from '@/features/diet-plans/publish-plan-action';
-import { ArrowLeft, Save, Send, Loader2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Save, Send, Loader2, Sparkles, CheckCircle2, FileText, Upload } from 'lucide-react';
+import { WordUploadModal } from '@/components/admin/plan-builder/word-upload-modal';
 import type { MealTemplate } from '@/types/database.types';
 
 function PlanBuilderContent() {
@@ -25,6 +26,7 @@ function PlanBuilderContent() {
 
   const [activeDayOfWeek, setActiveDayOfWeek] = useState<number>(1); // Monday default
   const [meals, setMeals] = useState<PlanMealSlot[]>(() => createInitial7DaySchedule());
+  const [isWordModalOpen, setIsWordModalOpen] = useState(false);
   const [guidanceNotes, setGuidanceNotes] = useState(
     'Drink 2.5–3 liters of water throughout the day. Finish dinner at least 2 hours before sleeping. Feel free to use the swap alternatives if any ingredient is unavailable.'
   );
@@ -205,7 +207,17 @@ function PlanBuilderContent() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <Button
+            type="button"
+            onClick={() => setIsWordModalOpen(true)}
+            className="bg-emerald-50 text-[#075B2B] border border-emerald-300 hover:bg-emerald-100 font-bold text-xs h-9 gap-1.5 shadow-2xs"
+            title="Upload weekly diet Word (.docx) file"
+          >
+            <FileText className="h-3.5 w-3.5" />
+            <span>Upload Word (.docx)</span>
+          </Button>
+
           <Button
             type="button"
             variant="outline"
@@ -239,6 +251,29 @@ function PlanBuilderContent() {
       </div>
 
       {/* Notifications */}
+      {/* Upload Weekly Word File Callout */}
+      <div className="rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 via-[#FFFDF7] to-white p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#075B2B] text-white shadow-xs">
+            <FileText className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-xs font-bold text-[#1A2E1C]">Upload Weekly Diet Word Document (.docx)</h3>
+            <p className="text-[11px] text-gray-500">
+              Upload your prepared weekly diet plan in Word. It will automatically populate the 7-day cards below with portions and swaps.
+            </p>
+          </div>
+        </div>
+        <Button
+          type="button"
+          onClick={() => setIsWordModalOpen(true)}
+          className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 font-bold text-xs shrink-0 gap-1.5 shadow-xs"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          Upload Word File
+        </Button>
+      </div>
+
       {errorMsg && (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs text-red-800">
           {errorMsg}
@@ -316,6 +351,19 @@ function PlanBuilderContent() {
         onClose={() => setIsPickerOpen(false)}
         onSelect={handleSelectTemplate}
         targetMealType={pickerMealType}
+      />
+
+      <WordUploadModal
+        isOpen={isWordModalOpen}
+        onClose={() => setIsWordModalOpen(false)}
+        userId={userId}
+        memberName={memberInfo.name}
+        onParsed={({ meals: parsedMeals, guidanceNotes: parsedGuidance }) => {
+          setMeals(parsedMeals);
+          if (parsedGuidance) setGuidanceNotes(parsedGuidance);
+          setSuccessMsg('Weekly diet Word file parsed successfully! Review the 7-day meal cards below before publishing.');
+        }}
+        redirectToClientDashboardOnPublish={false}
       />
     </div>
   );

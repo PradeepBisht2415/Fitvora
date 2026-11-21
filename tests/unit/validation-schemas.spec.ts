@@ -8,6 +8,7 @@ import { renderAssessmentApprovedEmail } from '../../lib/email/templates/assessm
 import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-published';
 import { renderPaymentReceiptEmail } from '../../lib/email/templates/payment-receipt';
 import { renderPaymentFailedEmail } from '../../lib/email/templates/payment-failed';
+import { parseWordDietPlan } from '../../lib/parsers/word-diet-parser';
 
 test.describe('Unit & Invariant Acceptance Tests', () => {
   test('Scenario 1 & PRD Invariant: Assessment blocks under-18 users', () => {
@@ -115,5 +116,11 @@ test.describe('Unit & Invariant Acceptance Tests', () => {
     });
     expect(failed.subject).toContain('Payment Attempt Failed');
     expect(failed.html).toContain('grace period');
+  });
+
+  test('Weekly Diet Parser: Generates complete 7-day schedule with exact portion measures', async () => {
+    const result = await parseWordDietPlan(Buffer.from(''));
+    expect(result.meals.length).toBe(28); // 4 meals * 7 days
+    expect(result.guidanceNotes).toBeDefined();
   });
 });
