@@ -9,6 +9,12 @@ import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-publish
 import { renderPaymentReceiptEmail } from '../../lib/email/templates/payment-receipt';
 import { renderPaymentFailedEmail } from '../../lib/email/templates/payment-failed';
 import { parseWordDietPlan } from '../../lib/parsers/word-diet-parser';
+import {
+  sanitizeAssessmentForExport,
+  generateAssessmentDocHtml,
+  generateAssessmentCsv,
+  generateAssessmentText,
+} from '../../lib/export/assessment-exporter';
 
 test.describe('Unit & Invariant Acceptance Tests', () => {
   test('Scenario 1 & PRD Invariant: Assessment blocks under-18 users', () => {
@@ -122,5 +128,76 @@ test.describe('Unit & Invariant Acceptance Tests', () => {
     const result = await parseWordDietPlan(Buffer.from(''));
     expect(result.meals.length).toBe(28); // 4 meals * 7 days
     expect(result.guidanceNotes).toBeDefined();
+  });
+
+  test('Privacy Invariant: Assessment downloadable file strictly excludes Email and Contact Phone Number', () => {
+    const rawAssessment = {
+      id: 'asmt_abc123',
+      user_id: 'user_456',
+      first_name: 'Ananya',
+      email: 'ananya.secret@personalmail.com',
+      phone: '9876543210',
+      age: 29,
+      gender: 'female',
+      height_cm: 160,
+      weight_kg: 62,
+      target_direction: 'lose_weight' as const,
+      target_weight_kg: 55,
+      timeline_weeks: 12,
+      routine_data: {
+        wake_time: '06:00',
+        sleep_time: '22:30',
+        work_shift: 'standard_day',
+        meal_frequency: '3_meals',
+        activity_level: 'lightly_active',
+      },
+      food_preferences: {
+        diet_type: 'vegetarian',
+        allergies: ['peanuts'],
+        dislikes: ['bitter_gourd'],
+        regional_preference: 'north_indian',
+        cooking_access: 'cooks_at_home',
+      },
+      health_screening: {
+        conditions: ['thyroid'],
+        is_pregnant_or_nursing: false,
+        medications: 'Thyronorm 25mcg',
+        eating_disorder_history: false,
+      },
+      status: 'approved' as const,
+      submitted_at: '2026-11-21T06:00:00Z',
+    };
+
+    // 1. Check sanitization
+    const sanitized = sanitizeAssessmentForExport(rawAssessment);
+    const sanitizedAny = sanitized as unknown as Record<string, unknown>;
+    expect(sanitizedAny['email']).toBeUndefined();
+    expect(sanitizedAny['phone']).toBeUndefined();
+    expect(sanitizedAny['contact_no']).toBeUndefined();
+    expect(sanitizedAny['mobile']).toBeUndefined();
+
+    // 2. Check Word HTML document generation
+    const docHtml = generateAssessmentDocHtml(sanitized);
+    expect(docHtml).not.toContain('ananya.secret@personalmail.com');
+    expect(docHtml).not.toContain('9876543210');
+    expect(docHtml).toContain('Ananya');
+    expect(docHtml).toContain('160 cm / 62 kg');
+    expect(docHtml).toContain('Thyronorm 25mcg');
+    expect(docHtml).toContain('PRIVACY & CONFIDENTIALITY PROTECTED');
+
+    // 3. Check CSV generation
+    const csvContent = generateAssessmentCsv([sanitized]);
+    expect(csvContent).not.toContain('ananya.secret@personalmail.com');
+    expect(csvContent).not.toContain('9876543210');
+    expect(csvContent).not.toContain('Email');
+    expect(csvContent).not.toContain('Phone');
+    expect(csvContent).toContain('Ananya');
+    expect(csvContent).toContain('asmt_abc123');
+
+    // 4. Check Text representation
+    const textContent = generateAssessmentText(sanitized);
+    expect(textContent).not.toContain('ananya.secret@personalmail.com');
+    expect(textContent).not.toContain('9876543210');
+    expect(textContent).toContain('Ananya');
   });
 });

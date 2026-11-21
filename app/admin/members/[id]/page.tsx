@@ -24,6 +24,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { WordUploadModal } from '@/components/admin/plan-builder/word-upload-modal';
+import { AssessmentDownloadButton } from '@/components/admin/assessment-download-button';
 import type { MembershipStatus } from '@/types/database.types';
 
 interface MemberDetailsData {
@@ -421,12 +422,24 @@ function MemberDetailContent() {
           {/* Linked Intake Assessment */}
           <Card className="bg-white border-gray-200 shadow-xs">
             <CardHeader className="pb-3 border-b border-gray-100">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <CardTitle className="text-sm font-bold text-[#1A2E1C] flex items-center gap-2">
                   <ClipboardList className="h-4 w-4 text-emerald-700" />
                   Intake Assessment Data
                 </CardTitle>
-                {assessment && <StatusBadge status={assessment.status} />}
+                <div className="flex items-center gap-2">
+                  {assessment && (
+                    <>
+                      <AssessmentDownloadButton
+                        assessmentId={assessment.id}
+                        clientName={profile.first_name}
+                        assessmentData={assessment}
+                        showPrivacyBadge={false}
+                      />
+                      <StatusBadge status={assessment.status} />
+                    </>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-4 text-xs space-y-4">

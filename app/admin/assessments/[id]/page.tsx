@@ -9,7 +9,8 @@ import { AdminNav } from '@/components/admin/admin-nav';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Loader2, Eye } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Loader2, Eye, Download, ShieldCheck } from 'lucide-react';
+import { AssessmentDownloadButton } from '@/components/admin/assessment-download-button';
 import type { Assessment } from '@/types/database.types';
 
 function createSampleLead(id: string): Assessment {
@@ -66,6 +67,26 @@ function AssessmentDetailContent() {
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [message, setMessage] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    async function loadAssessment() {
+      try {
+        const res = await fetch(`/api/admin/assessments/${id}`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.assessment) {
+            setLead(json.assessment);
+            if (json.assessment.status && json.assessment.status !== 'pending_review') {
+              setDecision(json.assessment.status);
+            }
+          }
+        }
+      } catch {
+        // Fall back to sample
+      }
+    }
+    loadAssessment();
+  }, [id]);
+
   const handleDecisionSubmit = async () => {
     setIsSubmitting(true);
     setMessage(null);
@@ -117,7 +138,13 @@ function AssessmentDetailContent() {
             <ArrowLeft className="h-4 w-4" />
             Back to Triage Queue
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <AssessmentDownloadButton
+              assessmentId={lead.id}
+              clientName={lead.first_name}
+              assessmentData={lead}
+              showPrivacyBadge={false}
+            />
             {lead.user_id && (
               <Link
                 href={`/dashboard?asMember=${lead.user_id}`}
@@ -153,12 +180,19 @@ function AssessmentDetailContent() {
             {/* 0. Candidate Contact & Identity Card */}
             <Card className="border-emerald-200 bg-white shadow-xs">
               <CardHeader className="pb-3 border-b border-emerald-50 bg-[#EAF8E7]/40">
-                <CardTitle className="text-base text-forest-green flex items-center justify-between">
-                  <span>Candidate Contact & Identification</span>
-                  <span className="text-xs font-normal text-muted-text">
-                    Status: <strong className="capitalize">{lead.status.replace(/_/g, ' ')}</strong>
-                  </span>
-                </CardTitle>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <CardTitle className="text-base text-forest-green">
+                    Candidate Contact & Identification
+                  </CardTitle>
+                  <div className="flex items-center gap-2">
+                    <AssessmentDownloadButton
+                      assessmentId={lead.id}
+                      clientName={lead.first_name}
+                      assessmentData={lead}
+                      showPrivacyBadge={false}
+                    />
+                  </div>
+                </div>
               </CardHeader>
               <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div>

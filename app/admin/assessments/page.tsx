@@ -5,7 +5,8 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
-import { Inbox, Eye, ShieldAlert } from 'lucide-react';
+import { Inbox, Eye, ShieldAlert, Download, FileSpreadsheet } from 'lucide-react';
+import { AssessmentDownloadButton } from '@/components/admin/assessment-download-button';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import type { Assessment } from '@/types/database.types';
 
@@ -67,6 +68,23 @@ export default async function AdminAssessmentsPage() {
           />
         ) : (
           <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-3.5 rounded-xl border border-emerald-100 shadow-2xs">
+              <div className="flex items-center gap-2 text-xs text-gray-600">
+                <span className="font-bold text-[#075B2B]">{assessments.length}</span> candidates in triage queue
+                <span className="hidden sm:inline text-gray-300">•</span>
+                <span className="text-[11px] text-gray-500">🔒 Email & phone omitted on exported files for confidentiality</span>
+              </div>
+              <a
+                href="/api/admin/assessments/export"
+                download
+                className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs shrink-0"
+                title="Download all assessments as a sanitized CSV spreadsheet (no email/phone)"
+              >
+                <FileSpreadsheet className="h-3.5 w-3.5 text-[#075B2B]" />
+                <span>Export All (Sanitized CSV)</span>
+              </a>
+            </div>
+
             {assessments.map((lead) => {
               const routine = (lead.routine_data as Record<string, unknown>) || {};
               const wellness = (lead.health_screening as Record<string, unknown>) || {};
@@ -144,7 +162,13 @@ export default async function AdminAssessmentsPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <AssessmentDownloadButton
+                        assessmentId={lead.id}
+                        clientName={lead.first_name}
+                        assessmentData={lead}
+                        showPrivacyBadge={false}
+                      />
                       <Link href={`/admin/assessments/${lead.id}`}>
                         <Button variant="outline" size="sm" className="gap-1.5 font-bold text-xs">
                           <Eye className="h-3.5 w-3.5 text-forest-green" />
