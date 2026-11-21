@@ -6,6 +6,7 @@ import {
   createRazorpaySubscription,
   RAZORPAY_PLAN_MAP,
 } from '@/lib/integrations/razorpay';
+import { activateSubscriptionAndProvisionDietPlan } from '@/lib/plans/instant-activation';
 import { z } from 'zod';
 
 const checkoutBodySchema = z.object({
@@ -87,18 +88,20 @@ export async function POST(request: NextRequest) {
       subscriptionId = `sub_sandbox_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     }
 
-    // 4. Record initial subscription entity in Supabase
-    await adminSupabase.from('subscriptions').insert({
-      user_id: user.id,
-      plan_id: planId,
-      provider_customer_id: customerId || null,
-      provider_subscription_id: subscriptionId,
-      status: 'created',
+    // 4. Activate subscription and provision customized 7-day Indian diet plan
+    const activationResult = await activateSubscriptionAndProvisionDietPlan({
+      userId: user.id,
+      planId,
+      providerSubscriptionId: subscriptionId,
+      providerCustomerId: customerId,
     });
 
     const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder';
 
     return NextResponse.json({
+      success: true,
+      activated: true,
+      redirectUrl: '/dashboard',
       subscriptionId,
       keyId,
       amount: planConfig.amountPaise,
@@ -106,6 +109,7 @@ export async function POST(request: NextRequest) {
       planName: planConfig.name,
       userEmail,
       userName,
+      dietPlanId: activationResult.dietPlanId,
     });
   } catch (error) {
     console.error('Checkout API error:', error);

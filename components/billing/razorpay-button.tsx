@@ -107,6 +107,12 @@ export function RazorpayButton({ planId, disabled = false, onConsentError }: Raz
 
       const checkoutData = await res.json();
 
+      // If instant activation or sandbox mode without live Razorpay keys
+      if (checkoutData.activated) {
+        router.push(checkoutData.redirectUrl || '/dashboard');
+        return;
+      }
+
       // If in sandbox mode without Razorpay script window object or mock mode
       if (!window.Razorpay) {
         // Fallback simulated sandbox checkout for environments where checkout.js is blocked
