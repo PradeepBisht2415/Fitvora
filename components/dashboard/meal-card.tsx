@@ -36,7 +36,9 @@ export function MealCard({ meal, isNext }: MealCardProps) {
               variant="outline"
               className="capitalize text-[10px] font-semibold border-emerald-200 bg-emerald-50 text-emerald-800"
             >
-              {meal.meal_type.replace('_', ' ')}
+              {meal.custom_notes && /^meal\s*\d/i.test(meal.custom_notes)
+                ? meal.custom_notes.match(/^meal\s*\d/i)?.[0]
+                : meal.meal_type.replace('_', ' ')}
             </Badge>
 
             <div className="flex items-center gap-1 text-xs font-mono font-bold text-gray-700">

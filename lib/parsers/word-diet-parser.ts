@@ -48,7 +48,7 @@ const DAY_MAP: Record<string, number> = {
   'day 7': 0,
 };
 
-type MealType = 'breakfast' | 'morning_snack' | 'lunch' | 'evening_snack' | 'dinner' | 'post_dinner';
+type MealType = 'breakfast' | 'morning_snack' | 'lunch' | 'evening_snack' | 'dinner' | 'post_dinner' | string;
 
 function detectMealType(line: string): MealType | null {
   const lower = line.toLowerCase();
@@ -59,28 +59,30 @@ function detectMealType(line: string): MealType | null {
     lower.includes('evening snack') ||
     lower.includes('evening tea') ||
     lower.includes('afternoon snack') ||
-    lower.includes('snack') ||
     lower.includes('chai time')
   ) {
     return 'evening_snack';
   }
-  if (lower.includes('breakfast') || lower.includes('nashta') || lower.includes('subah')) {
+  if (lower.includes('breakfast') || lower.includes('nashta') || lower.includes('subah') || lower.includes('meal 1')) {
     return 'breakfast';
   }
-  if (lower.includes('lunch') || lower.includes('dopahar') || lower.includes('afternoon meal')) {
+  if (lower.includes('lunch') || lower.includes('dopahar') || lower.includes('afternoon meal') || lower.includes('meal 2')) {
     return 'lunch';
   }
   if (lower.includes('post dinner') || lower.includes('bedtime') || lower.includes('night snack')) {
     return 'post_dinner';
   }
-  if (lower.includes('dinner') || lower.includes('raat') || lower.includes('evening meal')) {
+  if (lower.includes('dinner') || lower.includes('raat') || lower.includes('evening meal') || lower.includes('meal 3')) {
     return 'dinner';
+  }
+  if (lower.includes('snack') || lower.includes('meal 4')) {
+    return 'evening_snack';
   }
   return null;
 }
 
 /**
- * Extracts meal time from text lines (e.g. "8:00 AM", "8:30 AM", "1:30 PM", "8:30 PM", "08:30")
+ * Extracts meal time from text lines (e.g. "8:00 AM", "4:00 PM", "9:00 PM", "2:00 AM", "08:30")
  * Returns normalized 24-hr "HH:mm" string for storage and sorting.
  */
 export function extractMealTime(str: string): string | null {
@@ -92,7 +94,7 @@ export function extractMealTime(str: string): string | null {
   );
   const target = rangeMatch ? rangeMatch[1]! : str;
 
-  // 2. 12-hour AM/PM: e.g. 8:30 AM, 08:30 am, 1:30 PM, 8 AM, 8PM
+  // 2. 12-hour AM/PM: e.g. 4:00 PM, 9:00 PM, 2:00 AM, 8:30 AM
   const match12 = target.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM|am|pm)/i);
   if (match12 && match12[1]) {
     let hours = parseInt(match12[1], 10);
@@ -113,7 +115,7 @@ export function extractMealTime(str: string): string | null {
 }
 
 /**
- * Formats a 24-hr "08:00" or raw string into clean 12-hr display for cards ("8:00 AM").
+ * Formats a 24-hr "16:00" or raw string into clean 12-hr display for cards ("4:00 PM").
  */
 export function formatMealTime(timeStr?: string | null): string {
   if (!timeStr) return '';
@@ -147,29 +149,24 @@ function cleanHtmlText(html: string): string {
 }
 
 function cleanMealContent(line: string): string {
-  // 1. Remove meal type label
   let str = line
     .replace(
-      /^(?:breakfast|morning\s*snack|mid\s*morning|lunch|evening\s*snack|evening\s*tea|dinner|post\s*dinner|snack)/i,
+      /^(?:breakfast|morning\s*snack|mid\s*morning|lunch|evening\s*snack|evening\s*tea|dinner|post\s*dinner|snack|meal\s*\d+)/i,
       ''
     )
     .trim();
-  // 2. Remove leading delimiter
-  str = str.replace(/^[\s:–—|@-]+/, '').trim();
-  // 3. Remove time bracket or timing indicator if present at start (e.g. "(8:30 AM)", "9:00 AM:", "[8:00 AM - 8:30 AM]")
+  str = str.replace(/^[\s:–—|@·-]+/, '').trim();
   str = str
     .replace(
       /^[\s(\[]*(?:\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm|\d{2})|\d{1,2}[:.]\d{2})(?:\s*[-–—to]+\s*\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm|\d{2})|\s*(?:AM|PM|am|pm))?[\s)\]]*/i,
       ''
     )
     .trim();
-  // 4. Remove any remaining leading delimiter
-  str = str.replace(/^[\s:–—|@-]+/, '').trim();
+  str = str.replace(/^[\s:–—|@·-]+/, '').trim();
   return str;
 }
 
 function extractPortionFromText(rawText: string): { title: string; portion: string } {
-  // Check for parenthesis: e.g. "Vegetable Poha (1 medium bowl / 200g)"
   const parenMatch = rawText.match(/^(.*?)\(([^)]+)\)(.*)$/);
   if (parenMatch && parenMatch[1] && parenMatch[2]) {
     const title = parenMatch[1].trim();
@@ -177,7 +174,6 @@ function extractPortionFromText(rawText: string): { title: string; portion: stri
     return { title: title || rawText.trim(), portion: portion || '1 standard portion' };
   }
 
-  // Check for dash/hyphen: e.g. "Vegetable Poha - 1 medium bowl"
   const dashMatch = rawText.match(
     /^(.*?)\s*[-—–]\s*(1\s*(?:katori|bowl|plate|cup|glass|piece|pcs|roti|phulka).*)$/i
   );
@@ -206,9 +202,180 @@ function isPdfBuffer(buffer: Buffer, fileName?: string): boolean {
   return false;
 }
 
+interface TableColumnInfo {
+  colIndex: number;
+  rawHeader: string;
+  time: string;
+  mealType: PlanMealSlot['mealType'];
+  mealLabel: string;
+  orderIndex: number;
+}
+
+/**
+ * Attempts to parse structured 7-day grid tables like:
+ * | Day | 4:00 PM · Meal 1 | 9:00 PM · Meal 2 | 2:00 AM · Meal 3 |
+ * | Day 1 | 2 besan chillas... | 2 rotis + dal... | 1.5 cups daliya... |
+ */
+function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: string[] } | null {
+  let headerIndex = -1;
+  const mealColumns: TableColumnInfo[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!.trim();
+    if (!line.includes('|') && !line.includes('\t')) continue;
+
+    const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 2 && /^day/i.test(parts[0]!)) {
+      headerIndex = i;
+      for (let c = 1; c < parts.length; c++) {
+        const colHeader = parts[c]!;
+        const time = extractMealTime(colHeader) || (c === 1 ? '16:00' : c === 2 ? '21:00' : '02:00');
+
+        let mealType: PlanMealSlot['mealType'] = 'breakfast';
+        let mealLabel = 'Meal 1';
+
+        if (/meal\s*2/i.test(colHeader)) {
+          mealType = 'lunch';
+          mealLabel = 'Meal 2';
+        } else if (/meal\s*3/i.test(colHeader)) {
+          mealType = 'dinner';
+          mealLabel = 'Meal 3';
+        } else if (/meal\s*4/i.test(colHeader)) {
+          mealType = 'evening_snack';
+          mealLabel = 'Meal 4';
+        } else if (/lunch/i.test(colHeader)) {
+          mealType = 'lunch';
+          mealLabel = 'Lunch';
+        } else if (/dinner/i.test(colHeader)) {
+          mealType = 'dinner';
+          mealLabel = 'Dinner';
+        } else if (/snack|tea/i.test(colHeader)) {
+          mealType = 'evening_snack';
+          mealLabel = 'Evening Snack';
+        } else {
+          mealLabel = c === 1 ? 'Meal 1' : c === 2 ? 'Meal 2' : c === 3 ? 'Meal 3' : `Meal ${c}`;
+        }
+
+        mealColumns.push({
+          colIndex: c,
+          rawHeader: colHeader,
+          time,
+          mealType,
+          mealLabel,
+          orderIndex: c - 1,
+        });
+      }
+      break;
+    }
+  }
+
+  if (headerIndex === -1 || mealColumns.length === 0) return null;
+
+  const parsedMeals: PlanMealSlot[] = [];
+  const daysDetected = new Set<string>();
+
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const line = lines[i]!.trim();
+    if (!line.includes('|') && !line.includes('\t')) continue;
+
+    const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 2) continue;
+
+    const dayLabel = parts[0]!.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+    const dayOfWeek = DAY_MAP[dayLabel];
+    if (dayOfWeek === undefined) continue;
+
+    daysDetected.add(parts[0]!);
+
+    for (const col of mealColumns) {
+      const content = parts[col.colIndex];
+      if (!content || content.length < 2) continue;
+
+      const { title, portion } = extractPortionFromText(content);
+
+      parsedMeals.push({
+        id: `slot_${dayOfWeek}_${col.mealType}`,
+        dayOfWeek,
+        mealType: col.mealType,
+        scheduledTime: col.time,
+        customTitle: content.trim(),
+        customPortion: portion !== 'Standard household portion' ? portion : 'Measured menu serving',
+        customNotes: `${col.mealLabel} · ${formatMealTime(col.time)}`,
+        customAlternatives: [],
+        allergenTags: [],
+        orderIndex: col.orderIndex,
+      });
+    }
+  }
+
+  if (parsedMeals.length >= 7) {
+    return {
+      meals: parsedMeals.sort((a, b) => {
+        if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+        return a.orderIndex - b.orderIndex;
+      }),
+      daysFound: Array.from(daysDetected),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Extracts comprehensive lifestyle, hydration, movement, and shift guidance notes.
+ */
+function extractAllGuidanceNotes(lines: string[]): string {
+  const guidanceLines: string[] = [];
+  let inGuidanceSection = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!.trim();
+    if (!line) continue;
+    if (line.includes('|')) continue; // Skip table lines
+
+    // Trigger section
+    if (
+      /^(?:guidance|hydration|reminders|rules|notes|portion key|how to monitor|movement|clinical):/i.test(
+        line
+      ) ||
+      line.toLowerCase().includes('guidance & hydration reminders') ||
+      line.toLowerCase().includes('mess / tiffin ordering rules') ||
+      line.toLowerCase().includes('portion key:') ||
+      line.toLowerCase().includes('how to monitor and adjust') ||
+      line.toLowerCase().includes('meal clock & important schedule check')
+    ) {
+      inGuidanceSection = true;
+      guidanceLines.push(line);
+      continue;
+    }
+
+    if (inGuidanceSection) {
+      if (
+        /^(?:water|limit|protein|portions?|walk|strength|sleep|track|note|ask|weigh|movement):/i.test(
+          line
+        )
+      ) {
+        guidanceLines.push(line);
+      } else if (
+        line.length > 15 &&
+        !line.startsWith('Seven-day menu') &&
+        !line.startsWith('Client assessment')
+      ) {
+        guidanceLines.push(line);
+      }
+    }
+  }
+
+  if (guidanceLines.length > 0) {
+    return guidanceLines.join('\n\n');
+  }
+
+  return 'Drink 2.5–3 liters of water throughout the day. Finish dinner at least 2 hours before sleeping. Feel free to use the swap alternatives if any ingredient is unavailable.';
+}
+
 /**
  * Unified Diet Plan Parser supporting both PDF (.pdf) and Word (.docx/.doc) files.
- * Accurately extracts meal timing (e.g. 8:00 AM, 1:30 PM) directly from the diet plan document.
+ * Accurately extracts meal timing (e.g. 4:00 PM, 9:00 PM, 2:00 AM) and meal cards directly from the diet plan document.
  */
 export async function parseDietPlanFile(
   buffer: Buffer,
@@ -219,10 +386,8 @@ export async function parseDietPlanFile(
     let tableText = '';
 
     if (buffer.length === 0) {
-      // Empty buffer test fallback
       rawText = '';
     } else if (isPdfBuffer(buffer, fileName)) {
-      // PDF text extraction using PDFParse
       const parser = new PDFParse({ data: buffer });
       try {
         const parsed = await parser.getText();
@@ -231,34 +396,42 @@ export async function parseDietPlanFile(
         await parser.destroy();
       }
     } else {
-      // Word (.docx / .doc) extraction
       try {
         const rawResult = await mammoth.extractRawText({ buffer });
         const htmlResult = await mammoth.convertToHtml({ buffer });
         rawText = rawResult.value || '';
         tableText = cleanHtmlText(htmlResult.value || '');
       } catch {
-        // Fallback UTF-8 text
         rawText = buffer.toString('utf-8');
       }
     }
 
-    // Combine lines from both text extraction and table conversion
     const combinedLines = (rawText + '\n\n' + tableText)
       .split('\n')
       .map((l) => l.trim())
       .filter(Boolean);
 
-    // Initial default schedule
-    const schedule: PlanMealSlot[] = createInitial7DaySchedule();
+    // 1. Try table plan parsing first (e.g. 7-day grid with Day 1..Day 7 and Meal 1..Meal 3)
+    const tableResult = parseTablePlan(combinedLines);
+    const guidanceNotes = extractAllGuidanceNotes(combinedLines);
 
+    if (tableResult && tableResult.meals.length > 0) {
+      return {
+        success: true,
+        meals: tableResult.meals,
+        guidanceNotes,
+        daysFound: tableResult.daysFound,
+        totalMealsParsed: tableResult.meals.length,
+        rawTextPreview: rawText.slice(0, 500),
+      };
+    }
+
+    // 2. Fall back to section/line-by-line parsing
+    const schedule: PlanMealSlot[] = createInitial7DaySchedule();
     const daysDetected = new Set<string>();
     let currentDayOfWeek: number | null = null;
     let currentMealType: MealType | null = null;
-    let guidanceNotes = '';
-    const guidanceLines: string[] = [];
 
-    // Track slots by day and mealType to update
     const slotMap = new Map<string, PlanMealSlot>();
     schedule.forEach((s) => {
       slotMap.set(`${s.dayOfWeek}_${s.mealType}`, s);
@@ -269,27 +442,7 @@ export async function parseDietPlanFile(
     for (let i = 0; i < combinedLines.length; i++) {
       const line = combinedLines[i]!;
 
-      // 1. Detect Guidance Notes headers
-      if (
-        /^(?:guidelines?|instructions?|general notes?|hydration|tips?|founder notes?|important):/i.test(
-          line
-        ) ||
-        line.toLowerCase().includes('water intake') ||
-        line.toLowerCase().includes('drink 2.') ||
-        line.toLowerCase().includes('drink 3')
-      ) {
-        guidanceLines.push(
-          line
-            .replace(
-              /^(?:guidelines?|instructions?|general notes?|hydration|tips?|founder notes?|important):/i,
-              ''
-            )
-            .trim() || line
-        );
-        continue;
-      }
-
-      // 2. Detect Day of Week
+      // Day of Week detection
       const cleanLineLower = line.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
       let matchedDay: number | null = null;
       for (const [key, val] of Object.entries(DAY_MAP)) {
@@ -310,27 +463,13 @@ export async function parseDietPlanFile(
         continue;
       }
 
-      // If we haven't reached any day yet, check if line belongs to top guidance
-      if (currentDayOfWeek === null) {
-        if (
-          line.toLowerCase().includes('water') ||
-          line.toLowerCase().includes('sleep') ||
-          line.toLowerCase().includes('chew')
-        ) {
-          guidanceLines.push(line);
-        }
-        continue;
-      }
+      if (currentDayOfWeek === null) continue;
 
-      // 3. Detect Meal Type & Content
+      // Meal Type detection
       const detectedType = detectMealType(line);
       if (detectedType) {
         currentMealType = detectedType;
-
-        // Extract meal time from this line (e.g. "Breakfast (8:30 AM): Vegetable Poha")
         const extractedTime = extractMealTime(line);
-
-        // Strip the meal type and timing prefix
         const mealContent = cleanMealContent(line);
 
         const key = `${currentDayOfWeek}_${currentMealType}`;
@@ -353,15 +492,13 @@ export async function parseDietPlanFile(
         continue;
       }
 
-      // 4. Sub-properties for the current meal (Time, Portion, Notes, Swaps)
+      // Sub-properties for the current meal
       if (currentDayOfWeek !== null && currentMealType !== null) {
         const key = `${currentDayOfWeek}_${currentMealType}`;
         const slot = slotMap.get(key);
 
         if (slot) {
           const lower = line.toLowerCase();
-
-          // Time sub-property: e.g. "Time: 8:00 AM" or "Timing: 13:30"
           if (lower.startsWith('time:') || lower.startsWith('timing:') || lower.startsWith('schedule:')) {
             const timeFound = extractMealTime(line);
             if (timeFound) {
@@ -412,13 +549,6 @@ export async function parseDietPlanFile(
           }
         }
       }
-    }
-
-    if (guidanceLines.length > 0) {
-      guidanceNotes = guidanceLines.join(' ');
-    } else {
-      guidanceNotes =
-        'Drink 2.5–3 liters of water throughout the day. Finish dinner at least 2 hours before sleeping. Feel free to use the swap alternatives if any ingredient is unavailable.';
     }
 
     const finalMeals = Array.from(slotMap.values()).sort((a, b) => {

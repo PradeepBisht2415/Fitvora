@@ -171,6 +171,56 @@ Dinner (8:00 PM): Moong Dal Khichdi
     expect(monDinner?.scheduledTime).toBe('20:00');
   });
 
+  test('Night-Shift 7-Day Table Menu: Parses Dhruv plan with 4:00 PM, 9:00 PM, 2:00 AM meal times', async () => {
+    const dhruvPlanText = `DHRUV | WEEK 1 MEAL PLAN
+7-day vegetarian North Indian home-food plan • Weight management • Night-shift schedule
+Seven-day menu · precise serving guide
+| Day | 4:00 PM · Meal 1 | 9:00 PM · Meal 2 | 2:00 AM · Meal 3 |
+| Day 1 | 2 besan chillas (60 g besan total) + 100 g paneer stuffing (prefer low-fat) + 1 orange | 2 rotis + 1 katori moong dal + 1 katori mixed sabzi + 200 g plain curd + salad | 1.5 cups vegetable daliya + 200 g curd + 30 g roasted chana |
+| Day 2 | 2 rotis + 100 g paneer bhurji + cucumber/tomato + 1 guava | 1 cup cooked rice + 1.5 katori rajma + 1 katori seasonal sabzi + salad | 2 moong dal chillas (60 g dry dal) + 200 g curd + 1 apple |
+| Day 3 | 1.5 cups vegetable poha with 30 g peanuts + 200 g curd + 1 small fruit | 2 rotis + 1.5 katori chana dal + 1 katori bhindi/beans + salad | 2 rotis + 100 g paneer tikka/bhurji + 1 katori vegetables |
+| Day 4 | 2 vegetable stuffed rotis (60 g atta total) + 200 g curd + 1 banana (small) | 2 rotis + 1.5 katori chole + 1 katori vegetable + salad | 1.5 cups moong dal khichdi + 200 g curd + 30 g roasted chana |
+| Day 5 | 2 moong dal chillas (70 g dry dal) + 100 g paneer + mint chutney | 2 rotis + 1.5 katori masoor dal + 1 katori seasonal sabzi + 200 g curd | 1 cup cooked rice + 1 katori soy-chunk curry (40 g dry soy chunks) + salad |
+| Day 6 | 1.5 cups vegetable upma + 200 g curd + 30 g roasted chana + 1 apple | 2 rotis + 1.5 katori kala chana + 1 katori vegetable + salad | 2 rotis + 100 g paneer bhurji + 1 katori vegetables + 100 g curd |
+| Day 7 | 2 besan chillas (70 g besan) + 200 g curd + 1 guava | 1 cup cooked rice + 1.5 katori dal + 100 g paneer sabzi + salad | 2 rotis + 1 katori mixed bean curry + 1 katori sabzi + 150 g curd |
+Guidance & Hydration Reminders
+Water: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst, heat and sweating. Do not force excess water.
+Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml cooked food.
+`;
+
+    const parsed = await parseDietPlanFile(Buffer.from(dhruvPlanText), 'dhruv_plan.txt');
+    expect(parsed.success).toBe(true);
+    expect(parsed.meals.length).toBe(21); // 3 meals * 7 days
+
+    // Monday (Day 1)
+    const monMeal1 = parsed.meals.find((m) => m.dayOfWeek === 1 && m.orderIndex === 0);
+    const monMeal2 = parsed.meals.find((m) => m.dayOfWeek === 1 && m.orderIndex === 1);
+    const monMeal3 = parsed.meals.find((m) => m.dayOfWeek === 1 && m.orderIndex === 2);
+
+    expect(monMeal1?.scheduledTime).toBe('16:00');
+    expect(formatMealTime(monMeal1?.scheduledTime)).toBe('4:00 PM');
+    expect(monMeal1?.customTitle).toContain('2 besan chillas');
+    expect(monMeal1?.customNotes).toContain('Meal 1');
+
+    expect(monMeal2?.scheduledTime).toBe('21:00');
+    expect(formatMealTime(monMeal2?.scheduledTime)).toBe('9:00 PM');
+    expect(monMeal2?.customTitle).toContain('moong dal');
+    expect(monMeal2?.customNotes).toContain('Meal 2');
+
+    expect(monMeal3?.scheduledTime).toBe('02:00');
+    expect(formatMealTime(monMeal3?.scheduledTime)).toBe('2:00 AM');
+    expect(monMeal3?.customTitle).toContain('vegetable daliya');
+    expect(monMeal3?.customNotes).toContain('Meal 3');
+
+    // Tuesday (Day 2)
+    const tueMeal2 = parsed.meals.find((m) => m.dayOfWeek === 2 && m.orderIndex === 1);
+    expect(tueMeal2?.customTitle).toContain('rajma');
+
+    // Guidance Notes
+    expect(parsed.guidanceNotes).toContain('Water: Aim for about 2.5–3 L');
+    expect(parsed.guidanceNotes).toContain('Portion key');
+  });
+
   test('Privacy Invariant: Assessment downloadable file strictly excludes Email and Contact Phone Number', () => {
     const rawAssessment = {
       id: 'asmt_abc123',
