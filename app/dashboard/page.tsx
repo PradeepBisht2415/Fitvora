@@ -4,6 +4,7 @@ import { getAdminClient } from '@/lib/db/supabase-admin';
 import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Button } from '@/components/ui/button';
+import { PlanSelectionCards } from '@/components/dashboard/plan-selection-cards';
 import { GreetingBanner } from '@/components/dashboard/greeting-banner';
 import { PlanPendingCard } from '@/components/dashboard/plan-pending-card';
 import { MealCard } from '@/components/dashboard/meal-card';
@@ -81,24 +82,31 @@ async function DashboardContent({
     const isPremium = subscription?.plan_id === 'premium';
     const tierName = isPremium ? 'Premium' : 'Normal';
 
+    // Also check if member has submitted an assessment
+    const { data: userAssessment } = await adminSupabase
+      .from('assessments')
+      .select('id')
+      .eq('user_id', effectiveUserId)
+      .order('submitted_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     if (!isSubscribed) {
+      if (isImpersonating) {
+        return (
+          <EmptyState
+            icon={CreditCard}
+            title="Client Has No Active Membership Plan"
+            description={`Client ${profile?.first_name || 'Member'} does not currently have an active subscription.`}
+            action={{ label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }}
+          />
+        );
+      }
+
       return (
-        <EmptyState
-          icon={CreditCard}
-          title={isImpersonating ? 'Client Has No Active Membership Plan' : 'No Active Membership Plan'}
-          description={
-            isImpersonating
-              ? `Client ${profile?.first_name || 'Member'} does not currently have an active subscription.`
-              : 'Select a monthly plan to unlock your customized 7-day Indian meal schedule, exact portions, and expert guidance.'
-          }
-          action={
-            isImpersonating
-              ? { label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }
-              : {
-                label: 'Choose a Plan (From ₹499/mo)',
-                href: '/checkout',
-              }
-          }
+        <PlanSelectionCards
+          memberName={profile?.first_name || 'Member'}
+          hasAssessment={!!userAssessment}
         />
       );
     }
@@ -111,15 +119,6 @@ async function DashboardContent({
       .eq('status', 'published')
       .order('version', { ascending: false })
       .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    // Also check if member has submitted an assessment
-    const { data: userAssessment } = await adminSupabase
-      .from('assessments')
-      .select('id')
-      .eq('user_id', effectiveUserId)
-      .order('submitted_at', { ascending: false })
       .limit(1)
       .maybeSingle();
 

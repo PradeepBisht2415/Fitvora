@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/db/supabase-browser';
 import { SubscriptionDetailsCard } from '@/components/billing/subscription-details-card';
+import { PlanSelectionCards } from '@/components/dashboard/plan-selection-cards';
 import { EmptyState } from '@/components/ui/empty-state';
 import { BrandCharacter } from '@/components/ui/brand-character';
 import type { Subscription } from '@/types/database.types';
@@ -162,15 +163,7 @@ function SubscriptionPageContent() {
           onRefresh={fetchSubscription}
         />
       ) : (
-        <EmptyState
-          icon={CreditCard}
-          title="No Active Subscription"
-          description="You do not have an active subscription yet. Choose between Normal (₹499/mo) or Premium (₹999/mo) to unlock your personalized meal plan."
-          action={{
-            label: 'Choose a Plan',
-            href: '/checkout',
-          }}
-        />
+        <PlanSelectionCards />
       )}
     </div>
   );

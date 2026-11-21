@@ -4,6 +4,7 @@ import { getAdminClient } from '@/lib/db/supabase-admin';
 import { getEffectiveDashboardUser } from '@/lib/auth/get-effective-user';
 import { WeeklyPlanTabs } from '@/components/dashboard/weekly-plan-tabs';
 import { GroceryOverview } from '@/components/dashboard/grocery-overview';
+import { PlanSelectionCards } from '@/components/dashboard/plan-selection-cards';
 import { PlanPendingCard } from '@/components/dashboard/plan-pending-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -67,22 +68,18 @@ async function MealPlanContent({
   const isPremium = subscription?.plan_id === 'premium';
 
   if (!isSubscribed) {
-    return (
-      <EmptyState
-        icon={CreditCard}
-        title="Subscription Required"
-        description={
-          isImpersonating
-            ? 'This client does not currently have an active membership subscription.'
-            : 'Choose a monthly plan to unlock your full 7-day personalized Indian meal plan.'
-        }
-        action={
-          isImpersonating
-            ? { label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }
-            : { label: 'Choose a Plan', href: '/checkout' }
-        }
-      />
-    );
+    if (isImpersonating) {
+      return (
+        <EmptyState
+          icon={CreditCard}
+          title="Subscription Required"
+          description="This client does not currently have an active membership subscription."
+          action={{ label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }}
+        />
+      );
+    }
+
+    return <PlanSelectionCards />;
   }
 
   // Fetch published diet plan
