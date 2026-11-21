@@ -4,7 +4,6 @@ import { generateOpaqueToken, hashToken, hashIp } from '@/lib/utils/crypto';
 import { sendNewAssessmentAlert } from '@/lib/email/resend-client';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import { createClient } from '@/lib/db/supabase-server';
-import { activateSubscriptionAndProvisionDietPlan } from '@/lib/plans/instant-activation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -128,25 +127,6 @@ export async function POST(request: NextRequest) {
           policy_version: 'v1.0-2026',
           ip_hash: ipHash,
         });
-
-        // If authenticated user with active subscription, re-provision personalized diet plan now
-        if (authUserId) {
-          const { data: sub } = await adminSupabase
-            .from('subscriptions')
-            .select('plan_id, status')
-            .eq('user_id', authUserId)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-          if (sub) {
-            await activateSubscriptionAndProvisionDietPlan({
-              userId: authUserId,
-              planId: sub.plan_id === 'premium' ? 'premium' : 'normal',
-            });
-          }
-        }
       } catch (dbErr) {
         console.warn('Database write failed, continuing with generated ID:', dbErr);
       }
@@ -165,12 +145,12 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: authUserId
-          ? 'Assessment completed. Your personalized meal plan is ready!'
+          ? 'Assessment submitted! Our founder is reviewing your intake to prepare your customized 7-day meal plan.'
           : 'Assessment submitted successfully. Awaiting founder review.',
         token: rawOpaqueToken,
         assessment_id: assessmentId,
         redirectUrl: authUserId ? '/dashboard' : null,
-        status: authUserId ? 'approved' : 'pending_review',
+        status: 'pending_review',
       },
       { status: 201 }
     );

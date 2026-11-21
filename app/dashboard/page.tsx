@@ -80,9 +80,38 @@ async function DashboardContent() {
     .limit(1)
     .maybeSingle();
 
+  // Also check if member has submitted an assessment
+  const { data: userAssessment } = await adminSupabase
+    .from('assessments')
+    .select('id')
+    .eq('user_id', user.id)
+    .order('submitted_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   if (!publishedPlan) {
     return (
       <div className="space-y-6">
+        {!userAssessment && (
+          <Card className="border-amber-300 bg-amber-50/80 p-5 rounded-2xl shadow-xs">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-amber-900 font-bold text-base">
+                  <ClipboardList className="h-5 w-5 text-amber-700 shrink-0" />
+                  <span>Action Required: Fill Your Health & Dietary Assessment</span>
+                </div>
+                <p className="text-xs text-amber-900/80 max-w-xl leading-relaxed">
+                  Your subscription is active! Please complete your brief 3-minute intake assessment so our founder can review your health details and curate your customized 7-day Indian meal schedule.
+                </p>
+              </div>
+              <Link href="/assessment">
+                <Button className="bg-[#075B2B] text-white hover:bg-[#075B2B]/90 font-bold shrink-0 shadow-sm text-xs">
+                  Fill Assessment Form &rarr;
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
         <PlanPendingCard isPremium={isPremium} />
       </div>
     );
