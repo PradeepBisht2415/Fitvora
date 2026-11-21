@@ -178,14 +178,26 @@ export function WordUploadModal({
                 ))}
               </div>
 
-              <div className="pt-3 flex items-center justify-center gap-3">
+              <div className="pt-3 flex flex-wrap items-center justify-center gap-2">
                 <Button
                   onClick={onClose}
                   variant="outline"
                   size="sm"
-                  className="text-xs border-emerald-300 text-emerald-800 hover:bg-emerald-100"
+                  className="text-xs border-gray-300 text-gray-700 hover:bg-gray-100"
                 >
                   Done
+                </Button>
+                <Button
+                  onClick={() => {
+                    onClose();
+                    router.push(`/dashboard/meal-plan?asMember=${userId}`);
+                  }}
+                  size="sm"
+                  variant="outline"
+                  className="border-emerald-300 text-[#075B2B] hover:bg-emerald-50 text-xs font-semibold gap-1.5"
+                >
+                  <Eye className="h-3.5 w-3.5" />
+                  View 7-Day Plan & Grocery
                 </Button>
                 <Button
                   onClick={() => {

@@ -544,7 +544,11 @@ function MemberDetailContent() {
 
       <WordUploadModal
         isOpen={isWordModalOpen}
-        onClose={() => setIsWordModalOpen(false)}
+        onClose={() => {
+          setIsWordModalOpen(false);
+          fetchMember();
+          router.refresh();
+        }}
         userId={profile.id}
         memberName={fullName}
       />

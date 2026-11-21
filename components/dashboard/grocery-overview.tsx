@@ -38,18 +38,23 @@ const STAPLE_CATALOG: GroceryItemDef[] = [
   { category: 'Grains & Flours', name: 'Daliya (Broken Wheat)', match: /daliya/i },
   { category: 'Grains & Flours', name: 'Poha (Flattened Rice)', match: /poha/i },
   { category: 'Grains & Flours', name: 'Suji / Rava (Upma)', match: /upma|suji|rava/i },
-  { category: 'Grains & Flours', name: 'Oats', match: /oats/i },
+  { category: 'Grains & Flours', name: 'Oats (Rolled / Steel Cut)', match: /oats/i },
+  { category: 'Grains & Flours', name: 'Quinoa', match: /quinoa/i },
+  { category: 'Grains & Flours', name: 'Whole Wheat / Brown Bread', match: /bread|toast/i },
   { category: 'Grains & Flours', name: 'Multigrain / Jowar Atta', match: /jowar|bajra|multigrain/i },
 
   // Dairy & Proteins
   { category: 'Dairy & Proteins', name: 'Fresh Paneer', match: /paneer/i },
   { category: 'Dairy & Proteins', name: 'Fresh Curd / Dahi', match: /curd|dahi/i },
   { category: 'Dairy & Proteins', name: 'Chaas (Buttermilk)', match: /chaas|buttermilk/i },
+  { category: 'Dairy & Proteins', name: 'Milk (Toned / Skimmed)', match: /\bmilk\b/i },
   { category: 'Dairy & Proteins', name: 'Soya Chunks', match: /soy|soya/i },
   { category: 'Dairy & Proteins', name: 'Tofu', match: /tofu/i },
-  { category: 'Dairy & Proteins', name: 'Eggs', match: /\beggs?\b|omelet|boiled egg/i },
+  { category: 'Dairy & Proteins', name: 'Eggs (Whole / Whites)', match: /\beggs?\b|omelet|boiled egg/i },
   { category: 'Dairy & Proteins', name: 'Peanuts / Groundnuts', match: /peanut/i },
-  { category: 'Dairy & Proteins', name: 'Chicken / Fish / Meat', match: /chicken|fish|mutton|meat/i },
+  { category: 'Dairy & Proteins', name: 'Chicken (Breast / Curry Cut)', match: /chicken/i },
+  { category: 'Dairy & Proteins', name: 'Fish / Seafood', match: /fish|prawn|salmon/i },
+  { category: 'Dairy & Proteins', name: 'Mutton / Lean Meat', match: /mutton|lamb|meat/i },
 
   // Fresh Vegetables & Fruits
   { category: 'Fresh Produce & Fruits', name: 'Seasonal Sabzi / Mixed Vegetables', match: /sabzi|vegetable|veggie/i },
@@ -57,8 +62,19 @@ const STAPLE_CATALOG: GroceryItemDef[] = [
   { category: 'Fresh Produce & Fruits', name: 'Bhindi (Okra) & Green Beans', match: /bhindi|beans/i },
   { category: 'Fresh Produce & Fruits', name: 'Palak (Spinach)', match: /palak|spinach/i },
   { category: 'Fresh Produce & Fruits', name: 'Lauki (Bottle Gourd)', match: /lauki|ghiya/i },
+  { category: 'Fresh Produce & Fruits', name: 'Broccoli & Cauliflower', match: /broccoli|gobi|cauliflower/i },
+  { category: 'Fresh Produce & Fruits', name: 'Capsicum & Bell Peppers', match: /capsicum|bell pepper/i },
+  { category: 'Fresh Produce & Fruits', name: 'Mushrooms', match: /mushroom/i },
   { category: 'Fresh Produce & Fruits', name: 'Fresh Mint & Coriander (Chutney)', match: /mint|chutney|coriander/i },
-  { category: 'Fresh Produce & Fruits', name: 'Fresh Fruits (Orange, Guava, Apple, Banana)', match: /fruit|orange|guava|apple|banana/i },
+  { category: 'Fresh Produce & Fruits', name: 'Fresh Seasonal Fruits (Orange, Guava, Apple, Banana)', match: /fruit|orange|guava|apple|banana|papaya|pomegranate/i },
+
+  // Healthy Snacks, Seeds & Essentials
+  { category: 'Healthy Snacks & Seeds', name: 'Roasted Makhana (Fox Nuts)', match: /makhana/i },
+  { category: 'Healthy Snacks & Seeds', name: 'Almonds & Walnuts', match: /almond|walnut|badam|akhrot/i },
+  { category: 'Healthy Snacks & Seeds', name: 'Chia Seeds / Flax Seeds', match: /chia|flax|pumpkin seed/i },
+  { category: 'Healthy Snacks & Seeds', name: 'Sprouts (Moong / Chana)', match: /sprout/i },
+  { category: 'Healthy Snacks & Seeds', name: 'Coconut Water', match: /coconut water/i },
+  { category: 'Healthy Snacks & Seeds', name: 'Pure Desi Ghee / Olive Oil', match: /ghee|olive oil/i },
 ];
 
 export function deriveGroceryListFromMeals(
