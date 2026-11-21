@@ -14,6 +14,7 @@ test.describe('Unit & Invariant Acceptance Tests', () => {
     const minorData = {
       first_name: 'Rahul',
       email: 'rahul@example.com',
+      phone: '9876543210',
       age: 17, // Under 18
       gender: 'male',
     };
@@ -25,16 +26,29 @@ test.describe('Unit & Invariant Acceptance Tests', () => {
     }
   });
 
-  test('Scenario 1: Assessment validates valid adult candidate', () => {
+  test('Scenario 1: Assessment validates valid adult candidate with mandatory phone', () => {
     const validAdult = {
       first_name: 'Priya',
       email: 'priya@example.com',
+      phone: '9876543210',
       age: 26,
       gender: 'female',
     };
 
     const result = aboutYouSchema.safeParse(validAdult);
     expect(result.success).toBe(true);
+  });
+
+  test('Scenario 1: Assessment blocks submission when phone number is missing', () => {
+    const missingPhone = {
+      first_name: 'Priya',
+      email: 'priya@example.com',
+      age: 26,
+      gender: 'female',
+    };
+
+    const result = aboutYouSchema.safeParse(missingPhone);
+    expect(result.success).toBe(false);
   });
 
   test('Scenario 3: High-risk medical conditions trigger manual review flag', () => {

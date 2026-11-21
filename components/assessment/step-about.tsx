@@ -58,10 +58,10 @@ export function StepAbout({ data, onChange, errors = {} }: StepAboutProps) {
           )}
         </div>
 
-        {/* Phone Number (Optional) */}
+        {/* Phone Number (Mandatory) */}
         <div className="space-y-1.5">
           <label className="text-sm font-semibold text-dark-text" htmlFor="phone">
-            Mobile Number <span className="text-xs text-muted-text font-normal">(Optional)</span>
+            Mobile Number <span className="text-destructive">*</span>
           </label>
           <div className="flex">
             <span className="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-border-soft bg-pale-green/40 text-xs font-bold text-forest-green">
@@ -77,6 +77,9 @@ export function StepAbout({ data, onChange, errors = {} }: StepAboutProps) {
               maxLength={10}
             />
           </div>
+          <p className="text-[11px] text-muted-text">
+            Required for our founder and clinical dietitian to connect with you for personalized diet planning.
+          </p>
           {errors['phone'] && (
             <p className="text-xs text-destructive">{errors['phone']}</p>
           )}

@@ -127,6 +127,14 @@ export async function POST(request: NextRequest) {
           policy_version: 'v1.0-2026',
           ip_hash: ipHash,
         });
+
+        // Sync mandatory phone number to member profile
+        if (authUserId && about.phone) {
+          await adminSupabase
+            .from('profiles')
+            .update({ phone: about.phone })
+            .eq('id', authUserId);
+        }
       } catch (dbErr) {
         console.warn('Database write failed, continuing with generated ID:', dbErr);
       }

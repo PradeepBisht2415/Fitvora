@@ -2,7 +2,7 @@
 
 import React, { useState, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/db/supabase-browser';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -13,6 +13,8 @@ import { Lock, Mail, User, ArrowRight, AlertCircle, Sparkles } from 'lucide-reac
 
 function SignupContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get('redirectTo') || '/assessment';
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -62,7 +64,13 @@ function SignupContent() {
       });
 
       if (authError) {
-        setError(authError.message);
+        if (authError.message.toLowerCase().includes('rate limit')) {
+          setError(
+            'Supabase email confirmation rate limit reached (free tier allows 3-4 emails/hour). If you already created an account, please log in with your credentials at /login. (Tip: Disable "Confirm email" in Supabase Dashboard -> Auth -> Providers -> Email for testing).'
+          );
+        } else {
+          setError(authError.message);
+        }
         setLoading(false);
         return;
       }
@@ -77,8 +85,8 @@ function SignupContent() {
           timezone: 'Asia/Kolkata',
         });
 
-        // Redirect to checkout or onboarding
-        router.push('/checkout');
+        // Redirect to intake assessment form or specified redirectTo
+        router.push(redirectTo);
         router.refresh();
       }
     } catch (err) {
@@ -94,23 +102,15 @@ function SignupContent() {
 
       <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <div className="w-full max-w-md">
-          {/* Recommendation Banner */}
+          {/* Onboarding Guidance Banner */}
           <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-[#1A2E1C]">
             <div className="flex items-center gap-2 font-semibold text-[#075B2B]">
               <Sparkles className="h-4 w-4" />
-              <span>Recommended First Step: Intake Assessment</span>
+              <span>Step 1: Create Your Account</span>
             </div>
             <p className="mt-1 text-[#1A2E1C]/80">
-              For personalized home-food planning, take our free 3-minute intake assessment before subscribing.
+              Sign up below to secure your member portal. Immediately following sign up, you will fill your personalized health & diet intake assessment.
             </p>
-            <div className="mt-2">
-              <Link
-                href="/assessment"
-                className="inline-flex items-center text-xs font-semibold text-[#075B2B] hover:underline"
-              >
-                Take Free Assessment →
-              </Link>
-            </div>
           </div>
 
           <div className="text-center mb-6">

@@ -134,9 +134,28 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                       {member.name}
                     </td>
                     <td className="py-3.5 px-4">
-                      <div>{member.email}</div>
-                      {member.phone && (
-                        <div className="text-[11px] text-gray-400">{member.phone}</div>
+                      <div className="font-medium text-[#1A2E1C]">{member.email}</div>
+                      {member.phone ? (
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <a
+                            href={`tel:${member.phone}`}
+                            className="font-semibold text-xs text-[#075B2B] hover:underline"
+                            title="Call candidate"
+                          >
+                            📞 +91 {member.phone}
+                          </a>
+                          <a
+                            href={`https://wa.me/91${member.phone.replace(/\D/g, '')}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="rounded bg-emerald-100 text-emerald-800 px-1.5 py-0.5 text-[10px] font-bold hover:bg-emerald-200"
+                            title="Open WhatsApp chat"
+                          >
+                            WhatsApp
+                          </a>
+                        </div>
+                      ) : (
+                        <div className="text-[11px] text-gray-400">No phone recorded</div>
                       )}
                     </td>
                     <td className="py-3.5 px-4">

@@ -134,6 +134,56 @@ function AssessmentDetailContent() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left 2 Columns: Lead Details */}
           <div className="md:col-span-2 space-y-6">
+            {/* 0. Candidate Contact & Identity Card */}
+            <Card className="border-emerald-200 bg-white shadow-xs">
+              <CardHeader className="pb-3 border-b border-emerald-50 bg-[#EAF8E7]/40">
+                <CardTitle className="text-base text-forest-green flex items-center justify-between">
+                  <span>Candidate Contact & Identification</span>
+                  <span className="text-xs font-normal text-muted-text">
+                    Status: <strong className="capitalize">{lead.status.replace(/_/g, ' ')}</strong>
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div>
+                  <span className="text-muted-text block">Full Name:</span>
+                  <span className="font-bold text-sm text-[#1A2E1C]">{lead.first_name}</span>
+                </div>
+                <div>
+                  <span className="text-muted-text block">Age & Gender:</span>
+                  <span className="font-bold text-sm text-[#1A2E1C]">
+                    {lead.age} years old • {lead.gender || 'Not specified'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-muted-text block">Mobile Number (Mandatory):</span>
+                  {lead.phone ? (
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <a href={`tel:${lead.phone}`} className="font-bold text-sm text-[#075B2B] hover:underline">
+                        📞 +91 {lead.phone}
+                      </a>
+                      <a
+                        href={`https://wa.me/91${lead.phone.replace(/\D/g, '')}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-md bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold hover:bg-emerald-200"
+                      >
+                        WhatsApp
+                      </a>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 font-bold">N/A</span>
+                  )}
+                </div>
+                <div>
+                  <span className="text-muted-text block">Email Address:</span>
+                  <a href={`mailto:${lead.email}`} className="font-bold text-sm text-gray-800 hover:underline">
+                    ✉️ {lead.email}
+                  </a>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* 1. Body & Goal */}
             <Card>
               <CardHeader className="pb-3">

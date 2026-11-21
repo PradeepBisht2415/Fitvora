@@ -241,10 +241,25 @@ function MemberDetailContent() {
                 <Mail className="h-3.5 w-3.5 text-gray-400" />
                 <span className="font-medium text-gray-800">{profile.email}</span>
               </div>
-              {profile.phone && (
+              {profile.phone ? (
                 <div className="flex items-center gap-2">
                   <Phone className="h-3.5 w-3.5 text-gray-400" />
-                  <span>{profile.phone}</span>
+                  <a href={`tel:${profile.phone}`} className="font-semibold text-emerald-800 hover:underline">
+                    📞 +91 {profile.phone}
+                  </a>
+                  <a
+                    href={`https://wa.me/91${profile.phone.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-md bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold hover:bg-emerald-200"
+                  >
+                    WhatsApp
+                  </a>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Phone className="h-3.5 w-3.5" />
+                  <span>No phone recorded</span>
                 </div>
               )}
               <div className="flex items-center gap-2">

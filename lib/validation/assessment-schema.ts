@@ -15,10 +15,10 @@ export const aboutYouSchema = z.object({
   phone: z
     .string()
     .trim()
-    .optional()
+    .min(10, 'Mobile number is required')
     .refine(
-      (val) => !val || /^[6-9]\d{9}$/.test(val),
-      'Please enter a valid 10-digit Indian mobile number'
+      (val) => /^[6-9]\d{9}$/.test(val.replace(/\s+/g, '').replace(/^\+91/, '')),
+      'Please enter a valid 10-digit Indian mobile number (e.g. 9876543210)'
     ),
   age: z.coerce
     .number()

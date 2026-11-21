@@ -102,6 +102,28 @@ export default async function AdminAssessmentsPage() {
 
                       <div className="text-xs text-muted-text flex flex-wrap gap-x-4 gap-y-1">
                         <span>
+                          Phone:{' '}
+                          {lead.phone ? (
+                            <a
+                              href={`tel:${lead.phone}`}
+                              className="font-bold text-[#075B2B] hover:underline"
+                            >
+                              📞 +91 {lead.phone}
+                            </a>
+                          ) : (
+                            <strong className="text-gray-400">N/A</strong>
+                          )}
+                        </span>
+                        <span>
+                          Email:{' '}
+                          <a
+                            href={`mailto:${lead.email}`}
+                            className="font-semibold text-gray-700 hover:underline"
+                          >
+                            {lead.email}
+                          </a>
+                        </span>
+                        <span>
                           Goal:{' '}
                           <strong className="text-dark-text capitalize">
                             {lead.target_direction.replace(/_/g, ' ')}

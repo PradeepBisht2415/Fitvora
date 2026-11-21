@@ -27,6 +27,7 @@ import { createClient } from '@/lib/db/supabase-browser';
 
 export default function AssessmentPage() {
   const router = useRouter();
+  const [authChecking, setAuthChecking] = React.useState(true);
   const [currentStep, setCurrentStep] = React.useState(1);
   const [formData, setFormData] = React.useState<AssessmentSubmissionData>(DEFAULT_ASSESSMENT_DATA);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
@@ -38,24 +39,27 @@ export default function AssessmentPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentStep]);
 
-  // Pre-fill user data if already signed in
+  // Enforce account sign-up before assessment, and pre-fill authenticated profile
   React.useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setFormData((prev) => ({
-          ...prev,
-          about: {
-            ...prev.about,
-            email: data.user.email || prev.about.email,
-            first_name:
-              (data.user.user_metadata?.first_name as string) ||
-              prev.about.first_name,
-          },
-        }));
+      if (!data.user) {
+        router.push('/signup?redirectTo=/assessment');
+        return;
       }
+      setFormData((prev) => ({
+        ...prev,
+        about: {
+          ...prev.about,
+          email: data.user.email || prev.about.email,
+          first_name:
+            (data.user.user_metadata?.first_name as string) ||
+            prev.about.first_name,
+        },
+      }));
+      setAuthChecking(false);
     });
-  }, []);
+  }, [router]);
 
   // Validation per step before proceeding
   const validateStep = (step: number): boolean => {
@@ -141,6 +145,21 @@ export default function AssessmentPage() {
     }
   };
 
+  if (authChecking) {
+    return (
+      <div className="flex min-h-screen flex-col bg-warm-cream">
+        <Navbar />
+        <main className="flex-1 flex items-center justify-center p-8">
+          <div className="flex flex-col items-center gap-3 text-muted-text">
+            <Loader2 className="h-8 w-8 animate-spin text-[#075B2B]" />
+            <p className="text-sm font-medium">Verifying member account status...</p>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-warm-cream">
       <Navbar />
@@ -151,7 +170,7 @@ export default function AssessmentPage() {
           <div className="space-y-2 text-center sm:text-left">
             <div className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-fresh-green">
               <ShieldCheck className="h-4 w-4" />
-              <span>Confidential • No Account Required To Begin</span>
+              <span>Confidential • Member Health Assessment</span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-forest-green">
               Health & Lifestyle Intake Assessment
