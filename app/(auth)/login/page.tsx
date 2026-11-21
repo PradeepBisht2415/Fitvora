@@ -54,16 +54,7 @@ function LoginContent() {
       }
 
       if (data.user) {
-        // Check role to direct admin vs member
-        const role =
-          (data.user.app_metadata?.['role'] as string) ||
-          (data.user.user_metadata?.['role'] as string);
-
-        if (role === 'admin' && redirectTo === '/dashboard') {
-          router.push('/admin/assessments');
-        } else {
-          router.push(redirectTo);
-        }
+        router.push(redirectTo);
         router.refresh();
       }
     } catch (err) {

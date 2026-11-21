@@ -14,6 +14,7 @@ import {
   User,
   TrendingUp,
   MessageSquare,
+  Shield,
 } from 'lucide-react';
 
 function DashboardLayoutContent({
@@ -24,6 +25,17 @@ function DashboardLayoutContent({
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+
+  const [isAdmin, setIsAdmin] = React.useState(false);
+
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const role =
+        (data.user?.app_metadata?.['role'] as string) ||
+        (data.user?.user_metadata?.['role'] as string);
+      if (role === 'admin') setIsAdmin(true);
+    });
+  }, [supabase]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -83,6 +95,16 @@ function DashboardLayoutContent({
           </div>
 
           <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-xs"
+                title="Go to Founder Admin Portal"
+              >
+                <Shield className="h-3.5 w-3.5 text-[#2FAF37]" />
+                <span>Admin Portal</span>
+              </Link>
+            )}
             <Link href="/" className="text-xs text-gray-500 hover:text-[#075B2B] hidden sm:inline">
               Public Site
             </Link>
