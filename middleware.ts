@@ -8,71 +8,83 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If environment variables are missing (e.g. during build or initial setup), continue
-  if (!supabaseUrl || !supabaseAnonKey) {
+    // If environment variables are missing (e.g. during build or initial setup), continue
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return response;
+    }
+
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    });
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    const { pathname } = request.nextUrl;
+
+    // Protect member dashboard routes
+    if (pathname.startsWith('/dashboard')) {
+      if (!user) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = '/login';
+        redirectUrl.searchParams.set('redirectTo', pathname);
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
+
+    // Protect admin routes
+    if (pathname.startsWith('/admin')) {
+      if (!user) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = '/login';
+        redirectUrl.searchParams.set('redirectTo', pathname);
+        return NextResponse.redirect(redirectUrl);
+      }
+
+      // Role verification (app_metadata or user_metadata)
+      const role =
+        (user.app_metadata?.['role'] as string) ||
+        (user.user_metadata?.['role'] as string);
+
+      if (role !== 'admin') {
+        const dashboardUrl = request.nextUrl.clone();
+        dashboardUrl.pathname = '/dashboard';
+        return NextResponse.redirect(dashboardUrl);
+      }
+    }
+
+    return response;
+  } catch (err) {
+    console.error('Middleware execution error:', err);
+    const { pathname } = request.nextUrl;
+    if (pathname.startsWith('/dashboard') || pathname.startsWith('/admin')) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = '/login';
+      redirectUrl.searchParams.set('redirectTo', pathname);
+      return NextResponse.redirect(redirectUrl);
+    }
     return response;
   }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value)
-        );
-        response = NextResponse.next({
-          request,
-        });
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options)
-        );
-      },
-    },
-  });
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
-
-  // Protect member dashboard routes
-  if (pathname.startsWith('/dashboard')) {
-    if (!user) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/login';
-      redirectUrl.searchParams.set('redirectTo', pathname);
-      return NextResponse.redirect(redirectUrl);
-    }
-  }
-
-  // Protect admin routes
-  if (pathname.startsWith('/admin')) {
-    if (!user) {
-      const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/login';
-      redirectUrl.searchParams.set('redirectTo', pathname);
-      return NextResponse.redirect(redirectUrl);
-    }
-
-    // Role verification (app_metadata or user_metadata)
-    const role =
-      (user.app_metadata?.['role'] as string) ||
-      (user.user_metadata?.['role'] as string);
-
-    if (role !== 'admin') {
-      const dashboardUrl = request.nextUrl.clone();
-      dashboardUrl.pathname = '/dashboard';
-      return NextResponse.redirect(dashboardUrl);
-    }
-  }
-
-  return response;
 }
 
 export const config = {
