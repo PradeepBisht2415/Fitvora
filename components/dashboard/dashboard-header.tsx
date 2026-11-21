@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/db/supabase-browser';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,8 +21,14 @@ import {
 export function DashboardHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const asMember = searchParams.get('asMember');
+  const [asMember, setAsMember] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      setAsMember(sp.get('asMember'));
+    }
+  }, [pathname]);
 
   // Memoize supabase client so it doesn't re-instantiate on every render
   const supabase = React.useMemo(() => createClient(), []);
