@@ -23,10 +23,10 @@ export function SubscriptionDetailsCard({ subscription, onRefresh }: Subscriptio
 
   const renewalDate = subscription.current_period_end
     ? new Date(subscription.current_period_end).toLocaleDateString('en-IN', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric',
-      })
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    })
     : 'End of current cycle';
 
   const isCancelled = subscription.status === 'cancelled' || subscription.cancel_at_period_end;
@@ -34,20 +34,20 @@ export function SubscriptionDetailsCard({ subscription, onRefresh }: Subscriptio
 
   const features = isPremium
     ? [
-        'Customized 7-day Indian home food plan',
-        'Exact portions & household measures (katori, roti)',
-        'Smart meal swap alternatives',
-        'Priority queue for diet plan updates (< 24 hours)',
-        'Weekly structured check-in form & adherence review',
-        'Direct priority messaging',
-      ]
+      'Customized 7-day Indian home food plan',
+      'Exact portions & household measures (katori, roti)',
+      'Smart meal swap alternatives',
+      'Priority queue for diet plan updates (< 24 hours)',
+      'Weekly structured check-in form & adherence review',
+      'Direct priority messaging',
+    ]
     : [
-        'Customized 7-day Indian home food plan',
-        'Exact portions & household measures (katori, roti)',
-        'Smart meal swap alternatives',
-        'General wellness & hydration guidance',
-        'Monthly plan renewal & dietary adjustments',
-      ];
+      'Customized 7-day Indian home food plan',
+      'Exact portions & household measures (katori, roti)',
+      'Smart meal swap alternatives',
+      'General wellness & hydration guidance',
+      'Monthly plan renewal & dietary adjustments',
+    ];
 
   return (
     <>

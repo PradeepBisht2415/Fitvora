@@ -61,6 +61,19 @@ export function isDayNameOnly(str: string): boolean {
   );
 }
 
+export function isNutritionOrSummaryLine(str: string): boolean {
+  if (!str) return false;
+  const clean = str.trim().toLowerCase();
+  return (
+    /^(?:estimated\s*(?:daily\s*total|meal|bmr|maintenance|target)|daily\s*total|total\s*(?:calories|kcal)|nutrition\s*targets|routine|measurements|avoid|goal|client\s*overview|client\b|bmi\b|portion\s*key|meal\s*clock|mess\s*\/\s*tiffin)/i.test(
+      clean
+    ) ||
+    /^\|\s*(?:client|measurements|goal|routine|diet|meal schedule|nutrition targets|avoid)\b/i.test(
+      clean
+    )
+  );
+}
+
 function detectMealType(line: string): MealType | null {
   const lower = line.toLowerCase();
   if (lower.includes('morning snack') || lower.includes('mid morning') || lower.includes('mid-morning')) {
@@ -287,6 +300,167 @@ function isPdfBuffer(buffer: Buffer, fileName?: string): boolean {
   if (fileName?.toLowerCase().endsWith('.pdf')) return true;
   if (buffer.length >= 5 && buffer.subarray(0, 5).toString('ascii') === '%PDF-') return true;
   return false;
+}
+
+/**
+ * Parses structured section-based nutrition reports like:
+ * DAY 1 | Monday
+ * Breakfast — 14:30 | Paneer-besan thali
+ * Besan chilla: 2 (80 g dry besan + vegetables; 10 g oil); low-fat paneer stuffing 120 g...
+ * Estimated meal: 760 kcal | 47 g protein
+ * Dinner — 21:00 | Rajma-rice tiffin
+ * Rajma curry 300 g; cooked rice 180 g...
+ * Estimated meal: 805 kcal | 37 g protein
+ * ESTIMATED DAILY TOTAL: 1,565 kcal | 84 g protein
+ */
+function parseStructuredMenuReport(lines: string[]): { meals: PlanMealSlot[]; daysFound: string[] } | null {
+  const parsedMeals: PlanMealSlot[] = [];
+  const daysDetected = new Set<string>();
+  let currentDay: number | null = null;
+  let currentMeal: PlanMealSlot | null = null;
+  const mealCountByDay: Record<number, number> = {};
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i]!.trim();
+    if (!rawLine) continue;
+
+    // Check for guidance section heading - stop parsing meals
+    if (/^Guidance\s*&\s*Hydration\s*Reminders/i.test(rawLine)) {
+      if (currentMeal) {
+        parsedMeals.push(currentMeal);
+        currentMeal = null;
+      }
+      break;
+    }
+
+    // Skip client overview metadata
+    if (
+      /^(?:client|measurements|goal|routine|diet|meal schedule|nutrition targets|avoid|estimated bmr|portion key|client overview)/i.test(
+        rawLine
+      ) ||
+      /^\|\s*(?:client|measurements|goal|routine|diet|meal schedule|nutrition targets|avoid)\b/i.test(rawLine)
+    ) {
+      continue;
+    }
+
+    // Check for Day heading, e.g. "DAY 1 | Monday" or "DAY 2 - Tuesday" or "Day 1"
+    const dayMatch = rawLine.match(/^DAY\s*(\d)\s*(?:[|—–-]\s*([a-zA-Z]+))?/i);
+    if (dayMatch && dayMatch[1]) {
+      if (currentMeal) {
+        parsedMeals.push(currentMeal);
+        currentMeal = null;
+      }
+      const dayNum = parseInt(dayMatch[1], 10);
+      currentDay = dayNum === 7 ? 0 : dayNum;
+      const dayName = dayMatch[2] ? dayMatch[2].trim() : `Day ${dayNum}`;
+      daysDetected.add(dayName);
+      continue;
+    }
+
+    if (currentDay === null) continue;
+
+    // Skip daily total summary lines
+    if (/^ESTIMATED\s*DAILY\s*TOTAL/i.test(rawLine)) {
+      if (currentMeal) {
+        parsedMeals.push(currentMeal);
+        currentMeal = null;
+      }
+      continue;
+    }
+
+    // Check for meal heading line: e.g. "Breakfast — 14:30 | Paneer-besan thali" or "Dinner — 21:00 | Rajma-rice tiffin"
+    const detectedType = detectMealType(rawLine);
+    const hasTime = extractMealTime(rawLine);
+
+    if (
+      detectedType &&
+      (hasTime || /meal\s*\d/i.test(rawLine) || rawLine.includes('|') || rawLine.includes('—') || rawLine.includes('–'))
+    ) {
+      if (currentMeal) {
+        parsedMeals.push(currentMeal);
+        currentMeal = null;
+      }
+
+      const mealType = detectedType;
+      const time = hasTime || DEFAULT_MEAL_TIMES[mealType] || '08:30';
+
+      // Extract meal title after time/meal separator
+      let title = rawLine;
+      title = title
+        .replace(
+          /^(?:breakfast|lunch|dinner|snack|morning_snack|evening_snack|post_dinner|meal\s*\d+)[\s—–:-]*(?:\d{1,2}(?::\d{2})?\s*(?:am|pm|\d{2})|\d{1,2}[:.]\d{2})?[\s—–|:-]*/i,
+          ''
+        )
+        .trim();
+      title = title.replace(/^\|\s*/, '').trim();
+
+      if (!title || title.length < 2 || isDayNameOnly(title)) {
+        title = mealType.charAt(0).toUpperCase() + mealType.slice(1).replace('_', ' ');
+      }
+
+      const order = mealCountByDay[currentDay] || 0;
+      mealCountByDay[currentDay] = order + 1;
+
+      currentMeal = {
+        id: `slot_${currentDay}_${mealType}_${order}`,
+        dayOfWeek: currentDay,
+        mealType: mealType as PlanMealSlot['mealType'],
+        scheduledTime: time,
+        customTitle: title,
+        customPortion: 'Standard household portion',
+        customNotes: mealType.charAt(0).toUpperCase() + mealType.slice(1).replace('_', ' '),
+        customAlternatives: [],
+        allergenTags: [],
+        orderIndex: order,
+      };
+      continue;
+    }
+
+    // If currentMeal is active, subsequent lines could be portion or estimated calories
+    if (currentMeal) {
+      // Is this "Estimated meal: 760 kcal | 47 g protein"?
+      const calorieMatch = rawLine.match(/Estimated\s*meal:\s*(\d+)\s*kcal(?:\s*\|\s*(\d+)\s*g\s*protein)?/i);
+      if (calorieMatch) {
+        const kcal = parseInt(calorieMatch[1]!, 10);
+        const protein = calorieMatch[2] ? parseInt(calorieMatch[2], 10) : undefined;
+        currentMeal.approxCalories = kcal;
+        if (protein !== undefined) currentMeal.approxProteinG = protein;
+        currentMeal.customNotes = `${currentMeal.mealType.charAt(0).toUpperCase() + currentMeal.mealType.slice(1).replace('_', ' ')} • ${kcal} kcal${protein ? ` | ${protein}g protein` : ''}`;
+        continue;
+      }
+
+      // Otherwise this line is the portion / ingredients description!
+      if (!isNutritionOrSummaryLine(rawLine) && !isDayNameOnly(rawLine) && rawLine.length > 3) {
+        currentMeal.customPortion = rawLine;
+      }
+    }
+  }
+
+  if (currentMeal) {
+    parsedMeals.push(currentMeal);
+  }
+
+  // De-duplicate meals
+  const uniqueMeals: PlanMealSlot[] = [];
+  const seenKeys = new Set<string>();
+
+  for (const m of parsedMeals) {
+    const key = `${m.dayOfWeek}_${m.mealType}_${m.scheduledTime}_${m.customTitle}`;
+    if (!seenKeys.has(key)) {
+      seenKeys.add(key);
+      uniqueMeals.push(m);
+    }
+  }
+
+  if (uniqueMeals.length >= 7) {
+    return {
+      meals: uniqueMeals.sort((a, b) =>
+        a.dayOfWeek !== b.dayOfWeek ? a.dayOfWeek - b.dayOfWeek : a.orderIndex - b.orderIndex
+      ),
+      daysFound: Array.from(daysDetected),
+    };
+  }
+  return null;
 }
 
 interface TableColumnInfo {
@@ -958,14 +1132,20 @@ function extractAllGuidanceNotes(lines: string[]): string {
     }
 
     if (inGuidanceSection) {
-      if (/^(?:water|limit|walk|strength|sleep|movement|hydration):/i.test(line)) {
-        guidanceLines.push(line);
+      const clean = line.replace(/^[•\s*-]+/, '').trim();
+      if (
+        clean.length > 5 &&
+        !/^(?:general nutrition guidance|this is not a medical|disclaimer)/i.test(clean) &&
+        !isNutritionOrSummaryLine(clean) &&
+        !isDayNameOnly(clean)
+      ) {
+        guidanceLines.push('• ' + clean);
       }
     }
   }
 
   if (guidanceLines.length > 0) {
-    return formatGuidanceBullets(guidanceLines.join('\n\n'));
+    return guidanceLines.join('\n\n');
   }
 
   // Fallback: search lines for core guidance labels
@@ -1027,57 +1207,89 @@ export async function parseDietPlanFile(
       .filter(Boolean);
     const combinedLines = [...rawLines, ...tableLines];
 
-    // 1. Try table plan parsing first (e.g. 7-day grid with Day 1..Day 7 and Meal 1..Meal 3)
-    const tableResult = parseTablePlan(combinedLines);
-    // 2. Extract clean guidance notes strictly from raw text (avoids duplicated table text)
+    const deduplicatePlanMeals = (mealsList: PlanMealSlot[]): PlanMealSlot[] => {
+      const seen = new Set<string>();
+      const out: PlanMealSlot[] = [];
+      for (const m of mealsList) {
+        const key = `${m.dayOfWeek}_${m.mealType}_${m.scheduledTime}_${m.customTitle}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          out.push(m);
+        }
+      }
+      return out;
+    };
+
+    // 1. Try structured menu report first (e.g. DAY 1 | Monday, Breakfast — 14:30 | Paneer-besan thali...)
+    const reportResult = parseStructuredMenuReport(rawLines.length > 0 ? rawLines : combinedLines);
+    // Extract clean guidance notes strictly from raw text
     const guidanceNotes = extractAllGuidanceNotes(rawLines.length > 0 ? rawLines : combinedLines);
 
-    if (tableResult && tableResult.meals.length > 0) {
+    if (reportResult && reportResult.meals.length > 0) {
+      const deduped = deduplicatePlanMeals(reportResult.meals);
       return {
         success: true,
-        meals: tableResult.meals,
+        meals: deduped,
+        guidanceNotes,
+        daysFound: reportResult.daysFound,
+        totalMealsParsed: deduped.length,
+        rawTextPreview: rawText.slice(0, 500),
+      };
+    }
+
+    // 2. Try table plan parsing (e.g. 7-day grid with Day 1..Day 7 and Meal 1..Meal 3)
+    const tableResult = parseTablePlan(combinedLines);
+
+    if (tableResult && tableResult.meals.length > 0) {
+      const deduped = deduplicatePlanMeals(tableResult.meals);
+      return {
+        success: true,
+        meals: deduped,
         guidanceNotes,
         daysFound: tableResult.daysFound,
-        totalMealsParsed: tableResult.meals.length,
+        totalMealsParsed: deduped.length,
         rawTextPreview: rawText.slice(0, 500),
       };
     }
 
-    // 2. Try vertical row-per-meal table parsing (Day | Time | Meal | Menu)
+    // 3. Try vertical row-per-meal table parsing (Day | Time | Meal | Menu)
     const verticalResult = parseVerticalRowPlan(combinedLines);
     if (verticalResult && verticalResult.meals.length > 0) {
+      const deduped = deduplicatePlanMeals(verticalResult.meals);
       return {
         success: true,
-        meals: verticalResult.meals,
+        meals: deduped,
         guidanceNotes,
         daysFound: verticalResult.daysFound,
-        totalMealsParsed: verticalResult.meals.length,
+        totalMealsParsed: deduped.length,
         rawTextPreview: rawText.slice(0, 500),
       };
     }
 
-    // 3. Try transposed table parsing (Meals in rows, Days in columns)
+    // 4. Try transposed table parsing (Meals in rows, Days in columns)
     const transposedResult = parseTransposedTablePlan(combinedLines);
     if (transposedResult && transposedResult.meals.length > 0) {
+      const deduped = deduplicatePlanMeals(transposedResult.meals);
       return {
         success: true,
-        meals: transposedResult.meals,
+        meals: deduped,
         guidanceNotes,
         daysFound: transposedResult.daysFound,
-        totalMealsParsed: transposedResult.meals.length,
+        totalMealsParsed: deduped.length,
         rawTextPreview: rawText.slice(0, 500),
       };
     }
 
-    // 3. Fall back to section/line-by-line parsing (strictly extracts ONLY meals present in document)
-    const sectionResult = parseSectionPlan(combinedLines);
+    // 5. Fall back to section/line-by-line parsing (strictly extracts ONLY meals present in document)
+    const sectionResult = parseSectionPlan(rawLines.length > 0 ? rawLines : combinedLines);
     if (sectionResult && sectionResult.meals.length > 0) {
+      const deduped = deduplicatePlanMeals(sectionResult.meals);
       return {
         success: true,
-        meals: sectionResult.meals,
+        meals: deduped,
         guidanceNotes,
         daysFound: sectionResult.daysFound,
-        totalMealsParsed: sectionResult.meals.length,
+        totalMealsParsed: deduped.length,
         rawTextPreview: rawText.slice(0, 500),
       };
     }
