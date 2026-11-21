@@ -14,7 +14,6 @@ import {
   MessageSquare,
   ClipboardCheck,
   LayoutDashboard,
-  ExternalLink,
   LogOut,
 } from 'lucide-react';
 
@@ -73,14 +72,6 @@ function AdminNavContent() {
               </Link>
             );
           })}
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-1.5 rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors ml-2 shadow-xs"
-            title="View member portal with active diet schedule"
-          >
-            <ExternalLink className="h-3.5 w-3.5 text-[#2FAF37]" />
-            <span className="hidden md:inline">Member Dashboard</span>
-          </Link>
 
           <Button
             variant="outline"
