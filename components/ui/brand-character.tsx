@@ -54,7 +54,7 @@ const VARIANT_MAP: Record<CharacterVariant, VariantMeta> = {
   },
   coach: {
     src: '/images/character/coach-review.png',
-    alt: 'Founder coach reviewing assessment details with a clipboard',
+    alt: 'Nutrition coach reviewing assessment details with a clipboard',
     aspectRatio: 'aspect-[4/3]',
   },
   celebration: {

@@ -98,13 +98,13 @@ export function UpgradeModal({ onSuccess, triggerButton }: UpgradeModalProps) {
               <div className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-[#2FAF37] shrink-0 mt-0.5" />
                 <span>
-                  <strong>Weekly Structured Check-Ins:</strong> Submit adherence, appetite, and routine hurdles every week for direct founder reviews.
+                  <strong>Weekly Structured Check-Ins:</strong> Submit adherence, appetite, and routine hurdles every week for direct coach reviews.
                 </span>
               </div>
               <div className="flex items-start gap-2">
                 <Check className="h-4 w-4 text-[#2FAF37] shrink-0 mt-0.5" />
                 <span>
-                  <strong>Priority Support Turnaround:</strong> Your inquiries are routed to the top of the founder triage desk.
+                  <strong>Priority Support Turnaround:</strong> Your inquiries are routed to the top of the priority triage desk.
                 </span>
               </div>
               <div className="flex items-start gap-2">

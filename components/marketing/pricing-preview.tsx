@@ -93,7 +93,7 @@ export function PricingPreview() {
                   ₹999 <span className="text-xs font-normal text-muted-text">/ month</span>
                 </CardTitle>
                 <p className="text-xs text-muted-text leading-relaxed">
-                  Everything in Normal plus weekly structured accountability and founder priority queue.
+                  Everything in Normal plus weekly structured accountability and priority support queue.
                 </p>
               </CardHeader>
 

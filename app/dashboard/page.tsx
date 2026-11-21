@@ -76,7 +76,7 @@ async function DashboardContent({
         description={
           isImpersonating
             ? `Client ${profile?.first_name || 'Member'} does not currently have an active subscription.`
-            : 'Select a monthly plan to unlock your customized 7-day Indian meal schedule, exact portions, and founder guidance.'
+            : 'Select a monthly plan to unlock your customized 7-day Indian meal schedule, exact portions, and expert guidance.'
         }
         action={
           isImpersonating
@@ -122,7 +122,7 @@ async function DashboardContent({
                   <span>Action Required: Fill Your Health & Dietary Assessment</span>
                 </div>
                 <p className="text-xs text-amber-900/80 max-w-xl leading-relaxed">
-                  Your subscription is active! Please complete your brief 3-minute intake assessment so our founder can review your health details and curate your customized 7-day Indian meal schedule.
+                  Your subscription is active! Please complete your brief 3-minute intake assessment so our nutrition team can review your health details and curate your customized 7-day Indian meal schedule.
                 </p>
               </div>
               <Link href="/assessment">
@@ -246,13 +246,13 @@ async function DashboardContent({
         </div>
       )}
 
-      {/* Founder Guidance Notes */}
+      {/* Guidance Notes */}
       {publishedPlan.guidance_notes && (
         <Card className="bg-white border-emerald-100 shadow-xs">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-[#075B2B] flex items-center gap-1.5 uppercase tracking-wider">
               <Sparkles className="h-4 w-4 text-[#2FAF37]" />
-              Founder Guidance & Hydration Reminders
+              Guidance & Hydration Reminders
             </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-[#1A2E1C]/90 leading-relaxed whitespace-pre-line space-y-2 font-normal">

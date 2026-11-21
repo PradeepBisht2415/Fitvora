@@ -68,7 +68,7 @@ function AdminNavContent() {
           </Link>
           <Link href="/admin">
             <span className="text-[10px] font-bold uppercase tracking-wider text-[#2FAF37] block">
-              Founder Admin Portal
+              Admin Portal
             </span>
             <h1 className="text-lg font-extrabold text-[#1A2E1C]">Fitvora Operations</h1>
           </Link>
@@ -107,7 +107,7 @@ function AdminNavContent() {
             size="sm"
             onClick={handleSignOut}
             className="border-gray-200 text-xs text-gray-700 hover:bg-gray-100 h-8 ml-1 shadow-2xs"
-            title="Sign out of Founder Admin Portal"
+            title="Sign out of Admin Portal"
           >
             <LogOut className="mr-1.5 h-3.5 w-3.5" />
             <span>Sign Out</span>

@@ -79,7 +79,7 @@ export function NewTicketModal({ onSuccess, isPremium, asMember }: NewTicketModa
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-500">Reach your founder reviewer directly</p>
+                <p className="text-xs text-gray-500">Reach your nutrition team directly</p>
               </div>
             </div>
 
@@ -111,7 +111,7 @@ export function NewTicketModal({ onSuccess, isPremium, asMember }: NewTicketModa
                 <textarea
                   required
                   rows={4}
-                  placeholder="Describe what's on your mind. Mention specific meal items or schedule details so the founder can give actionable advice."
+                  placeholder="Describe what's on your mind. Mention specific meal items or schedule details so our team can give actionable advice."
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   className="w-full rounded-xl border border-gray-200 px-3.5 py-2.5 text-sm text-[#1A2E1C] placeholder:text-gray-400 focus:border-[#2FAF37] focus:outline-none focus:ring-2 focus:ring-[#2FAF37]/20 resize-none"

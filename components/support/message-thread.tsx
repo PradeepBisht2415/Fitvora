@@ -99,7 +99,7 @@ export function MessageThread({
       <div className="flex-1 overflow-y-auto p-4 space-y-4 max-h-[420px]">
         {messages.map((msg) => {
           const isMe = msg.sender_id === currentUserId;
-          const isFounder = msg.sender?.role === 'admin' || !isMe;
+          const isTeam = msg.sender?.role === 'admin' || !isMe;
 
           return (
             <div
@@ -107,9 +107,9 @@ export function MessageThread({
               className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
             >
               <div className="flex items-center gap-1.5 mb-1 text-[11px] text-gray-400">
-                {isFounder ? (
+                {isTeam ? (
                   <span className="flex items-center gap-1 font-semibold text-[#075B2B]">
-                    <Sparkles className="h-3 w-3 text-[#2FAF37]" /> Fitvora Founder Reviewer
+                    <Sparkles className="h-3 w-3 text-[#2FAF37]" /> Fitvora Nutrition Team
                   </span>
                 ) : (
                   <span className="flex items-center gap-1 font-semibold text-gray-700">

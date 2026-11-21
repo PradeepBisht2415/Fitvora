@@ -26,7 +26,7 @@ export async function sendNewAssessmentAlert({
   targetDirection,
   hasMedicalFlags,
 }: NewAssessmentAlertPayload): Promise<boolean> {
-  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'founder@fitvora.com';
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL || 'support@fitvora.com';
   const client = getResendClient();
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
@@ -68,7 +68,7 @@ export async function sendNewAssessmentAlert({
             <p style="margin: 4px 0; color: #075b2b;">${flagNotice}</p>
           </div>
           <a href="${triageUrl}" style="display: inline-block; background-color: #2faf37; color: #ffffff; text-decoration: none; padding: 12px 24px; font-weight: bold; border-radius: 8px; margin-top: 12px;">
-            Review in Founder Triage
+            Review in Admin Triage
           </a>
           <p style="margin-top: 32px; font-size: 12px; color: #536955;">
             Fitvora Confidential • DPDP Act Compliant • Zero sensitive health data in email body.

@@ -29,7 +29,7 @@ export function renderPlanPublishedEmail({
           <div style="padding: 32px;">
             <h2 style="margin: 0 0 16px 0; color: #1A2E1C; font-size: 20px; font-weight: 700;">Hello ${firstName},</h2>
             <p style="margin: 0 0 16px 0; color: #374151; font-size: 14px; line-height: 1.6;">
-              Your customized 7-day Indian home food plan has been prepared by your founder reviewer and published to your member dashboard.
+              Your customized 7-day Indian home food plan has been prepared by your nutrition team and published to your member dashboard.
             </p>
 
             <div style="background-color: #EAF8E7; border-radius: 12px; padding: 18px; margin: 24px 0; border: 1px solid #2FAF37/20;">

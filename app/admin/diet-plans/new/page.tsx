@@ -330,11 +330,11 @@ function PlanBuilderContent() {
         />
       </div>
 
-      {/* General Founder Guidance Notes */}
+      {/* General Guidance Notes */}
       <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-xs space-y-2">
         <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5">
           <Sparkles className="h-4 w-4 text-[#075B2B]" />
-          Founder Guidance & Hydration Notes (Visible to Member)
+          Guidance & Hydration Notes (Visible to Member)
         </label>
         <textarea
           rows={3}

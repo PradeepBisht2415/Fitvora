@@ -47,7 +47,7 @@ export default function RefundPolicyPage() {
                 2. Non-Delivery Money-Back Guarantee
               </h2>
               <p>
-                We take fulfillment seriously. If, following successful payment confirmation, our founder fails to publish your customized 7-day Indian meal plan within <strong>72 hours</strong>, you are entitled to a <strong>100% full refund</strong> with no questions asked.
+                We take fulfillment seriously. If, following successful payment confirmation, our team fails to publish your customized 7-day Indian meal plan within <strong>72 hours</strong>, you are entitled to a <strong>100% full refund</strong> with no questions asked.
               </p>
             </section>
 

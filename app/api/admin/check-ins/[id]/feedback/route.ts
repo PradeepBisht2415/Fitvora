@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { submitFounderFeedback } from '@/features/checkins/checkin-actions';
+import { submitCoachFeedback } from '@/features/checkins/checkin-actions';
 
 export async function POST(
   req: Request,
@@ -10,7 +10,7 @@ export async function POST(
     const body = await req.json();
     const { feedback } = body;
 
-    const res = await submitFounderFeedback(id, feedback);
+    const res = await submitCoachFeedback(id, feedback);
 
     if (!res.success) {
       return NextResponse.json({ error: res.error || 'Failed' }, { status: 400 });

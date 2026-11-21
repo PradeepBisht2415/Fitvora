@@ -54,7 +54,7 @@ function LoginContent() {
       }
 
       if (data.user) {
-        // Direct admin users straight to Founder Admin Portal
+        // Direct admin users straight to Admin Portal
         const { data: profile } = await supabase
           .from('profiles')
           .select('role')

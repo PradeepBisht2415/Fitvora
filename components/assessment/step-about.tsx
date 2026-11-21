@@ -78,7 +78,7 @@ export function StepAbout({ data, onChange, errors = {} }: StepAboutProps) {
             />
           </div>
           <p className="text-[11px] text-muted-text">
-            Required for our founder and clinical dietitian to connect with you for personalized diet planning.
+            Required for our nutrition team and clinical dietitian to connect with you for personalized diet planning.
           </p>
           {errors['phone'] && (
             <p className="text-xs text-destructive">{errors['phone']}</p>

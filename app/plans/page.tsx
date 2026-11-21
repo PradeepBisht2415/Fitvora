@@ -43,7 +43,7 @@ export default function PlansPage() {
     {
       feature: 'Support Inbox Access',
       normal: 'Standard Queue',
-      premium: 'Priority Founder Queue',
+      premium: 'Priority Support Queue',
     },
     {
       feature: 'Weekly Structured Check-Ins & Adherence Guidance',
@@ -97,7 +97,7 @@ export default function PlansPage() {
                     ₹499 <span className="text-xs font-normal text-muted-text">/ month</span>
                   </CardTitle>
                   <p className="text-xs text-muted-text leading-relaxed">
-                    Designed for self-directed individuals who want an authentic, founder-curated Indian home-food meal structure.
+                    Designed for self-directed individuals who want an authentic, expertly curated Indian home-food meal structure.
                   </p>
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-2.5 text-xs">
@@ -147,7 +147,7 @@ export default function PlansPage() {
                     ₹999 <span className="text-xs font-normal text-muted-text">/ month</span>
                   </CardTitle>
                   <p className="text-xs text-muted-text leading-relaxed">
-                    For members who thrive with weekly accountability, habit troubleshooting, and priority founder responses.
+                    For members who thrive with weekly accountability, habit troubleshooting, and priority team responses.
                   </p>
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-2.5 text-xs">

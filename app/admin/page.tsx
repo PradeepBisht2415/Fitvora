@@ -53,12 +53,12 @@ function AdminDashboardContent() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-[#2FAF37]">
-                Founder Operations
+                Operations Dashboard
               </span>
             </div>
             <h1 className="text-2xl font-extrabold text-[#1A2E1C]">Mission Control</h1>
             <p className="text-xs text-gray-500 mt-0.5">
-              Live service metrics, triage pipelines, member health, and founder action queues.
+              Live service metrics, triage pipelines, member health, and team action queues.
             </p>
           </div>
 

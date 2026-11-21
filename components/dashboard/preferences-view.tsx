@@ -65,7 +65,7 @@ export function PreferencesView({ assessment }: PreferencesViewProps) {
               Food Preferences & Safety Baseline
             </CardTitle>
             <CardDescription className="text-xs text-gray-500">
-              Locked to ensure founder review before modifying allergen safety limits
+              Locked to ensure team review before modifying allergen safety limits
             </CardDescription>
           </div>
           <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800 text-[10px] uppercase font-bold">
@@ -161,7 +161,7 @@ export function PreferencesView({ assessment }: PreferencesViewProps) {
           <div className="text-center sm:text-left">
             <p className="font-bold text-gray-800">Need to update allergies or diet type?</p>
             <p className="text-[11px] text-gray-500">
-              For your safety, dietary changes require a brief review by the founder before diet plans update.
+              For your safety, dietary changes require a brief review by our team before diet plans update.
             </p>
           </div>
           <a href="mailto:support@fitvora.com?subject=Request%20Dietary%20Preference%20Update">

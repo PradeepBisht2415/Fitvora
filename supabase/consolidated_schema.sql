@@ -320,7 +320,7 @@ VALUES
             "Identical high standard of customized diet planning",
             "Priority queue for diet plan delivery and revisions (within 24 hours)",
             "Weekly structured check-in form and adherence review",
-            "Direct founder priority messaging for quick questions",
+            "Direct priority messaging for quick questions",
             "Monthly plan renewal & progress adjustments"
         ]'::jsonb,
         true

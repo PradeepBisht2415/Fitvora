@@ -13,7 +13,7 @@ export interface InstantActivationResult {
 /**
  * Activates a member's subscription upon payment.
  * Diet plans are intentionally NOT auto-generated here — they are reviewed, customized,
- * and published by the founder/admin via the Admin Plan Builder.
+ * and published by the team/admin via the Admin Plan Builder.
  */
 export async function activateSubscriptionAndProvisionDietPlan(params: {
   userId: string;

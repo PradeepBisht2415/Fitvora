@@ -27,7 +27,7 @@ export function renderAssessmentApprovedEmail({
           <div style="padding: 32px;">
             <h2 style="margin: 0 0 16px 0; color: #1A2E1C; font-size: 20px; font-weight: 700;">Hello ${firstName},</h2>
             <p style="margin: 0 0 16px 0; color: #374151; font-size: 14px; line-height: 1.6;">
-              Great news! Your wellness intake assessment has been reviewed and approved by our founder. We have confirmed your goals and dietary preferences are a wonderful fit for our home-cooked meal management approach.
+              Great news! Your wellness intake assessment has been reviewed and approved by our team. We have confirmed your goals and dietary preferences are a wonderful fit for our home-cooked meal management approach.
             </p>
 
             <div style="background-color: #EAF8E7; border-radius: 12px; padding: 18px; margin: 24px 0; border: 1px solid #2FAF37/20;">

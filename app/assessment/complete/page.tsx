@@ -113,10 +113,10 @@ export default function AssessmentCompletePage() {
                 <div className="space-y-0.5">
                   <div className="font-bold flex items-center gap-1.5">
                     <Clock className="h-4 w-4 text-fresh-green" />
-                    <span>Founder Safety Review (12–24 Hours)</span>
+                    <span>Safety Review (12–24 Hours)</span>
                   </div>
                   <p className="text-xs text-muted-text leading-relaxed">
-                    Our founder personally screens your routine, schedule, and health flags to verify that our Indian home-food approach is suitable for your goals.
+                    Our nutrition team personally screens your routine, schedule, and health flags to verify that our Indian home-food approach is suitable for your goals.
                   </p>
                 </div>
               </div>

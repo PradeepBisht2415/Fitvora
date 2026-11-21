@@ -176,7 +176,7 @@ export default function AssessmentPage() {
               Health & Lifestyle Intake Assessment
             </h1>
             <p className="text-sm text-muted-text">
-              Takes ~3 minutes. Your answers are reviewed by our founder to evaluate suitability and customize your Indian home-food plan.
+              Takes ~3 minutes. Your answers are reviewed by our nutrition team to evaluate suitability and customize your Indian home-food plan.
             </p>
           </div>
 

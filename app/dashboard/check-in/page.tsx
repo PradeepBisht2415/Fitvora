@@ -60,7 +60,7 @@ function CheckInContent() {
         </div>
         <h1 className="text-2xl font-extrabold text-[#1A2E1C]">Weekly Check-In Desk</h1>
         <p className="text-xs text-gray-500 mt-0.5">
-          Review your appetite, schedule challenges, and weekly habit adherence with the founder.
+          Review your appetite, schedule challenges, and weekly habit adherence with your coach.
         </p>
       </div>
 
@@ -72,7 +72,7 @@ function CheckInContent() {
           </div>
 
           <h2 className="text-lg font-extrabold text-[#1A2E1C]">
-            Unlock Weekly Founder Reviews
+            Unlock Weekly Coach Reviews
           </h2>
           <p className="mt-2 max-w-md mx-auto text-xs text-gray-600 leading-relaxed">
             Both Normal and Premium plans receive the <strong>exact same high standard</strong> of personalized Indian home-food meal planning. Weekly check-in forms and direct schedule adjustments are unlocked with the Premium tier (₹999/mo).

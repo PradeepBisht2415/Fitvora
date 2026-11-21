@@ -40,7 +40,7 @@ export function TicketList({
       case 'waiting_member':
         return (
           <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-[#075B2B]">
-            <AlertCircle className="h-3 w-3" /> Founder Replied
+            <AlertCircle className="h-3 w-3" /> Team Replied
           </span>
         );
       case 'resolved':

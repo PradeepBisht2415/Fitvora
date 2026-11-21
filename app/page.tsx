@@ -66,7 +66,7 @@ export default function HomePage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4 text-forest-green shrink-0" />
-                    <span>Human Reviewed by Founder</span>
+                    <span>Human Reviewed by Nutrition Experts</span>
                   </div>
                 </div>
               </div>

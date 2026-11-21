@@ -257,16 +257,16 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
 
         <div className="p-5 space-y-4 max-h-[460px] overflow-y-auto">
           {messages.map((msg) => {
-            const isFounder = msg.sender?.role === 'admin';
+            const isSupport = msg.sender?.role === 'admin';
             return (
               <div
                 key={msg.id}
-                className={`flex flex-col ${isFounder ? 'items-end' : 'items-start'}`}
+                className={`flex flex-col ${isSupport ? 'items-end' : 'items-start'}`}
               >
                 <div className="flex items-center gap-1.5 mb-1 text-[11px] text-gray-400">
-                  {isFounder ? (
+                  {isSupport ? (
                     <span className="flex items-center gap-1 font-bold text-[#075B2B]">
-                      <Sparkles className="h-3 w-3 text-[#2FAF37]" /> Founder (You)
+                      <Sparkles className="h-3 w-3 text-[#2FAF37]" /> Fitvora Support (You)
                     </span>
                   ) : (
                     <span className="flex items-center gap-1 font-bold text-gray-700">
@@ -279,7 +279,7 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
 
                 <div
                   className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed ${
-                    isFounder
+                    isSupport
                       ? 'bg-[#075B2B] text-white rounded-br-xs'
                       : 'bg-gray-100 text-[#1A2E1C] rounded-bl-xs'
                   }`}
@@ -291,7 +291,7 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
           })}
         </div>
 
-        {/* Founder Guidance Quick Snippets */}
+        {/* Guidance Quick Snippets */}
         <div className="border-t border-gray-100 bg-emerald-50/40 p-3 sm:p-4">
           <span className="text-[10px] font-bold uppercase tracking-wider text-[#075B2B] block mb-2">
             Quick Guidance Snippets:
@@ -310,10 +310,10 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
           </div>
         </div>
 
-        {/* Founder Reply Box */}
+        {/* Support Reply Box */}
         <div className="border-t border-gray-100 p-4 bg-[#FFFDF7]">
           <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-            Founder Response
+            Support Response
           </label>
           <textarea
             rows={4}

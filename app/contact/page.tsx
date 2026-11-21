@@ -26,7 +26,7 @@ export default function ContactPage() {
               Contact Fitvora
             </h1>
             <p className="text-sm text-muted-text">
-              We are a founder-operated Indian home-food wellness service. Have a question
+              We are a personalized Indian home-food wellness service. Have a question
               about our plans, your assessment, or privacy rights? Reach out directly.
             </p>
           </div>
@@ -79,7 +79,7 @@ export default function ContactPage() {
             </h3>
             <p className="text-muted-text">
               Fitvora is operated from India. We work standard business hours (IST) from Monday through Saturday.
-              Because our personalized diet plans are carefully customized by a human founder rather than an automated script, turnaround times for assessment evaluations and initial plan deliveries range between 12 and 24 hours.
+              Because our personalized diet plans are carefully customized by experienced nutrition experts rather than an automated script, turnaround times for assessment evaluations and initial plan deliveries range between 12 and 24 hours.
             </p>
             <div className="flex items-center gap-2 text-muted-text pt-2 border-t border-border-soft">
               <MapPin className="h-4 w-4 text-forest-green shrink-0" />

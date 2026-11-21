@@ -22,10 +22,10 @@ export function PlanPendingCard({ isPremium }: PlanPendingCardProps) {
             <span>{turnaroundText}</span>
           </div>
           <CardTitle className="text-xl sm:text-2xl font-bold text-[#1A2E1C]">
-            Founder Review & Diet Customization in Progress
+            Diet Customization in Progress
           </CardTitle>
           <CardDescription className="text-xs text-[#1A2E1C]/80 max-w-xl leading-relaxed">
-            Thank you for subscribing! Your intake routine, portion requirements, and food preferences are currently being reviewed by our founder to build your tailored 7-day Indian meal schedule.
+            Thank you for subscribing! Your intake routine, portion requirements, and food preferences are currently being reviewed by our team to build your tailored 7-day Indian meal schedule.
           </CardDescription>
         </div>
 
@@ -73,7 +73,7 @@ export function PlanPendingCard({ isPremium }: PlanPendingCardProps) {
         <a href="mailto:support@fitvora.com">
           <Button variant="outline" size="sm" className="border-emerald-200 text-[#075B2B] text-xs h-8">
             <MessageCircle className="mr-1.5 h-3.5 w-3.5" />
-            Contact Founder Support
+            Contact Support
           </Button>
         </a>
       </CardFooter>

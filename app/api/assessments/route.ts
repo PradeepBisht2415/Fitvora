@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 5. Trigger async founder notification
+    // 5. Trigger async team notification
     await sendNewAssessmentAlert({
       assessmentId,
       firstName: about.first_name,
@@ -153,8 +153,8 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         message: authUserId
-          ? 'Assessment submitted! Our founder is reviewing your intake to prepare your customized 7-day meal plan.'
-          : 'Assessment submitted successfully. Awaiting founder review.',
+          ? 'Assessment submitted! Our nutrition team is reviewing your intake to prepare your customized 7-day meal plan.'
+          : 'Assessment submitted successfully. Awaiting team review.',
         token: rawOpaqueToken,
         assessment_id: assessmentId,
         redirectUrl: authUserId ? '/dashboard' : null,

@@ -102,7 +102,7 @@ export async function submitCheckIn(input: SubmitCheckInInput): Promise<{
   }
 }
 
-export async function submitFounderFeedback(
+export async function submitCoachFeedback(
   checkInId: string,
   feedback: string
 ): Promise<{
@@ -156,7 +156,7 @@ export async function submitFounderFeedback(
 
     return { success: true };
   } catch (err) {
-    console.error('Error submitting founder feedback:', err);
+    console.error('Error submitting feedback:', err);
     return { success: false, error: 'Unexpected error.' };
   }
 }

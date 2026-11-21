@@ -30,11 +30,11 @@ export function FeedbackCard({ checkIn }: FeedbackCardProps) {
         <div>
           {isReviewed ? (
             <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-[#075B2B]">
-              <CheckCircle2 className="h-3 w-3" /> Founder Feedback Ready
+              <CheckCircle2 className="h-3 w-3" /> Coach Feedback Ready
             </span>
           ) : (
             <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
-              <Clock className="h-3 w-3" /> Submitted • Awaiting Founder Review
+              <Clock className="h-3 w-3" /> Submitted • Awaiting Review
             </span>
           )}
         </div>
@@ -86,11 +86,11 @@ export function FeedbackCard({ checkIn }: FeedbackCardProps) {
         </div>
       )}
 
-      {/* Founder Personalized Feedback */}
+      {/* Coach Personalized Feedback */}
       {isReviewed && checkIn.admin_feedback ? (
         <div className="rounded-2xl border border-emerald-200 bg-[#EAF8E7]/50 p-4">
           <div className="flex items-center gap-1.5 text-xs font-bold text-[#075B2B] mb-2">
-            <Sparkles className="h-4 w-4 text-[#2FAF37]" /> Founder Reviewer Recommendations:
+            <Sparkles className="h-4 w-4 text-[#2FAF37]" /> Coach Recommendations:
           </div>
           <p className="text-xs text-[#1A2E1C] leading-relaxed whitespace-pre-wrap">
             {checkIn.admin_feedback}
@@ -108,7 +108,7 @@ export function FeedbackCard({ checkIn }: FeedbackCardProps) {
         </div>
       ) : (
         <p className="text-xs text-gray-500 italic">
-          Your founder reviewer is preparing this week&apos;s observations and meal plan adjustments.
+          Your coach is preparing this week&apos;s observations and meal plan adjustments.
         </p>
       )}
 

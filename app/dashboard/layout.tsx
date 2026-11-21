@@ -218,7 +218,7 @@ function DashboardLayoutContent({
               <Link
                 href="/admin"
                 className="flex items-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-xs font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-xs"
-                title="Go to Founder Admin Portal"
+                title="Go to Admin Portal"
               >
                 <Shield className="h-3.5 w-3.5 text-[#2FAF37]" />
                 <span>Admin Portal</span>

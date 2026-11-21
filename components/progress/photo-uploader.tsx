@@ -215,7 +215,7 @@ export function PhotoUploader({ onUploaded }: PhotoUploaderProps) {
                     <span className="font-bold flex items-center gap-1 text-[#075B2B]">
                       <ShieldCheck className="h-3.5 w-3.5 inline" /> Confidential Privacy Consent:
                     </span>
-                    I understand this photo is stored in private encrypted storage, visible only to me and my founder reviewer for evaluation. It will never be shared publicly or used as promotional material.
+                    I understand this photo is stored in private encrypted storage, visible only to me and my wellness coach for evaluation. It will never be shared publicly or used as promotional material.
                   </div>
                 </label>
               </div>

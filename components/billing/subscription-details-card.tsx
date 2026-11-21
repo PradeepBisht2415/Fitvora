@@ -39,7 +39,7 @@ export function SubscriptionDetailsCard({ subscription, onRefresh }: Subscriptio
         'Smart meal swap alternatives',
         'Priority queue for diet plan updates (< 24 hours)',
         'Weekly structured check-in form & adherence review',
-        'Direct founder priority messaging',
+        'Direct priority messaging',
       ]
     : [
         'Customized 7-day Indian home food plan',

@@ -116,7 +116,7 @@ function SupportContent() {
         <div>
           <p className="font-bold">General Nutrition &amp; Routine Guidance</p>
           <p className="text-[11px] text-[#1A2E1C]/80 mt-0.5">
-            All replies are delivered directly by your founder reviewer. For urgent health issues or medical diagnosis, please contact your registered healthcare provider.
+            All replies are delivered directly by your nutrition team. For urgent health issues or medical diagnosis, please contact your registered healthcare provider.
           </p>
         </div>
       </div>

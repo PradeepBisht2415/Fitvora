@@ -37,7 +37,7 @@ export async function POST(
       return NextResponse.json({ error: 'Message body cannot be empty' }, { status: 400 });
     }
 
-    // Insert founder reply
+    // Insert support reply
     const { data: newMsg, error: msgErr } = await adminSupabase
       .from('support_messages')
       .insert({

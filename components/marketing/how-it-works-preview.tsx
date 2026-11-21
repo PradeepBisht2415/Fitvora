@@ -14,7 +14,7 @@ export function HowItWorksPreview() {
       step: '02',
       icon: ShieldCheck,
       title: 'Human Review & Triage',
-      desc: 'Our founder personally reviews your schedule and health flags within 12–24h to verify safety and make sure our service is a genuine fit.',
+      desc: 'Our nutrition team personally reviews your schedule and health flags within 12–24h to verify safety and make sure our service is a genuine fit.',
     },
     {
       step: '03',

@@ -17,9 +17,9 @@ export default function HowItWorksPage() {
     },
     {
       step: 'Step 2',
-      title: 'Founder Safety Review',
+      title: 'Expert Safety Review',
       icon: UserCheck,
-      desc: 'Our founder personally reviews your intake data. We screen for red flags (pregnancy, eating disorders, complex clinical conditions) to ensure our home-food wellness service is safe for you. If suitable, you receive an invitation to join.',
+      desc: 'Our nutrition team personally reviews your intake data. We screen for red flags (pregnancy, eating disorders, complex clinical conditions) to ensure our home-food wellness service is safe for you. If suitable, you receive an invitation to join.',
       highlight: 'Typical turnaround: 12 to 24 hours',
     },
     {

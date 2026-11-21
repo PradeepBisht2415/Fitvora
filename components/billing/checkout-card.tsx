@@ -33,7 +33,7 @@ export function CheckoutCard({ planId, onPlanChange }: CheckoutCardProps) {
     'Identical high standard of customized diet planning',
     'Priority queue for plan delivery & revisions (< 24 hours)',
     'Weekly structured check-in form & adherence review',
-    'Direct founder priority messaging for questions',
+    'Direct priority messaging for questions',
     'Monthly plan update & dietary adjustments',
   ];
 

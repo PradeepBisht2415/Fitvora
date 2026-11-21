@@ -47,7 +47,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ count });
     }
 
-    // 2. Admin viewing Founder Portal
+    // 2. Admin viewing Admin Portal
     if (isAdmin) {
       const { count: unreadCount } = await adminSupabase
         .from('support_messages')

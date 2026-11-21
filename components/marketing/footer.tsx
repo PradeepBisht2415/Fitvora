@@ -18,7 +18,7 @@ export function Footer() {
             </div>
             <p className="text-sm leading-relaxed text-pale-green/90">
               Personalized Indian home-food weight management. Real ghar ka khana,
-              sensible portions, and founder-reviewed weekly plans—no crash diets or synthetic supplements.
+              sensible portions, and expert-reviewed weekly plans—no crash diets or synthetic supplements.
             </p>
             <div className="flex items-center gap-2 text-xs text-pale-green/80">
               <ShieldCheck className="h-4 w-4 text-fresh-green" />

@@ -78,7 +78,7 @@ export default function WeightLossPage() {
               </CardHeader>
               <CardContent className="text-xs leading-relaxed text-muted-text">
                 Extreme rapid weight loss almost always results in muscle loss and rebound weight gain.
-                Our founder structures gradual, lasting progress that preserves your lean metabolic rate.
+                Our team structures gradual, lasting progress that preserves your lean metabolic rate.
               </CardContent>
             </Card>
 

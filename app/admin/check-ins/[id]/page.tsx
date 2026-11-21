@@ -152,7 +152,7 @@ function AdminCheckInDetailContent({ checkInId }: { checkInId: string }) {
               </span>
             ) : (
               <span className="flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
-                Needs Founder Review
+                Needs Review
               </span>
             )}
           </div>
@@ -225,12 +225,12 @@ function AdminCheckInDetailContent({ checkInId }: { checkInId: string }) {
         </div>
       )}
 
-      {/* Founder Feedback Editor */}
+      {/* Feedback Editor */}
       <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-[#2FAF37]" />
-            <h3 className="text-sm font-bold text-[#1A2E1C]">Founder Review &amp; Guidance</h3>
+            <h3 className="text-sm font-bold text-[#1A2E1C]">Review &amp; Guidance</h3>
           </div>
           {success && (
             <span className="text-xs font-bold text-[#075B2B]">
@@ -285,7 +285,7 @@ function AdminCheckInDetailContent({ checkInId }: { checkInId: string }) {
             ) : (
               <>
                 <Send className="mr-1.5 h-3.5 w-3.5" />
-                Submit Founder Feedback
+                Submit Feedback
               </>
             )}
           </Button>

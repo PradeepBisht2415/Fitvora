@@ -50,7 +50,7 @@ export function StepWellness({ data, onChange }: StepWellnessProps) {
         <div className="rounded-xl bg-pale-green/60 border border-forest-green/20 p-4 text-xs leading-relaxed text-forest-green flex items-start gap-3">
           <ShieldAlert className="h-5 w-5 text-forest-green shrink-0 mt-0.5" />
           <div>
-            <strong>Medical Boundary Notice:</strong> Fitvora is a personalized home-food wellness platform, not a medical clinic or emergency service. Disclosing a condition helps our founder safely tailor your meal portions or respectfully refer you to qualified medical professionals.
+            <strong>Medical Boundary Notice:</strong> Fitvora is a personalized home-food wellness platform, not a medical clinic or emergency service. Disclosing a condition helps our nutrition team safely tailor your meal portions or respectfully refer you to qualified medical professionals.
           </div>
         </div>
 
@@ -96,7 +96,7 @@ export function StepWellness({ data, onChange }: StepWellnessProps) {
           </Checkbox>
           {data.is_pregnant_or_nursing && (
             <p className="text-xs text-amber-900 bg-amber-50 p-2.5 rounded-lg border border-amber-200">
-              Note: Pregnancy and lactation require specialized clinical and obstetric nutrition. Our founder will review your case to ensure our guidance does not conflict with your OB-GYN instructions.
+              Note: Pregnancy and lactation require specialized clinical and obstetric nutrition. Our team will review your case to ensure our guidance does not conflict with your OB-GYN instructions.
             </p>
           )}
         </div>

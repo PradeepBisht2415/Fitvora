@@ -38,7 +38,7 @@ export function StepReview({
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl text-forest-green">Review & Confirm</CardTitle>
         <CardDescription>
-          Please review your information before submitting for founder assessment review.
+          Please review your information before submitting for assessment review.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -196,7 +196,7 @@ export function StepReview({
             </div>
             {wellness.is_pregnant_or_nursing && (
               <div className="text-amber-900 font-semibold">
-                ⚠️ Pregnant / Nursing disclosed (flagged for founder review)
+                ⚠️ Pregnant / Nursing disclosed (flagged for safety review)
               </div>
             )}
           </div>

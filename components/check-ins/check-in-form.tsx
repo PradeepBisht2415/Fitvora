@@ -76,7 +76,7 @@ export function CheckInForm({ onSuccess }: CheckInFormProps) {
         <div>
           <h3 className="text-base font-bold text-[#1A2E1C]">Weekly Structured Check-In</h3>
           <p className="text-xs text-gray-500">
-            Submit your weekly experience for personalized founder review and adjustments.
+            Submit your weekly experience for personalized coach review and adjustments.
           </p>
         </div>
       </div>

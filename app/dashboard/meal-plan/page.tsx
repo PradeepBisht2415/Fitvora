@@ -137,13 +137,13 @@ async function MealPlanContent({
       {/* 7-Day Interactive Tabs */}
       <WeeklyPlanTabs meals={meals} />
 
-      {/* Founder Guidance Notes */}
+      {/* Guidance Notes */}
       {publishedPlan.guidance_notes && (
         <Card className="bg-white border-emerald-100 shadow-xs">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-bold text-[#075B2B] flex items-center gap-1.5 uppercase tracking-wider">
               <Sparkles className="h-4 w-4 text-[#2FAF37]" />
-              Founder Guidance & Hydration Reminders
+              Guidance & Hydration Reminders
             </CardTitle>
           </CardHeader>
           <CardContent className="text-xs text-[#1A2E1C]/90 leading-relaxed whitespace-pre-line space-y-2 font-normal">

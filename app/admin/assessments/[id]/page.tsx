@@ -97,7 +97,7 @@ function AssessmentDetailContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           decision,
-          safety_flags: decision === 'approved' ? [] : ['requires_founder_followup'],
+          safety_flags: decision === 'approved' ? [] : ['requires_team_followup'],
           reviewer_notes: notes,
         }),
       });
@@ -347,11 +347,11 @@ function AssessmentDetailContent() {
             </Card>
           </div>
 
-          {/* Right Column: Founder Review Action Box */}
+          {/* Right Column: Review Action Box */}
           <div className="space-y-6">
             <Card className="border-forest-green shadow-sm">
               <CardHeader>
-                <CardTitle className="text-base text-forest-green">Founder Decision</CardTitle>
+                <CardTitle className="text-base text-forest-green">Review Decision</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Radio Decisions */}
@@ -407,7 +407,7 @@ function AssessmentDetailContent() {
                 {/* Reviewer Notes */}
                 <div className="space-y-1.5 pt-2">
                   <label className="text-xs font-semibold text-dark-text" htmlFor="review_notes">
-                    Internal Founder Notes
+                    Internal Notes
                   </label>
                   <Textarea
                     id="review_notes"

@@ -146,7 +146,7 @@ function ClaimContent() {
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-[#1A2E1C]/80">
               <p>
-                If you already created your account, you can sign in directly. If your assessment is still pending review, you will receive an email once the founder reviews it.
+                If you already created your account, you can sign in directly. If your assessment is still pending review, you will receive an email once our team reviews it.
               </p>
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
@@ -189,7 +189,7 @@ function ClaimContent() {
               Welcome, {claimData.firstName}!
             </h1>
             <p className="mt-2 text-sm text-[#1A2E1C]/70">
-              Your intake assessment has been approved by the founder. Complete your account to view your tailored Indian home-food plan.
+              Your intake assessment has been approved. Complete your account to view your tailored Indian home-food plan.
             </p>
           </div>
 
