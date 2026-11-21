@@ -104,12 +104,20 @@ function SignupContent() {
         <div className="w-full max-w-md">
           {/* Onboarding Guidance Banner */}
           <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-4 text-xs text-[#1A2E1C]">
-            <div className="flex items-center gap-2 font-semibold text-[#075B2B]">
-              <Sparkles className="h-4 w-4" />
-              <span>Step 1: Create Your Account</span>
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 font-semibold text-[#075B2B]">
+                <Sparkles className="h-4 w-4" />
+                <span>Step 1: Create Your Account</span>
+              </div>
+              <Link
+                href="/login?tab=otp"
+                className="font-bold text-[#075B2B] hover:underline text-[11px]"
+              >
+                Use 6-Digit OTP &rarr;
+              </Link>
             </div>
             <p className="mt-1 text-[#1A2E1C]/80">
-              Sign up below to secure your member portal. Immediately following sign up, you will fill your personalized health & diet intake assessment.
+              Sign up below to secure your member portal. Immediately following sign up, you will fill your personalized health &amp; diet intake assessment.
             </p>
           </div>
 
