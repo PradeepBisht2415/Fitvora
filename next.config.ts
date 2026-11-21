@@ -3,8 +3,6 @@ import { securityHeaders } from "./lib/security/headers";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  cacheComponents: true,
-  partialPrefetching: true,
   headers: async () => [
     {
       source: "/:path*",

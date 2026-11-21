@@ -16,7 +16,7 @@ import {
 import type { DietPlanMeal } from '@/types/database.types';
 import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
 
-export const instant = false;
+export const dynamic = 'force-dynamic';
 
 async function MealPlanContent({
   searchParams,
@@ -187,16 +187,5 @@ async function MealPlanContent({
 export default async function MealPlanPage(props: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  return (
-    <Suspense
-      fallback={
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#075B2B]" />
-          <p className="text-xs text-gray-500 font-medium">Loading your weekly meal plan...</p>
-        </div>
-      }
-    >
-      <MealPlanContent searchParams={props.searchParams} />
-    </Suspense>
-  );
+  return <MealPlanContent searchParams={props.searchParams} />;
 }

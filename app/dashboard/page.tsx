@@ -18,7 +18,7 @@ import {
 import type { DietPlanMeal } from '@/types/database.types';
 import { formatGuidanceBullets } from '@/lib/parsers/word-diet-parser';
 
-export const instant = false;
+export const dynamic = 'force-dynamic';
 
 async function DashboardContent({
   searchParams,
@@ -293,16 +293,5 @@ async function DashboardContent({
 export default async function DashboardPage(props: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  return (
-    <Suspense
-      fallback={
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#075B2B]" />
-          <p className="text-xs text-gray-500 font-medium">Loading your Fitvora dashboard...</p>
-        </div>
-      }
-    >
-      <DashboardContent searchParams={props.searchParams} />
-    </Suspense>
-  );
+  return <DashboardContent searchParams={props.searchParams} />;
 }

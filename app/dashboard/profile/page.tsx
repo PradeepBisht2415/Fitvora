@@ -11,7 +11,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Shield, ArrowLeft, Loader2 } from 'lucide-react';
 import type { Assessment } from '@/types/database.types';
 
-export const instant = false;
+export const dynamic = 'force-dynamic';
 
 async function ProfilePageContent({
   searchParams,
@@ -147,16 +147,5 @@ async function ProfilePageContent({
 export default async function ProfilePage(props: {
   searchParams?: Promise<{ asMember?: string }>;
 }) {
-  return (
-    <Suspense
-      fallback={
-        <div className="py-20 text-center space-y-3">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-[#075B2B]" />
-          <p className="text-xs text-gray-500 font-medium">Loading your profile...</p>
-        </div>
-      }
-    >
-      <ProfilePageContent searchParams={props.searchParams} />
-    </Suspense>
-  );
+  return <ProfilePageContent searchParams={props.searchParams} />;
 }
