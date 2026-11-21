@@ -19,20 +19,22 @@ function LoginContent() {
   const messageParam = searchParams.get('message');
   const claimedParam = searchParams.get('claimed');
   const tabParam = searchParams.get('tab');
+  const emailParam = searchParams.get('email');
+  const stepParam = searchParams.get('step');
 
   // Tabs: 'otp' | 'password'
   const [authMode, setAuthMode] = useState<'otp' | 'password'>(tabParam === 'password' ? 'password' : 'otp');
 
   // Form states
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(emailParam || '');
   const [password, setPassword] = useState('');
 
   // OTP states
-  const [otpStep, setOtpStep] = useState<'email' | 'verify'>('email');
+  const [otpStep, setOtpStep] = useState<'email' | 'verify'>(emailParam && stepParam === 'verify' ? 'verify' : 'email');
   const [otpCode, setOtpCode] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
-  const [resendCountdown, setResendCountdown] = useState(0);
+  const [resendCountdown, setResendCountdown] = useState(stepParam === 'verify' ? 30 : 0);
 
   // Password loading
   const [passwordLoading, setPasswordLoading] = useState(false);
