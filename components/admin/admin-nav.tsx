@@ -21,6 +21,29 @@ function AdminNavContent() {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
+  const [supportBadgeCount, setSupportBadgeCount] = React.useState(0);
+
+  const fetchBadge = React.useCallback(() => {
+    fetch('/api/support/badge-count')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.count === 'number') {
+          setSupportBadgeCount(data.count);
+        }
+      })
+      .catch((err) => console.error('Error fetching admin support badge:', err));
+  }, []);
+
+  React.useEffect(() => {
+    fetchBadge();
+    const interval = setInterval(fetchBadge, 20000);
+    const onRead = () => fetchBadge();
+    window.addEventListener('fitvora:support-read', onRead);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('fitvora:support-read', onRead);
+    };
+  }, [fetchBadge]);
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -69,6 +92,14 @@ function AdminNavContent() {
               >
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{item.label}</span>
+                {item.href === '/admin/support' && supportBadgeCount > 0 && (
+                  <span
+                    className="flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white shadow-2xs animate-in fade-in"
+                    title={`${supportBadgeCount} inquiries awaiting response`}
+                  >
+                    {supportBadgeCount}
+                  </span>
+                )}
               </Link>
             );
           })}

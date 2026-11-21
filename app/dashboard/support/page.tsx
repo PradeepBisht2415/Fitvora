@@ -54,6 +54,9 @@ function SupportContent() {
         if (!data) return;
         setActiveThread(data.thread);
         setMessages(data.messages || []);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('fitvora:support-read'));
+        }
       })
       .catch((err) => {
         console.error('Failed to load thread messages:', err);

@@ -68,6 +68,9 @@ function AdminThreadContent({ threadId }: { threadId: string }) {
         setThread(data.thread);
         setMessages(data.messages || []);
         setLoading(false);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('fitvora:support-read'));
+        }
       })
       .catch((err) => {
         console.error('Error fetching thread details:', err);

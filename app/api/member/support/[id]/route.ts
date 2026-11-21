@@ -55,6 +55,14 @@ export async function GET(
       return NextResponse.json({ error: 'Failed to fetch messages' }, { status: 500 });
     }
 
+    // Mark unread messages from other sender as read
+    await adminSupabase
+      .from('support_messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('thread_id', id)
+      .neq('sender_id', user.id)
+      .is('read_at', null);
+
     // Enrich messages with sender info
     const senderIds = Array.from(new Set((messages || []).map((m) => m.sender_id)));
     const { data: senders } = await adminSupabase

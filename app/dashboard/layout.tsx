@@ -31,6 +31,29 @@ function DashboardLayoutContent({
 
   const [isAdmin, setIsAdmin] = React.useState(false);
   const [memberInfo, setMemberInfo] = React.useState<{ name: string; email: string } | null>(null);
+  const [supportBadgeCount, setSupportBadgeCount] = React.useState(0);
+
+  const fetchBadge = React.useCallback(() => {
+    fetch(`/api/support/badge-count${asMember ? `?asMember=${asMember}` : ''}`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data && typeof data.count === 'number') {
+          setSupportBadgeCount(data.count);
+        }
+      })
+      .catch((err) => console.error('Error fetching member support badge:', err));
+  }, [asMember]);
+
+  React.useEffect(() => {
+    fetchBadge();
+    const interval = setInterval(fetchBadge, 20000);
+    const onRead = () => fetchBadge();
+    window.addEventListener('fitvora:support-read', onRead);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('fitvora:support-read', onRead);
+    };
+  }, [fetchBadge]);
 
   React.useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -176,6 +199,14 @@ function DashboardLayoutContent({
                   >
                     <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
+                    {item.href === '/dashboard/support' && supportBadgeCount > 0 && (
+                      <span
+                        className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#075B2B] px-1 text-[10px] font-bold text-white shadow-xs animate-in fade-in"
+                        title={`${supportBadgeCount} unread message${supportBadgeCount > 1 ? 's' : ''}`}
+                      >
+                        {supportBadgeCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
@@ -222,7 +253,14 @@ function DashboardLayoutContent({
                   isActive ? 'text-[#075B2B] font-bold' : 'text-gray-500'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <div className="relative">
+                  <Icon className="h-4 w-4" />
+                  {item.href === '/dashboard/support' && supportBadgeCount > 0 && (
+                    <span className="absolute -top-1.5 -right-2 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#075B2B] px-1 text-[9px] font-bold text-white shadow-2xs">
+                      {supportBadgeCount}
+                    </span>
+                  )}
+                </div>
                 <span>{item.label}</span>
               </Link>
             );
