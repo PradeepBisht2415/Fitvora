@@ -58,12 +58,31 @@ export async function GET(
       .limit(1)
       .maybeSingle();
 
-    // 4. Fetch Linked Assessment
-    const { data: assessment } = await adminSupabase
+    // 4. Fetch Linked Assessment (by user_id or email)
+    let { data: assessment } = await adminSupabase
       .from('assessments')
       .select('*')
       .eq('user_id', memberUserId)
       .maybeSingle();
+
+    if (!assessment && profile.email) {
+      const { data: asmtByEmail } = await adminSupabase
+        .from('assessments')
+        .select('*')
+        .eq('email', profile.email)
+        .order('submitted_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (asmtByEmail) {
+        assessment = asmtByEmail;
+        // Lazily link the user_id for future fast lookups
+        await adminSupabase
+          .from('assessments')
+          .update({ user_id: memberUserId })
+          .eq('id', asmtByEmail.id);
+      }
+    }
 
     // 5. Fetch Audit Logs
     const { data: auditLogs } = await adminSupabase

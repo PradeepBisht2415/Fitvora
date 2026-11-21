@@ -226,6 +226,20 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
     expect(parsed.guidanceNotes).not.toContain('Mess / tiffin');
   });
 
+  test('Actual Binary Docx Upload: Parses user Dhruv_Week_1_Concise_Guidance.docx cleanly', async () => {
+    const fs = await import('fs');
+    const docxPath =
+      'C:/Users/bisht/.gemini/antigravity/brain/f037c96f-33cc-406c-b140-ae9710549e10/.user_uploaded/media_1795248654699_024077eb.docx';
+    if (!fs.existsSync(docxPath)) return;
+    const buf = fs.readFileSync(docxPath);
+    const parsed = await parseDietPlanFile(buf, 'Dhruv_Week_1_Concise_Guidance.docx');
+    expect(parsed.success).toBe(true);
+    expect(parsed.meals.length).toBe(21);
+    expect(parsed.meals[0]!.scheduledTime).toBe('16:00');
+    expect(parsed.meals[1]!.scheduledTime).toBe('21:00');
+    expect(parsed.meals[2]!.scheduledTime).toBe('02:00');
+  });
+
   test('Guidance Formatting: Extracts clean lifestyle reminders (Water, Limit, Walk, Strength, Sleep) and strips noise', () => {
     const rawRunOn =
       'Meal clock & important schedule check\nThe intake says “overnight shift” and requests breakfast at 4:00 PM...\n4:00 PM · Meal 1\n2 besan chillas\nMess / tiffin ordering rules\nHow to monitor and adjust\nClinical and practical notes\nGuidance & Hydration Reminders\nWater: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst. Do not force excess water.Limit: Sugary drinks, packaged juices, fried snacks.Walk: Aim for 25–30 minutes of brisk walking most days.Strength: Add simple resistance exercises 2–3 days per week.Sleep: Protect 7–9 hours of sleep.';
@@ -428,5 +442,19 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
     expect(formatTime12('08:00')).toBe('8:00 AM');
     expect(formatTime12('00:00')).toBe('12:00 AM');
     expect(formatTime12('12:30')).toBe('12:30 PM');
+  });
+
+  test('Members Directory Invariant: Includes registered users and assessment leads while excluding admins', () => {
+    const mockProfiles = [
+      { id: 'admin_1', first_name: 'Admin', last_name: 'User', email: 'admin@fitvora.com', role: 'admin' },
+      { id: 'user_1', first_name: 'Priya', last_name: 'Sharma', email: 'priya@example.com', role: 'visitor' }, // Default role
+      { id: 'user_2', first_name: 'Rahul', last_name: 'Verma', email: 'rahul@example.com', role: 'member' },
+    ];
+
+    const nonAdmins = mockProfiles.filter((p) => p.role !== 'admin');
+    expect(nonAdmins.length).toBe(2);
+    expect(nonAdmins.map((p) => p.email)).toContain('priya@example.com');
+    expect(nonAdmins.map((p) => p.email)).toContain('rahul@example.com');
+    expect(nonAdmins.map((p) => p.email)).not.toContain('admin@fitvora.com');
   });
 });

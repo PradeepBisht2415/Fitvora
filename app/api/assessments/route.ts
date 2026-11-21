@@ -128,12 +128,24 @@ export async function POST(request: NextRequest) {
           ip_hash: ipHash,
         });
 
-        // Sync mandatory phone number to member profile
-        if (authUserId && about.phone) {
+        // Sync mandatory phone number, set role to member, and initialize membership
+        if (authUserId) {
           await adminSupabase
             .from('profiles')
-            .update({ phone: about.phone })
+            .update({
+              phone: about.phone || undefined,
+              role: 'member',
+            })
             .eq('id', authUserId);
+
+          await adminSupabase.from('memberships').upsert(
+            {
+              user_id: authUserId,
+              lifecycle_status: 'registered',
+              joined_at: new Date().toISOString(),
+            },
+            { onConflict: 'user_id' }
+          );
         }
       } catch (dbErr) {
         console.warn('Database write failed, continuing with generated ID:', dbErr);

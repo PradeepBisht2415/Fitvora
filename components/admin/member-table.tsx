@@ -6,31 +6,41 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Search, Eye, Users, Filter } from 'lucide-react';
-import type { MembershipStatus } from '@/types/database.types';
+import { Search, Eye, Users, Filter, RefreshCw, FileText } from 'lucide-react';
+import type { AdminMemberRow } from '@/lib/admin/members-query';
 
-export interface AdminMemberRow {
-  userId: string;
-  name: string;
-  email: string;
-  phone: string | null;
-  tier: 'normal' | 'premium' | 'none';
-  lifecycleStatus: MembershipStatus;
-  joinedAt: string | null;
-  subscriptionStatus?: string | null;
-}
+export type { AdminMemberRow };
 
 interface MemberTableProps {
   initialMembers: AdminMemberRow[];
 }
 
 export function MemberTable({ initialMembers }: MemberTableProps) {
+  const [members, setMembers] = useState<AdminMemberRow[]>(initialMembers);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<string>('all');
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const res = await fetch('/api/admin/members');
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data.members)) {
+          setMembers(data.members);
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to refresh members:', err);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const filteredMembers = useMemo(() => {
-    return initialMembers.filter((m) => {
+    return members.filter((m) => {
       // Search filter
       const q = searchQuery.toLowerCase().trim();
       const matchesSearch =
@@ -49,7 +59,7 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
 
       return matchesSearch && matchesStatus && matchesTier;
     });
-  }, [initialMembers, searchQuery, statusFilter, tierFilter]);
+  }, [members, searchQuery, statusFilter, tierFilter]);
 
   return (
     <div className="space-y-4">
@@ -99,6 +109,20 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
               <option value="none">No Plan</option>
             </select>
           </div>
+
+          {/* Refresh Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="h-8 border-gray-200 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-1.5 shadow-2xs"
+            title="Refresh members list from database"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin text-[#075B2B]' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
         </div>
       </div>
 
@@ -106,10 +130,10 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
       {filteredMembers.length === 0 ? (
         <EmptyState
           icon={Users}
-          title={initialMembers.length === 0 ? 'Zero Registered Members' : 'No Members Match Filters'}
+          title={members.length === 0 ? 'Zero Registered Members' : 'No Members Match Filters'}
           description={
-            initialMembers.length === 0
-              ? 'Fitvora launches with zero real members. As approved assessment leads claim invitations and complete payment, they will appear here.'
+            members.length === 0
+              ? 'As users register accounts, take intake assessments, or claim subscriptions, they will automatically appear in this directory.'
               : 'Try clearing your search query or adjusting your status and tier filters.'
           }
         />
@@ -131,7 +155,14 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                 {filteredMembers.map((member) => (
                   <tr key={member.userId} className="hover:bg-gray-50/70 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-[#1A2E1C]">
-                      {member.name}
+                      <div className="flex items-center gap-2">
+                        <span>{member.name}</span>
+                        {member.isLead && (
+                          <span className="rounded bg-amber-100 text-amber-900 border border-amber-200 px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wide">
+                            Intake Lead
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <div className="font-medium text-[#1A2E1C]">{member.email}</div>
@@ -169,7 +200,7 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                         </Badge>
                       ) : (
                         <Badge variant="outline" className="border-gray-200 bg-gray-50 text-gray-500">
-                          None
+                          {member.subscriptionStatus || 'No Plan'}
                         </Badge>
                       )}
                     </td>
@@ -187,19 +218,30 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                     </td>
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link
-                          href={`/dashboard?asMember=${member.userId}`}
-                          className="inline-flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs"
-                          title={`View live dashboard as client ${member.name}`}
-                        >
-                          <Eye className="h-3 w-3 text-[#2FAF37]" />
-                          <span>Client Dashboard</span>
-                        </Link>
-                        <Link href={`/admin/members/${member.userId}`}>
-                          <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-gray-200 text-gray-700 hover:bg-gray-100">
-                            View Desk
-                          </Button>
-                        </Link>
+                        {member.isLead && member.assessmentId ? (
+                          <Link href={`/admin/assessments/${member.assessmentId}`}>
+                            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-emerald-300 bg-emerald-50 text-[#075B2B] hover:bg-emerald-100 font-bold flex items-center gap-1">
+                              <FileText className="h-3 w-3" />
+                              <span>View Intake</span>
+                            </Button>
+                          </Link>
+                        ) : (
+                          <>
+                            <Link
+                              href={`/dashboard?asMember=${member.userId}`}
+                              className="inline-flex items-center gap-1 rounded border border-emerald-300 bg-emerald-50 px-2 py-1 text-[11px] font-bold text-[#075B2B] hover:bg-emerald-100 transition-colors shadow-2xs"
+                              title={`View live dashboard as client ${member.name}`}
+                            >
+                              <Eye className="h-3 w-3 text-[#2FAF37]" />
+                              <span>Client Dashboard</span>
+                            </Link>
+                            <Link href={`/admin/members/${member.userId}`}>
+                              <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-gray-200 text-gray-700 hover:bg-gray-100">
+                                View Desk
+                              </Button>
+                            </Link>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

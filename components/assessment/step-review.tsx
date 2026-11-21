@@ -31,8 +31,8 @@ export function StepReview({
     body.target_direction === 'lose_weight'
       ? 'Weight Loss'
       : body.target_direction === 'gain_weight'
-      ? 'Weight Gain'
-      : 'Maintain Health';
+        ? 'Weight Gain'
+        : 'Maintain Health';
 
   return (
     <Card className="border-border-soft shadow-sm">
