@@ -240,6 +240,101 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
     expect(parsed.meals[2]!.scheduledTime).toBe('02:00');
   });
 
+  test('Diet Plan Variable Meals: Strictly generates ONLY meals in document (Lunch-only or Breakfast & Lunch)', async () => {
+    // 1. Plan with ONLY Lunch
+    const lunchOnlyText = `
+Day 1
+Lunch (1:30 PM): 2 Phulkas + 1 katori Dal Tadka + Bhindi Sabzi
+
+Day 2
+Lunch (1:30 PM): 1 cup cooked Rice + 1.5 katori Rajma + Salad
+
+Day 3
+Lunch (1:30 PM): 2 Rotis + 1.5 katori Chana Dal + Salad
+
+Day 4
+Lunch (1:30 PM): 2 Rotis + 1.5 katori Chole + Salad
+
+Day 5
+Lunch (1:30 PM): 2 Rotis + 1.5 katori Masoor Dal + Curd
+
+Day 6
+Lunch (1:30 PM): 2 Rotis + 1.5 katori Kala Chana + Salad
+
+Day 7
+Lunch (1:30 PM): 1 cup cooked Rice + 1.5 katori Dal + Paneer Sabzi
+`;
+    const parsedLunchOnly = await parseDietPlanFile(Buffer.from(lunchOnlyText), 'lunch_only.txt');
+    expect(parsedLunchOnly.success).toBe(true);
+    expect(parsedLunchOnly.meals.length).toBe(7); // exactly 1 meal per day!
+    parsedLunchOnly.meals.forEach((m) => {
+      expect(m.mealType).toBe('lunch');
+      expect(m.scheduledTime).toBe('13:30');
+    });
+    // Ensure absolutely NO breakfast, snack, or dinner was injected
+    expect(parsedLunchOnly.meals.some((m) => m.mealType === 'breakfast')).toBe(false);
+    expect(parsedLunchOnly.meals.some((m) => m.mealType === 'evening_snack')).toBe(false);
+    expect(parsedLunchOnly.meals.some((m) => m.mealType === 'dinner')).toBe(false);
+
+    // 2. Plan with ONLY Breakfast and Lunch (No snack, no dinner)
+    const breakfastAndLunchText = `
+Day 1
+Breakfast (8:30 AM): 2 Besan Chillas + Mint Chutney
+Lunch (1:30 PM): 2 Rotis + Dal Tadka + Bhindi
+
+Day 2
+Breakfast (8:30 AM): Vegetable Poha + Curd
+Lunch (1:30 PM): Rice + Rajma + Salad
+
+Day 3
+Breakfast (8:30 AM): Vegetable Daliya
+Lunch (1:30 PM): 2 Rotis + Chana Dal
+`;
+    const parsedBfLunch = await parseDietPlanFile(Buffer.from(breakfastAndLunchText), 'bf_lunch.txt');
+    expect(parsedBfLunch.success).toBe(true);
+    expect(parsedBfLunch.meals.length).toBe(6); // 2 meals * 3 days = 6 meals
+    parsedBfLunch.meals.forEach((m) => {
+      expect(['breakfast', 'lunch']).toContain(m.mealType);
+    });
+    expect(parsedBfLunch.meals.some((m) => m.mealType === 'evening_snack')).toBe(false);
+    expect(parsedBfLunch.meals.some((m) => m.mealType === 'dinner')).toBe(false);
+
+    // 3. Table plan with ONLY Breakfast and Lunch
+    const tablePlanText = `
+| Day | Breakfast (8:30 AM) | Lunch (1:30 PM) |
+| Day 1 | 2 Besan Chillas | 2 Rotis + Dal Tadka |
+| Day 2 | Vegetable Upma | Rice + Rajma |
+| Day 3 | Moong Dal Chilla | 2 Rotis + Chole |
+| Day 4 | Poha with Peanuts | 2 Rotis + Chana Dal |
+| Day 5 | Vegetable Daliya | 2 Rotis + Masoor Dal |
+| Day 6 | Besan Chilla | 2 Rotis + Kala Chana |
+| Day 7 | Vegetable Poha | Rice + Dal + Sabzi |
+`;
+    const parsedTable = await parseDietPlanFile(Buffer.from(tablePlanText), 'table_bf_lunch.txt');
+    expect(parsedTable.success).toBe(true);
+    expect(parsedTable.meals.length).toBe(14); // 2 meals * 7 days = 14 meals
+    parsedTable.meals.forEach((m) => {
+      expect(['breakfast', 'lunch']).toContain(m.mealType);
+    });
+    expect(parsedTable.meals.some((m) => m.mealType === 'evening_snack')).toBe(false);
+    expect(parsedTable.meals.some((m) => m.mealType === 'dinner')).toBe(false);
+
+    // 4. Single-day general plan (replicated to all 7 days with ONLY Breakfast and Lunch)
+    const singleDayPlanText = `
+Personalized Indian Nutrition Plan
+Breakfast (8:30 AM): 2 Besan Chillas with Paneer stuffing
+Lunch (1:30 PM): 2 Whole wheat Phulkas + 1 katori Dal + Fresh Salad
+`;
+    const parsedSingleDay = await parseDietPlanFile(Buffer.from(singleDayPlanText), 'daily_plan.txt');
+    expect(parsedSingleDay.success).toBe(true);
+    expect(parsedSingleDay.meals.length).toBe(14); // 2 meals * 7 days = 14 meals
+    parsedSingleDay.meals.forEach((m) => {
+      expect(['breakfast', 'lunch']).toContain(m.mealType);
+    });
+    expect(parsedSingleDay.meals.some((m) => m.mealType === 'evening_snack')).toBe(false);
+    expect(parsedSingleDay.meals.some((m) => m.mealType === 'dinner')).toBe(false);
+  });
+
   test('Guidance Formatting: Extracts clean lifestyle reminders (Water, Limit, Walk, Strength, Sleep) and strips noise', () => {
     const rawRunOn =
       'Meal clock & important schedule check\nThe intake says “overnight shift” and requests breakfast at 4:00 PM...\n4:00 PM · Meal 1\n2 besan chillas\nMess / tiffin ordering rules\nHow to monitor and adjust\nClinical and practical notes\nGuidance & Hydration Reminders\nWater: Aim for about 2.5–3 L of fluids daily, mainly water; adjust for thirst. Do not force excess water.Limit: Sugary drinks, packaged juices, fried snacks.Walk: Aim for 25–30 minutes of brisk walking most days.Strength: Add simple resistance exercises 2–3 days per week.Sleep: Protect 7–9 hours of sleep.';

@@ -301,41 +301,50 @@ function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: st
     if (!line.includes('|') && !line.includes('\t')) continue;
 
     const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
+    const hasMealCol = parts.slice(1).some((p) =>
+      /meal\s*\d|am|pm|breakfast|lunch|dinner|snack|nashta|dopahar|raat/i.test(p)
+    );
     const isDayHeader =
       parts.length >= 2 &&
-      /\bday\b/i.test(parts[0]!) &&
-      parts.some((p) => /meal\s*\d|am|pm|breakfast|lunch|dinner/i.test(p));
+      /^\s*(?:day|days|date|s\.?no|#|meal\s*schedule|schedule)\s*$/i.test(parts[0]!) &&
+      hasMealCol;
 
     if (isDayHeader) {
       headerIndex = i;
       for (let c = 1; c < parts.length; c++) {
         const colHeader = parts[c]!;
-        const time = extractMealTime(colHeader) || (c === 1 ? '16:00' : c === 2 ? '21:00' : '02:00');
-
+        const lowerHeader = colHeader.toLowerCase();
         let mealType: PlanMealSlot['mealType'] = 'breakfast';
         let mealLabel = 'Meal 1';
 
-        if (/meal\s*2/i.test(colHeader)) {
+        if (/lunch|dopahar/i.test(lowerHeader) || /meal\s*2/i.test(lowerHeader)) {
           mealType = 'lunch';
-          mealLabel = 'Meal 2';
-        } else if (/meal\s*3/i.test(colHeader)) {
+          mealLabel = /meal\s*2/i.test(lowerHeader) ? 'Meal 2' : 'Lunch';
+        } else if (/dinner|raat/i.test(lowerHeader) || /meal\s*3/i.test(lowerHeader)) {
           mealType = 'dinner';
-          mealLabel = 'Meal 3';
-        } else if (/meal\s*4/i.test(colHeader)) {
+          mealLabel = /meal\s*3/i.test(lowerHeader) ? 'Meal 3' : 'Dinner';
+        } else if (/snack|tea|chai/i.test(lowerHeader) || /meal\s*4/i.test(lowerHeader)) {
           mealType = 'evening_snack';
-          mealLabel = 'Meal 4';
-        } else if (/lunch/i.test(colHeader)) {
-          mealType = 'lunch';
-          mealLabel = 'Lunch';
-        } else if (/dinner/i.test(colHeader)) {
-          mealType = 'dinner';
-          mealLabel = 'Dinner';
-        } else if (/snack|tea/i.test(colHeader)) {
-          mealType = 'evening_snack';
-          mealLabel = 'Evening Snack';
+          mealLabel = /meal\s*4/i.test(lowerHeader) ? 'Meal 4' : 'Evening Snack';
+        } else if (/breakfast|nashta|subah/i.test(lowerHeader) || /meal\s*1/i.test(lowerHeader)) {
+          mealType = 'breakfast';
+          mealLabel = /meal\s*1/i.test(lowerHeader) ? 'Meal 1' : 'Breakfast';
         } else {
-          mealLabel = c === 1 ? 'Meal 1' : c === 2 ? 'Meal 2' : c === 3 ? 'Meal 3' : `Meal ${c}`;
+          mealLabel = `Meal ${c}`;
+          mealType = c === 1 ? 'breakfast' : c === 2 ? 'lunch' : c === 3 ? 'dinner' : 'evening_snack';
         }
+
+        const explicitTime = extractMealTime(colHeader);
+        const time =
+          explicitTime ||
+          DEFAULT_MEAL_TIMES[mealType] ||
+          (mealType === 'breakfast'
+            ? '08:30'
+            : mealType === 'lunch'
+            ? '13:30'
+            : mealType === 'dinner'
+            ? '20:30'
+            : '17:30');
 
         mealColumns.push({
           colIndex: c,
@@ -396,12 +405,339 @@ function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: st
     }
   }
 
-  if (parsedMeals.length >= 7) {
+  if (parsedMeals.length >= 1) {
+    const sorted = parsedMeals.sort((a, b) => {
+      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+      return a.orderIndex - b.orderIndex;
+    });
+
     return {
-      meals: parsedMeals.sort((a, b) => {
-        if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
-        return a.orderIndex - b.orderIndex;
-      }),
+      meals: sorted,
+      daysFound: Array.from(daysDetected),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Parses transposed tables where column headers are Days (Monday..Sunday or Day 1..7)
+ * and row headers are Meals (Breakfast, Lunch, etc.).
+ */
+function parseTransposedTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: string[] } | null {
+  let headerIndex = -1;
+  const dayColumns: { colIndex: number; dayOfWeek: number; dayName: string }[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!.trim();
+    if (!line.includes('|') && !line.includes('\t')) continue;
+    const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 2) continue;
+
+    // Check if parts[1..] are days
+    const matchedDays: { colIndex: number; dayOfWeek: number; dayName: string }[] = [];
+    for (let c = 1; c < parts.length; c++) {
+      const col = parts[c]!.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+      let dow = DAY_MAP[col];
+      if (dow === undefined) {
+        const m = col.match(/(?:day\s*(\d)|(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun))/i);
+        if (m) {
+          const key = (m[1] ? `day ${m[1]}` : m[2]!).toLowerCase();
+          dow = DAY_MAP[key];
+        }
+      }
+      if (dow !== undefined) {
+        matchedDays.push({ colIndex: c, dayOfWeek: dow, dayName: parts[c]! });
+      }
+    }
+
+    if (matchedDays.length >= 2) {
+      headerIndex = i;
+      dayColumns.push(...matchedDays);
+      break;
+    }
+  }
+
+  if (headerIndex === -1 || dayColumns.length === 0) return null;
+
+  const parsedMeals: PlanMealSlot[] = [];
+  const daysDetected = new Set<string>();
+  let mealRowIndex = 0;
+
+  for (let i = headerIndex + 1; i < lines.length; i++) {
+    const line = lines[i]!.trim();
+    if (!line.includes('|') && !line.includes('\t')) continue;
+    const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 2) continue;
+
+    const mealHeader = parts[0]!;
+    const detectedType = detectMealType(mealHeader);
+    if (!detectedType && !/meal\s*\d/i.test(mealHeader)) continue;
+
+    const mealType = detectedType || (mealRowIndex === 0 ? 'breakfast' : mealRowIndex === 1 ? 'lunch' : 'dinner');
+    const time = extractMealTime(mealHeader) || DEFAULT_MEAL_TIMES[mealType] || '08:30';
+    const mealLabel = /meal\s*\d/i.test(mealHeader)
+      ? mealHeader.match(/meal\s*\d/i)![0]
+      : mealType.charAt(0).toUpperCase() + mealType.slice(1).replace('_', ' ');
+
+    for (const d of dayColumns) {
+      const content = parts[d.colIndex];
+      if (!content || content.length < 2) continue;
+      daysDetected.add(d.dayName);
+
+      const { title, portion } = extractPortionFromText(content);
+      parsedMeals.push({
+        id: `slot_${d.dayOfWeek}_${mealType}`,
+        dayOfWeek: d.dayOfWeek,
+        mealType: mealType as PlanMealSlot['mealType'],
+        scheduledTime: time,
+        customTitle: content.trim(),
+        customPortion: portion !== 'Standard household portion' ? portion : 'Measured menu serving',
+        customNotes: mealLabel,
+        customAlternatives: [],
+        allergenTags: [],
+        orderIndex: mealRowIndex,
+      });
+    }
+    mealRowIndex++;
+  }
+
+  if (parsedMeals.length >= 1) {
+    const sorted = parsedMeals.sort((a, b) => {
+      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+      return a.orderIndex - b.orderIndex;
+    });
+
+    return {
+      meals: sorted,
+      daysFound: Array.from(daysDetected),
+    };
+  }
+
+  return null;
+}
+
+/**
+ * Parses section-based and line-by-line diet plans with variable meal counts
+ * (e.g. only Breakfast, only Lunch, or Breakfast & Lunch).
+ * Strictly preserves ONLY the meals specified in the document without phantom extras.
+ */
+function parseSectionPlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: string[] } | null {
+  const parsedMeals: PlanMealSlot[] = [];
+  const daysDetected = new Set<string>();
+
+  let currentDayOfWeek: number | null = null;
+  let activeSectionMealType: MealType | null = null;
+  let activeSectionMealTime: string | null = null;
+  let activeSectionMealLabel: string | null = null;
+
+  // Single-day / general schedule container
+  const genericDailyMeals: {
+    mealType: PlanMealSlot['mealType'];
+    time: string;
+    title: string;
+    portion: string;
+    notes?: string;
+  }[] = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i]!.trim();
+    if (!rawLine || rawLine.includes('|')) continue;
+
+    // Skip guidance and lifestyle reminders
+    if (
+      /^(?:guidance|lifestyle|water:|limit:|walk:|strength:|sleep:|mess|how to monitor|clinical|the intake|portion key)/i.test(
+        rawLine
+      )
+    ) {
+      continue;
+    }
+
+    // 1. Day heading check
+    const cleanLineLower = rawLine.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+    let matchedDay: number | null = null;
+    let dayLabelFound: string | null = null;
+
+    for (const [key, val] of Object.entries(DAY_MAP)) {
+      if (
+        cleanLineLower === key ||
+        cleanLineLower.startsWith(key + ' ') ||
+        cleanLineLower.endsWith(' ' + key) ||
+        cleanLineLower.startsWith(key + ':')
+      ) {
+        matchedDay = val;
+        dayLabelFound = key.charAt(0).toUpperCase() + key.slice(1);
+        break;
+      }
+    }
+
+    if (matchedDay === null) {
+      const dayMatch = rawLine.match(/\b(?:day\s*(\d)|(monday|tuesday|wednesday|thursday|friday|saturday|sunday))\b/i);
+      if (dayMatch) {
+        const key = (dayMatch[1] ? `day ${dayMatch[1]}` : dayMatch[2]!).toLowerCase();
+        matchedDay = DAY_MAP[key] ?? null;
+        if (matchedDay !== null) {
+          dayLabelFound = key.charAt(0).toUpperCase() + key.slice(1);
+        }
+      }
+    }
+
+    if (matchedDay !== null) {
+      currentDayOfWeek = matchedDay;
+      if (dayLabelFound) daysDetected.add(dayLabelFound);
+
+      // Check if meal is also on this exact same line (e.g. "Day 1 - Lunch (1:30 PM): Dal Tadka")
+      const detectedOnSame = detectMealType(rawLine);
+      if (detectedOnSame) {
+        const timeFound = extractMealTime(rawLine) || DEFAULT_MEAL_TIMES[detectedOnSame] || '08:30';
+        const cleaned = cleanMealContent(
+          rawLine.replace(/^(?:day\s*\d|monday|tuesday|wednesday|thursday|friday|saturday|sunday)[\s:–—-]*/i, '')
+        );
+        if (cleaned.length > 2) {
+          const { title, portion } = extractPortionFromText(cleaned);
+          parsedMeals.push({
+            id: `slot_${matchedDay}_${detectedOnSame}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            dayOfWeek: matchedDay,
+            mealType: detectedOnSame as PlanMealSlot['mealType'],
+            scheduledTime: timeFound,
+            customTitle: title,
+            customPortion: portion,
+            customNotes: detectedOnSame.charAt(0).toUpperCase() + detectedOnSame.slice(1).replace('_', ' '),
+            customAlternatives: [],
+            allergenTags: [],
+            orderIndex: 0,
+          });
+        }
+      }
+      continue;
+    }
+
+    // 2. Meal heading check (e.g. "Breakfast (8:30 AM): Vegetable Poha" or "Lunch: 2 rotis + dal")
+    const detectedMealType = detectMealType(rawLine);
+    if (detectedMealType) {
+      const extractedTime = extractMealTime(rawLine) || DEFAULT_MEAL_TIMES[detectedMealType] || '08:30';
+      const mealLabel = /meal\s*\d/i.test(rawLine)
+        ? rawLine.match(/meal\s*\d/i)![0]
+        : detectedMealType.charAt(0).toUpperCase() + detectedMealType.slice(1).replace('_', ' ');
+
+      const content = cleanMealContent(rawLine);
+
+      if (content.length > 2) {
+        const { title, portion } = extractPortionFromText(content);
+        if (currentDayOfWeek !== null) {
+          parsedMeals.push({
+            id: `slot_${currentDayOfWeek}_${detectedMealType}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            dayOfWeek: currentDayOfWeek,
+            mealType: detectedMealType as PlanMealSlot['mealType'],
+            scheduledTime: extractedTime,
+            customTitle: title,
+            customPortion: portion,
+            customNotes: mealLabel,
+            customAlternatives: [],
+            allergenTags: [],
+            orderIndex: 0,
+          });
+        } else {
+          genericDailyMeals.push({
+            mealType: detectedMealType as PlanMealSlot['mealType'],
+            time: extractedTime,
+            title,
+            portion,
+            notes: mealLabel,
+          });
+        }
+      } else {
+        activeSectionMealType = detectedMealType;
+        activeSectionMealTime = extractedTime;
+        activeSectionMealLabel = mealLabel;
+      }
+      continue;
+    }
+
+    // 3. Food item on next line under activeSectionMealType
+    if (activeSectionMealType && rawLine.length > 2) {
+      const dayMatchInLine = rawLine.match(
+        /^(?:day\s*(\d)|(monday|tuesday|wednesday|thursday|friday|saturday|sunday))[\s:–—-]*(.*)$/i
+      );
+
+      if (dayMatchInLine) {
+        const key = (dayMatchInLine[1] ? `day ${dayMatchInLine[1]}` : dayMatchInLine[2]!).toLowerCase();
+        const dow = DAY_MAP[key];
+        const foodText = (dayMatchInLine[3] || '').trim();
+        if (dow !== undefined && foodText.length > 2) {
+          daysDetected.add(key.charAt(0).toUpperCase() + key.slice(1));
+          const { title, portion } = extractPortionFromText(foodText);
+          parsedMeals.push({
+            id: `slot_${dow}_${activeSectionMealType}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            dayOfWeek: dow,
+            mealType: activeSectionMealType as PlanMealSlot['mealType'],
+            scheduledTime: activeSectionMealTime || DEFAULT_MEAL_TIMES[activeSectionMealType] || '08:30',
+            customTitle: title,
+            customPortion: portion,
+            customNotes: activeSectionMealLabel || activeSectionMealType,
+            customAlternatives: [],
+            allergenTags: [],
+            orderIndex: 0,
+          });
+          continue;
+        }
+      }
+
+      if (currentDayOfWeek !== null) {
+        const { title, portion } = extractPortionFromText(rawLine);
+        parsedMeals.push({
+          id: `slot_${currentDayOfWeek}_${activeSectionMealType}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+          dayOfWeek: currentDayOfWeek,
+          mealType: activeSectionMealType as PlanMealSlot['mealType'],
+          scheduledTime: activeSectionMealTime || DEFAULT_MEAL_TIMES[activeSectionMealType] || '08:30',
+          customTitle: title,
+          customPortion: portion,
+          customNotes: activeSectionMealLabel || activeSectionMealType,
+          customAlternatives: [],
+          allergenTags: [],
+          orderIndex: 0,
+        });
+        activeSectionMealType = null;
+      }
+    }
+  }
+
+  // If only general daily meals were supplied (no days separated), replicate them across all 7 days
+  if (parsedMeals.length === 0 && genericDailyMeals.length > 0) {
+    const allDays = [1, 2, 3, 4, 5, 6, 0];
+    for (const dow of allDays) {
+      genericDailyMeals.forEach((gm, idx) => {
+        parsedMeals.push({
+          id: `slot_${dow}_${gm.mealType}_${idx}`,
+          dayOfWeek: dow,
+          mealType: gm.mealType,
+          scheduledTime: gm.time,
+          customTitle: gm.title,
+          customPortion: gm.portion,
+          customNotes: gm.notes || gm.mealType,
+          customAlternatives: [],
+          allergenTags: [],
+          orderIndex: idx,
+        });
+      });
+    }
+  }
+
+  if (parsedMeals.length > 0) {
+    const dayMealOrder: Record<number, number> = {};
+    const sorted = parsedMeals.sort((a, b) => {
+      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+      return a.scheduledTime.localeCompare(b.scheduledTime);
+    });
+
+    const finalMeals = sorted.map((m) => {
+      const idx = dayMealOrder[m.dayOfWeek] || 0;
+      dayMealOrder[m.dayOfWeek] = idx + 1;
+      return { ...m, orderIndex: idx };
+    });
+
+    return {
+      meals: finalMeals,
       daysFound: Array.from(daysDetected),
     };
   }
@@ -531,149 +867,60 @@ export async function parseDietPlanFile(
       };
     }
 
-    // 2. Fall back to section/line-by-line parsing
-    const schedule: PlanMealSlot[] = createInitial7DaySchedule();
-    const daysDetected = new Set<string>();
-    let currentDayOfWeek: number | null = null;
-    let currentMealType: MealType | null = null;
-
-    const slotMap = new Map<string, PlanMealSlot>();
-    schedule.forEach((s) => {
-      slotMap.set(`${s.dayOfWeek}_${s.mealType}`, s);
-    });
-
-    let mealsParsedCount = 0;
-
-    for (let i = 0; i < combinedLines.length; i++) {
-      const line = combinedLines[i]!;
-
-      // Day of Week detection
-      const cleanLineLower = line.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
-      let matchedDay: number | null = null;
-      for (const [key, val] of Object.entries(DAY_MAP)) {
-        if (
-          cleanLineLower === key ||
-          cleanLineLower.startsWith(key + ' ') ||
-          cleanLineLower.endsWith(' ' + key)
-        ) {
-          matchedDay = val;
-          daysDetected.add(key.charAt(0).toUpperCase() + key.slice(1));
-          break;
-        }
-      }
-
-      if (matchedDay !== null) {
-        currentDayOfWeek = matchedDay;
-        currentMealType = null;
-        continue;
-      }
-
-      if (currentDayOfWeek === null) continue;
-
-      // Meal Type detection
-      const detectedType = detectMealType(line);
-      if (detectedType) {
-        currentMealType = detectedType;
-        const extractedTime = extractMealTime(line);
-        const mealContent = cleanMealContent(line);
-
-        const key = `${currentDayOfWeek}_${currentMealType}`;
-        const existingSlot = slotMap.get(key);
-
-        if (existingSlot) {
-          if (extractedTime) {
-            existingSlot.scheduledTime = extractedTime;
-          }
-
-          if (mealContent && mealContent.length > 1) {
-            const { title, portion } = extractPortionFromText(mealContent);
-            if (title) {
-              existingSlot.customTitle = title;
-              existingSlot.customPortion = portion;
-              mealsParsedCount++;
-            }
-          }
-        }
-        continue;
-      }
-
-      // Sub-properties for the current meal
-      if (currentDayOfWeek !== null && currentMealType !== null) {
-        const key = `${currentDayOfWeek}_${currentMealType}`;
-        const slot = slotMap.get(key);
-
-        if (slot) {
-          const lower = line.toLowerCase();
-          if (lower.startsWith('time:') || lower.startsWith('timing:') || lower.startsWith('schedule:')) {
-            const timeFound = extractMealTime(line);
-            if (timeFound) {
-              slot.scheduledTime = timeFound;
-            }
-          } else if (
-            lower.startsWith('portion:') ||
-            lower.startsWith('qty:') ||
-            lower.startsWith('quantity:')
-          ) {
-            slot.customPortion = line.replace(/^(?:portion|qty|quantity):\s*/i, '').trim();
-          } else if (
-            lower.startsWith('notes:') ||
-            lower.startsWith('note:') ||
-            lower.startsWith('tip:')
-          ) {
-            slot.customNotes = line.replace(/^(?:notes?|tip):\s*/i, '').trim();
-          } else if (
-            lower.startsWith('swaps:') ||
-            lower.startsWith('swap:') ||
-            lower.startsWith('alternatives:') ||
-            lower.startsWith('options:')
-          ) {
-            const rawSwaps = line.replace(/^(?:swaps?|alternatives?|options?):\s*/i, '').trim();
-            const parsed = parseSwaps(rawSwaps);
-            if (parsed.length > 0) {
-              slot.customAlternatives = parsed;
-            }
-          } else if (
-            !slot.customTitle ||
-            slot.customTitle.startsWith('Sample') ||
-            slot.customTitle === 'Standard Meal'
-          ) {
-            const timeCheck = extractMealTime(line);
-            if (timeCheck) {
-              slot.scheduledTime = timeCheck;
-            }
-
-            const cleanContent = cleanMealContent(line);
-            const { title, portion } = extractPortionFromText(cleanContent || line);
-            if (title.length > 2) {
-              slot.customTitle = title;
-              if (portion !== 'Standard household portion') {
-                slot.customPortion = portion;
-              }
-              mealsParsedCount++;
-            }
-          }
-        }
-      }
+    // 2. Try transposed table parsing (Meals in rows, Days in columns)
+    const transposedResult = parseTransposedTablePlan(combinedLines);
+    if (transposedResult && transposedResult.meals.length > 0) {
+      return {
+        success: true,
+        meals: transposedResult.meals,
+        guidanceNotes,
+        daysFound: transposedResult.daysFound,
+        totalMealsParsed: transposedResult.meals.length,
+        rawTextPreview: rawText.slice(0, 500),
+      };
     }
 
-    const finalMeals = Array.from(slotMap.values()).sort((a, b) => {
-      if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
-      return a.orderIndex - b.orderIndex;
-    });
+    // 3. Fall back to section/line-by-line parsing (strictly extracts ONLY meals present in document)
+    const sectionResult = parseSectionPlan(combinedLines);
+    if (sectionResult && sectionResult.meals.length > 0) {
+      return {
+        success: true,
+        meals: sectionResult.meals,
+        guidanceNotes,
+        daysFound: sectionResult.daysFound,
+        totalMealsParsed: sectionResult.meals.length,
+        rawTextPreview: rawText.slice(0, 500),
+      };
+    }
 
+    // 4. If buffer was empty, return standard template for backwards compatibility
+    if (buffer.length === 0) {
+      return {
+        success: true,
+        meals: createInitial7DaySchedule(),
+        guidanceNotes,
+        daysFound: [],
+        totalMealsParsed: 28,
+        rawTextPreview: '',
+      };
+    }
+
+    // If a document was uploaded but no meals could be extracted
     return {
-      success: true,
-      meals: finalMeals,
+      success: false,
+      meals: [],
       guidanceNotes,
-      daysFound: Array.from(daysDetected),
-      totalMealsParsed: mealsParsedCount > 0 ? mealsParsedCount : finalMeals.length,
+      daysFound: [],
+      totalMealsParsed: 0,
       rawTextPreview: rawText.slice(0, 500),
+      error:
+        'Could not detect any meals in the uploaded document. Please ensure meals are labeled (e.g. Breakfast, Lunch, Dinner, or Meal 1, Meal 2).',
     };
   } catch (err: unknown) {
     const errorMsg = err instanceof Error ? err.message : 'Unknown diet plan parsing error';
     return {
       success: false,
-      meals: createInitial7DaySchedule(),
+      meals: buffer.length === 0 ? createInitial7DaySchedule() : [],
       guidanceNotes: '',
       daysFound: [],
       totalMealsParsed: 0,
