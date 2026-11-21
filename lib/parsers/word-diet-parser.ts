@@ -64,13 +64,36 @@ export function isNutritionOrSummaryLine(str: string): boolean {
   if (!str) return false;
   const clean = str.trim().toLowerCase();
   return (
-    /^(?:estimated\s*(?:daily\s*total|meal|bmr|maintenance|target)|daily\s*total|total\s*(?:calories|kcal)|nutrition\s*targets|routine|measurements|avoid|goal|client\s*overview|client\b|bmi\b|portion\s*key|meal\s*clock|mess\s*\/\s*tiffin)/i.test(
+    /^(?:estimated\s*(?:daily\s*total|meal|bmr|maintenance|target|intake)|daily\s*total|total\s*(?:calories|kcal|intake)|nutrition\s*targets|routine|measurements|avoid|goal|client\s*overview|client\b|bmi\b|portion\s*key|meal\s*clock|mess\s*\/\s*tiffin|meal\s*\/\s*exact\s*time|food\s*and\s*quantities)/i.test(
       clean
     ) ||
     /^\|\s*(?:client|measurements|goal|routine|diet|meal schedule|nutrition targets|avoid)\b/i.test(
       clean
-    )
+    ) ||
+    /^\d+(?:\s*(?:kcal|calories|g|gm))?$/i.test(clean)
   );
+}
+
+function deriveDishTitle(foodText: string, mealType: string): string {
+  if (!foodText) return mealType.charAt(0).toUpperCase() + mealType.slice(1);
+  let firstPart = foodText.split(/;|\(/)[0]!.trim();
+  firstPart = firstPart.replace(/^\d+\s+/, '');
+  firstPart = firstPart.replace(/\s*\d+\s*(?:g|gm|ml|raw|cooked).*$/i, '').trim();
+
+  if (foodText.toLowerCase().includes('cooked rice') && !firstPart.toLowerCase().includes('rice')) {
+    firstPart += ' with Rice';
+  } else if (foodText.toLowerCase().includes('moong dal') && !firstPart.toLowerCase().includes('dal')) {
+    firstPart += ' & Dal';
+  } else if (foodText.toLowerCase().includes('chole') && !firstPart.toLowerCase().includes('chole')) {
+    firstPart += ' with Chole';
+  }
+
+  firstPart = firstPart
+    .split(' ')
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ');
+
+  return firstPart.length >= 3 ? firstPart : mealType.charAt(0).toUpperCase() + mealType.slice(1);
 }
 
 function detectMealType(line: string): MealType | null {
@@ -358,8 +381,12 @@ function parseStructuredMenuReport(lines: string[]): { meals: PlanMealSlot[]; da
 
     if (currentDay === null) continue;
 
-    // Skip daily total summary lines
-    if (/^ESTIMATED\s*DAILY\s*TOTAL/i.test(rawLine)) {
+    // Skip daily total summary lines and table column headers
+    if (
+      /^(?:estimated\s*daily\s*total|daily\s*total|estimated\s*intake|est\.?\s*kcal|total\s*intake|meal\s*\/\s*exact\s*time|food\s*and\s*quantities)/i.test(
+        rawLine
+      )
+    ) {
       if (currentMeal) {
         parsedMeals.push(currentMeal);
         currentMeal = null;
@@ -417,7 +444,7 @@ function parseStructuredMenuReport(lines: string[]): { meals: PlanMealSlot[]; da
 
     // If currentMeal is active, subsequent lines could be portion or estimated calories
     if (currentMeal) {
-      // Is this "Estimated meal: 760 kcal | 47 g protein"?
+      // 1. Is this "Estimated meal: 760 kcal | 47 g protein"?
       const calorieMatch = rawLine.match(/Estimated\s*meal:\s*(\d+)\s*kcal(?:\s*\|\s*(\d+)\s*g\s*protein)?/i);
       if (calorieMatch) {
         const kcal = parseInt(calorieMatch[1]!, 10);
@@ -428,14 +455,40 @@ function parseStructuredMenuReport(lines: string[]): { meals: PlanMealSlot[]; da
         continue;
       }
 
-      // Otherwise this line is the portion / ingredients description!
+      // 2. Is this a standalone calorie number like "395", "610", "565"?
+      if (/^\d{3,4}$/.test(rawLine)) {
+        const kcal = parseInt(rawLine, 10);
+        if (kcal >= 200 && kcal <= 1200 && !currentMeal.approxCalories) {
+          currentMeal.approxCalories = kcal;
+          currentMeal.customNotes = `${currentMeal.mealType.charAt(0).toUpperCase() + currentMeal.mealType.slice(1).replace('_', ' ')} • ${kcal} kcal${currentMeal.approxProteinG ? ` | ${currentMeal.approxProteinG}g protein` : ''}`;
+        }
+        continue;
+      }
+
+      // 3. Is this a standalone protein number like "21 g", "43 g"?
+      if (/^\d{1,2}\s*g$/i.test(rawLine)) {
+        const prot = parseInt(rawLine.replace(/[^0-9]/g, ''), 10);
+        currentMeal.approxProteinG = prot;
+        if (currentMeal.approxCalories) {
+          currentMeal.customNotes = `${currentMeal.mealType.charAt(0).toUpperCase() + currentMeal.mealType.slice(1).replace('_', ' ')} • ${currentMeal.approxCalories} kcal | ${prot}g protein`;
+        }
+        continue;
+      }
+
+      // 4. Otherwise this line is the portion / ingredients description!
       if (
         !isNutritionOrSummaryLine(rawLine) &&
         !isDayNameOnly(rawLine) &&
         rawLine.length > 3 &&
-        !/^\d+\s*g(?:\s*(?:protein|carbs|fat|fiber))?$/i.test(rawLine.trim())
+        !/^\d+(?:\s*(?:kcal|calories|g|gm))?$/i.test(rawLine.trim())
       ) {
         currentMeal.customPortion = rawLine;
+
+        // If title is currently generic ("Dinner", "Breakfast", "Lunch"), derive a real dish title from the food description!
+        const genericTypes = ['breakfast', 'lunch', 'dinner', 'evening_snack', 'morning_snack', 'post_dinner', 'meal'];
+        if (genericTypes.includes(currentMeal.customTitle.toLowerCase().trim())) {
+          currentMeal.customTitle = deriveDishTitle(rawLine, currentMeal.mealType);
+        }
       }
     }
   }

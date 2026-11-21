@@ -29,6 +29,29 @@ export function MealCard({ meal, isNext }: MealCardProps) {
       : 'Meal';
   }
 
+  // Guard against isolated numbers or summary values mistakenly stored as portions
+  let displayPortion = (meal.custom_portion || 'Standard household portion').trim();
+  if (/^\d{3,4}$/.test(displayPortion)) {
+    displayPortion = 'Standard household portion';
+  }
+
+  // If title is just generic meal type (e.g. "Dinner", "Breakfast") and portion has real dish items, derive dish name
+  const genericTypes = ['breakfast', 'lunch', 'dinner', 'evening_snack', 'morning_snack', 'post_dinner', 'meal'];
+  if (genericTypes.includes(displayTitle.toLowerCase().trim())) {
+    if (meal.custom_portion && meal.custom_portion.length > 5 && !/^\d+$/.test(meal.custom_portion)) {
+      let firstPart = meal.custom_portion.split(/;|\(/)[0]!.trim();
+      firstPart = firstPart.replace(/^\d+\s+/, '').replace(/\s*\d+\s*(?:g|gm|ml|raw|cooked).*$/i, '').trim();
+      if (meal.custom_portion.toLowerCase().includes('cooked rice') && !firstPart.toLowerCase().includes('rice')) {
+        firstPart += ' with Rice';
+      } else if (meal.custom_portion.toLowerCase().includes('moong dal') && !firstPart.toLowerCase().includes('dal')) {
+        firstPart += ' & Dal';
+      }
+      if (firstPart.length >= 3) {
+        displayTitle = firstPart.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+      }
+    }
+  }
+
   return (
     <>
       <Card
@@ -69,7 +92,7 @@ export function MealCard({ meal, isNext }: MealCardProps) {
             </CardTitle>
             <div className="mt-2 rounded-lg bg-[#EAF8E7]/60 px-3 py-2 text-xs text-emerald-950 border border-emerald-200/60 leading-relaxed font-normal">
               <span className="font-semibold text-[#075B2B]">Portion: </span>
-              <span>{meal.custom_portion}</span>
+              <span>{displayPortion}</span>
             </div>
           </div>
 
