@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@theme {
+  --color-forest-green: #075b2b;
+  --color-forest-green-dark: #05401e;
+  --color-forest-green-light: #0d803e;
+  --color-fresh-green: #2faf37;
+  --color-fresh-green-hover: #26962e;
+  --color-pale-green: #eaf8e7;
+  --color-pale-green-dark: #d5efce;
+  --color-warm-cream: #fffdf7;
+  --color-warm-cream-dark: #f8f4e9;
+  --color-dark-text: #1a2e1c;
+  --color-muted-text: #536955;
+  --color-border-soft: #e2ece0;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --font-sans: "Plus Jakarta Sans", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+:root {
+  --background: #fffdf7;
+  --foreground: #1a2e1c;
+
+  --card: #ffffff;
+  --card-foreground: #1a2e1c;
+
+  --popover: #ffffff;
+  --popover-foreground: #1a2e1c;
+
+  --primary: #075b2b;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eaf8e7;
+  --secondary-foreground: #075b2b;
+
+  --muted: #f4f8f3;
+  --muted-foreground: #536955;
+
+  --accent: #2faf37;
+  --accent-foreground: #ffffff;
+
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --border: #e2ece0;
+  --input: #d8e6d5;
+  --ring: #2faf37;
+
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
