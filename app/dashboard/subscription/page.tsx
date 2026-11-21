@@ -20,8 +20,8 @@ function SubscriptionPageContent() {
     statusParam === 'success'
       ? 'Payment received! Your subscription is active. Welcome to Fitvora!'
       : statusParam === 'sandbox_mock'
-      ? 'Sandbox mode checkout simulated successfully.'
-      : null
+        ? 'Sandbox mode checkout simulated successfully.'
+        : null
   );
 
   const supabase = createClient();

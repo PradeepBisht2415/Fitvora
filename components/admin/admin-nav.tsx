@@ -82,11 +82,10 @@ function AdminNavContent() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  isActive
-                    ? 'bg-[#EAF8E7] text-[#075B2B]'
-                    : 'text-[#1A2E1C]/70 hover:bg-gray-100 hover:text-[#1A2E1C]'
-                }`}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${isActive
+                  ? 'bg-[#EAF8E7] text-[#075B2B]'
+                  : 'text-[#1A2E1C]/70 hover:bg-gray-100 hover:text-[#1A2E1C]'
+                  }`}
               >
                 <Icon className="h-4 w-4" />
                 <span className="hidden sm:inline">{item.label}</span>

@@ -125,11 +125,10 @@ export function StepAbout({ data, onChange, errors = {} }: StepAboutProps) {
                 key={option.id}
                 type="button"
                 onClick={() => onChange({ gender: option.id as AboutYouData['gender'] })}
-                className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${
-                  data.gender === option.id
-                    ? 'border-forest-green bg-pale-green text-forest-green shadow-sm'
-                    : 'border-border-soft bg-white text-dark-text hover:bg-pale-green/20'
-                }`}
+                className={`py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all ${data.gender === option.id
+                  ? 'border-forest-green bg-pale-green text-forest-green shadow-sm'
+                  : 'border-border-soft bg-white text-dark-text hover:bg-pale-green/20'
+                  }`}
               >
                 {option.label}
               </button>

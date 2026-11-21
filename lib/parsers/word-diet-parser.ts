@@ -50,6 +50,17 @@ const DAY_MAP: Record<string, number> = {
 
 type MealType = 'breakfast' | 'morning_snack' | 'lunch' | 'evening_snack' | 'dinner' | 'post_dinner' | string;
 
+export function isDayNameOnly(str: string): boolean {
+  if (!str) return false;
+  const clean = str.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+  return (
+    DAY_MAP[clean] !== undefined ||
+    /^(?:day\s*\d|monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun)$/i.test(
+      clean
+    )
+  );
+}
+
 function detectMealType(line: string): MealType | null {
   const lower = line.toLowerCase();
   if (lower.includes('morning snack') || lower.includes('mid morning') || lower.includes('mid-morning')) {
@@ -387,6 +398,7 @@ function parseTablePlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: st
     for (const col of mealColumns) {
       const content = parts[col.colIndex];
       if (!content || content.length < 2) continue;
+      if (isDayNameOnly(content)) continue;
 
       const { title, portion } = extractPortionFromText(content);
 
@@ -474,6 +486,12 @@ function parseTransposedTablePlan(lines: string[]): { meals: PlanMealSlot[]; day
     const detectedType = detectMealType(mealHeader);
     if (!detectedType && !/meal\s*\d/i.test(mealHeader)) continue;
 
+    // If the row cells are day names, it's a repeated or misplaced day header row, not a meal row!
+    const dayNameCellsCount = dayColumns.filter((d) => isDayNameOnly(parts[d.colIndex] || '')).length;
+    if (dayNameCellsCount >= 2) {
+      continue;
+    }
+
     const mealType = detectedType || (mealRowIndex === 0 ? 'breakfast' : mealRowIndex === 1 ? 'lunch' : 'dinner');
     const time = extractMealTime(mealHeader) || DEFAULT_MEAL_TIMES[mealType] || '08:30';
     const mealLabel = /meal\s*\d/i.test(mealHeader)
@@ -483,6 +501,8 @@ function parseTransposedTablePlan(lines: string[]): { meals: PlanMealSlot[]; day
     for (const d of dayColumns) {
       const content = parts[d.colIndex];
       if (!content || content.length < 2) continue;
+      // Never treat day names as meal title
+      if (isDayNameOnly(content)) continue;
       daysDetected.add(d.dayName);
 
       const { title, portion } = extractPortionFromText(content);
@@ -491,7 +511,7 @@ function parseTransposedTablePlan(lines: string[]): { meals: PlanMealSlot[]; day
         dayOfWeek: d.dayOfWeek,
         mealType: mealType as PlanMealSlot['mealType'],
         scheduledTime: time,
-        customTitle: content.trim(),
+        customTitle: title || content.trim(),
         customPortion: portion !== 'Standard household portion' ? portion : 'Measured menu serving',
         customNotes: mealLabel,
         customAlternatives: [],
@@ -514,6 +534,142 @@ function parseTransposedTablePlan(lines: string[]): { meals: PlanMealSlot[]; day
     };
   }
 
+  return null;
+}
+
+/**
+ * Parses vertical row-per-meal tables like:
+ * | Day | Time | Meal | Menu |
+ * | Monday | 2:30 PM | Breakfast | Vegetable Poha |
+ * | Monday | 8:30 PM | Lunch | 2 rotis + dal |
+ * | Tuesday | 2:30 PM | Breakfast | Besan Chilla |
+ */
+function parseVerticalRowPlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: string[] } | null {
+  const parsedMeals: PlanMealSlot[] = [];
+  const daysDetected = new Set<string>();
+  const mealCountByDay: Record<number, number> = {};
+
+  let currentDay: number | null = null;
+
+  for (const line of lines) {
+    if (!line.includes('|') && !line.includes('\t')) continue;
+    const parts = line.split(/[|\t]/).map((p) => p.trim()).filter(Boolean);
+    if (parts.length < 2) continue;
+
+    // Check if this line is a header like "| Day | Time | Meal | Menu |"
+    const lowerJoined = parts.join(' ').toLowerCase();
+    if (
+      /^(?:day|days|date|s\.?no|#)\s+(?:time|timing|meal|food|menu)/i.test(lowerJoined) ||
+      (parts.length >= 3 && /day/i.test(parts[0]!) && /(?:meal|food|menu|timing|time)/i.test(lowerJoined))
+    ) {
+      continue;
+    }
+
+    // Try finding day in parts[0] or parts[1]
+    let dayOfWeek: number | null = null;
+    let dayName = '';
+
+    for (let c = 0; c < Math.min(2, parts.length); c++) {
+      const pLower = parts[c]!.toLowerCase().replace(/[^a-z0-9 ]/g, '').trim();
+      let dow = DAY_MAP[pLower];
+      if (dow === undefined) {
+        const m = pLower.match(/(?:day\s*(\d)|(monday|tuesday|wednesday|thursday|friday|saturday|sunday|mon|tue|wed|thu|fri|sat|sun))/i);
+        if (m) {
+          const key = (m[1] ? `day ${m[1]}` : m[2]!).toLowerCase();
+          dow = DAY_MAP[key];
+        }
+      }
+      if (dow !== undefined) {
+        dayOfWeek = dow;
+        dayName = parts[c]!;
+        break;
+      }
+    }
+
+    if (dayOfWeek !== null) {
+      currentDay = dayOfWeek;
+      daysDetected.add(dayName);
+    } else if (currentDay !== null) {
+      // Row continues for same day without repeating day name
+      dayOfWeek = currentDay;
+    } else {
+      continue;
+    }
+
+    // Identify meal type, time, and food item among the parts
+    let mealType: PlanMealSlot['mealType'] | null = null;
+    let detectedTime: string | null = null;
+    let mealLabel = '';
+    const foodCandidates: string[] = [];
+
+    for (const part of parts) {
+      if (isDayNameOnly(part)) continue;
+
+      const timeFound = extractMealTime(part);
+      if (timeFound && !detectedTime) {
+        detectedTime = timeFound;
+      }
+
+      const typeFound = detectMealType(part);
+      if (typeFound && !mealType) {
+        mealType = typeFound as PlanMealSlot['mealType'];
+        mealLabel = /meal\s*\d/i.test(part)
+          ? part.match(/meal\s*\d/i)![0]
+          : typeFound.charAt(0).toUpperCase() + typeFound.slice(1).replace('_', ' ');
+
+        const stripped = cleanMealContent(part);
+        if (stripped.length > 2 && !isDayNameOnly(stripped)) {
+          foodCandidates.push(stripped);
+        }
+        continue;
+      }
+
+      if (
+        part.length > 2 &&
+        !isDayNameOnly(part) &&
+        !/^(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)$/i.test(part)
+      ) {
+        foodCandidates.push(part);
+      }
+    }
+
+    const dayOrder = mealCountByDay[dayOfWeek] || 0;
+    if (!mealType) {
+      mealType = dayOrder === 0 ? 'breakfast' : dayOrder === 1 ? 'lunch' : 'dinner';
+      mealLabel = mealType.charAt(0).toUpperCase() + mealType.slice(1);
+    }
+
+    const time =
+      detectedTime ||
+      DEFAULT_MEAL_TIMES[mealType] ||
+      (mealType === 'breakfast' ? '08:30' : mealType === 'lunch' ? '13:30' : '20:30');
+
+    // Best candidate is the longest text that is not a day/time
+    const bestFood = foodCandidates.sort((a, b) => b.length - a.length)[0];
+    if (bestFood && bestFood.length > 2 && !isDayNameOnly(bestFood)) {
+      const { title, portion } = extractPortionFromText(bestFood);
+      parsedMeals.push({
+        id: `slot_${dayOfWeek}_${mealType}_${dayOrder}`,
+        dayOfWeek,
+        mealType,
+        scheduledTime: time,
+        customTitle: title,
+        customPortion: portion !== 'Standard household portion' ? portion : 'Measured menu serving',
+        customNotes: mealLabel,
+        customAlternatives: [],
+        allergenTags: [],
+        orderIndex: dayOrder,
+      });
+      mealCountByDay[dayOfWeek] = dayOrder + 1;
+    }
+  }
+
+  if (parsedMeals.length >= 1) {
+    return {
+      meals: parsedMeals.sort((a, b) => (a.dayOfWeek !== b.dayOfWeek ? a.dayOfWeek - b.dayOfWeek : a.orderIndex - b.orderIndex)),
+      daysFound: Array.from(daysDetected),
+    };
+  }
   return null;
 }
 
@@ -593,7 +749,7 @@ function parseSectionPlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: 
         const cleaned = cleanMealContent(
           rawLine.replace(/^(?:day\s*\d|monday|tuesday|wednesday|thursday|friday|saturday|sunday)[\s:–—-]*/i, '')
         );
-        if (cleaned.length > 2) {
+        if (cleaned.length > 2 && !isDayNameOnly(cleaned)) {
           const { title, portion } = extractPortionFromText(cleaned);
           parsedMeals.push({
             id: `slot_${matchedDay}_${detectedOnSame}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
@@ -603,6 +759,26 @@ function parseSectionPlan(lines: string[]): { meals: PlanMealSlot[]; daysFound: 
             customTitle: title,
             customPortion: portion,
             customNotes: detectedOnSame.charAt(0).toUpperCase() + detectedOnSame.slice(1).replace('_', ' '),
+            customAlternatives: [],
+            allergenTags: [],
+            orderIndex: 0,
+          });
+        }
+      } else if (activeSectionMealType) {
+        // Line like "Monday: Besan Chilla" under a "Breakfast (2:30 PM)" heading
+        const cleaned = rawLine
+          .replace(/^(?:day\s*\d|monday|tuesday|wednesday|thursday|friday|saturday|sunday)[\s:–—-]*/i, '')
+          .trim();
+        if (cleaned.length > 2 && !isDayNameOnly(cleaned)) {
+          const { title, portion } = extractPortionFromText(cleaned);
+          parsedMeals.push({
+            id: `slot_${matchedDay}_${activeSectionMealType}_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
+            dayOfWeek: matchedDay,
+            mealType: activeSectionMealType as PlanMealSlot['mealType'],
+            scheduledTime: activeSectionMealTime || DEFAULT_MEAL_TIMES[activeSectionMealType] || '08:30',
+            customTitle: title,
+            customPortion: portion,
+            customNotes: activeSectionMealLabel || activeSectionMealType,
             customAlternatives: [],
             allergenTags: [],
             orderIndex: 0,
@@ -867,7 +1043,20 @@ export async function parseDietPlanFile(
       };
     }
 
-    // 2. Try transposed table parsing (Meals in rows, Days in columns)
+    // 2. Try vertical row-per-meal table parsing (Day | Time | Meal | Menu)
+    const verticalResult = parseVerticalRowPlan(combinedLines);
+    if (verticalResult && verticalResult.meals.length > 0) {
+      return {
+        success: true,
+        meals: verticalResult.meals,
+        guidanceNotes,
+        daysFound: verticalResult.daysFound,
+        totalMealsParsed: verticalResult.meals.length,
+        rawTextPreview: rawText.slice(0, 500),
+      };
+    }
+
+    // 3. Try transposed table parsing (Meals in rows, Days in columns)
     const transposedResult = parseTransposedTablePlan(combinedLines);
     if (transposedResult && transposedResult.meals.length > 0) {
       return {

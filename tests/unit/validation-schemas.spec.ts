@@ -10,7 +10,7 @@ import { renderAssessmentApprovedEmail } from '../../lib/email/templates/assessm
 import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-published';
 import { renderPaymentReceiptEmail } from '../../lib/email/templates/payment-receipt';
 import { renderPaymentFailedEmail } from '../../lib/email/templates/payment-failed';
-import { parseWordDietPlan, parseDietPlanFile, extractMealTime, formatMealTime, formatGuidanceBullets } from '../../lib/parsers/word-diet-parser';
+import { parseWordDietPlan, parseDietPlanFile, extractMealTime, formatMealTime, formatGuidanceBullets, isDayNameOnly } from '../../lib/parsers/word-diet-parser';
 import { deriveGroceryListFromMeals } from '../../components/dashboard/grocery-overview';
 import {
   sanitizeAssessmentForExport,
@@ -333,6 +333,79 @@ Lunch (1:30 PM): 2 Whole wheat Phulkas + 1 katori Dal + Fresh Salad
     });
     expect(parsedSingleDay.meals.some((m) => m.mealType === 'evening_snack')).toBe(false);
     expect(parsedSingleDay.meals.some((m) => m.mealType === 'dinner')).toBe(false);
+
+    // 5. Vertical Table Plan (Day | Timing | Meal Type | Menu / Food Items)
+    const verticalTablePlan = `
+| Day | Timing | Meal Type | Menu / Food Items |
+| Monday | 2:30 PM | Breakfast | Vegetable Poha |
+| Monday | 8:30 PM | Lunch | 2 rotis + dal + salad |
+| Monday | 2:00 AM | Dinner | Moong Dal Khichdi |
+| Tuesday | 2:30 PM | Breakfast | 2 Besan Chillas |
+| Tuesday | 8:30 PM | Lunch | 1 cup rice + rajma |
+| Tuesday | 2:00 AM | Dinner | Paneer Bhurji + roti |
+| Wednesday | 2:30 PM | Breakfast | Vegetable Upma |
+| Wednesday | 8:30 PM | Lunch | 2 rotis + chana dal |
+| Wednesday | 2:00 AM | Dinner | Soya chunk curry |
+| Thursday | 2:30 PM | Breakfast | Vegetable Daliya |
+| Thursday | 8:30 PM | Lunch | 2 rotis + chole |
+| Thursday | 2:00 AM | Dinner | Khichdi + curd |
+| Friday | 2:30 PM | Breakfast | Moong Dal Chilla |
+| Friday | 8:30 PM | Lunch | 2 rotis + masoor dal |
+| Friday | 2:00 AM | Dinner | Rice + soy curry |
+| Saturday | 2:30 PM | Breakfast | Roasted Chana & Fruit |
+| Saturday | 8:30 PM | Lunch | 2 rotis + kala chana |
+| Saturday | 2:00 AM | Dinner | Paneer sabzi + roti |
+| Sunday | 2:30 PM | Breakfast | Besan Chilla with Paneer |
+| Sunday | 8:30 PM | Lunch | 1 cup rice + dal + sabzi |
+| Sunday | 2:00 AM | Dinner | Bean curry + rotis |
+`;
+    const parsedVertical = await parseDietPlanFile(Buffer.from(verticalTablePlan), 'vertical_plan.txt');
+    expect(parsedVertical.success).toBe(true);
+    expect(parsedVertical.meals.length).toBe(21);
+    // Saturday meals check
+    const satMeals = parsedVertical.meals.filter((m) => m.dayOfWeek === 6);
+    expect(satMeals.length).toBe(3);
+    expect(satMeals[0]!.mealType).toBe('breakfast');
+    expect(satMeals[0]!.scheduledTime).toBe('14:30');
+    expect(satMeals[0]!.customTitle).toBe('Roasted Chana & Fruit');
+    // Ensure day name is NOT the meal title
+    expect(satMeals[0]!.customTitle).not.toBe('Saturday');
+
+    // 6. Section Plan with Meal Heading above Day Items
+    const sectionMealHeadingPlan = `
+Breakfast (2:30 PM)
+Monday: 2 Besan Chillas + Paneer stuffing
+Tuesday: Vegetable Poha with Peanuts
+Wednesday: Vegetable Upma + Curd
+Thursday: Vegetable Daliya
+Friday: Moong Dal Chilla
+Saturday: Sprouts Salad + Fresh Fruit
+Sunday: Paneer Paratha with Curd
+
+Lunch (8:30 PM)
+Monday: 2 Rotis + Dal Tadka + Bhindi
+Tuesday: Rice + Rajma + Salad
+Wednesday: 2 Rotis + Chana Dal
+Thursday: 2 Rotis + Chole + Salad
+Friday: 2 Rotis + Masoor Dal
+Saturday: 2 Rotis + Kala Chana
+Sunday: Rice + Dal + Paneer Sabzi
+`;
+    const parsedSectionHeading = await parseDietPlanFile(Buffer.from(sectionMealHeadingPlan), 'section_heading.txt');
+    expect(parsedSectionHeading.success).toBe(true);
+    expect(parsedSectionHeading.meals.length).toBe(14);
+    const satSectionMeals = parsedSectionHeading.meals.filter((m) => m.dayOfWeek === 6);
+    expect(satSectionMeals.length).toBe(2);
+    expect(satSectionMeals[0]!.customTitle).toBe('Sprouts Salad + Fresh Fruit');
+    expect(satSectionMeals[0]!.customTitle).not.toBe('Saturday');
+
+    // 7. Invariant: isDayNameOnly rejects day names from becoming meal titles
+    expect(isDayNameOnly('Monday')).toBe(true);
+    expect(isDayNameOnly('Saturday')).toBe(true);
+    expect(isDayNameOnly('Day 6')).toBe(true);
+    expect(isDayNameOnly('Sat')).toBe(true);
+    expect(isDayNameOnly('Vegetable Poha')).toBe(false);
+    expect(isDayNameOnly('2 Besan Chillas')).toBe(false);
   });
 
   test('Guidance Formatting: Extracts clean lifestyle reminders (Water, Limit, Walk, Strength, Sleep) and strips noise', () => {
