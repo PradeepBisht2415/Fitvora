@@ -70,3 +70,65 @@ export async function GET(request: NextRequest, context: RouteContext) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
+  try {
+    const { id } = await context.params;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Assessment ID is required' }, { status: 400 });
+    }
+
+    // 1. Check Admin Auth
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authErr,
+    } = await supabase.auth.getUser();
+
+    if (authErr || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const hasSupabase =
+      process.env.NEXT_PUBLIC_SUPABASE_URL &&
+      process.env.SUPABASE_SERVICE_ROLE_KEY &&
+      !process.env.NEXT_PUBLIC_SUPABASE_URL.includes('placeholder');
+
+    if (!hasSupabase) {
+      return NextResponse.json({ error: 'Database not configured' }, { status: 503 });
+    }
+
+    const adminSupabase = createAdminClient();
+
+    // Verify role
+    const { data: adminProfile } = await adminSupabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single();
+
+    if (adminProfile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Forbidden. Admin role required.' }, { status: 403 });
+    }
+
+    // 2. Delete related assessment_reviews first
+    await adminSupabase.from('assessment_reviews').delete().eq('assessment_id', id);
+
+    // 3. Delete assessment
+    const { error: deleteErr } = await adminSupabase
+      .from('assessments')
+      .delete()
+      .eq('id', id);
+
+    if (deleteErr) {
+      console.error('Failed to delete assessment:', deleteErr);
+      return NextResponse.json({ error: 'Failed to delete assessment' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, message: 'Assessment lead deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting assessment lead:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}

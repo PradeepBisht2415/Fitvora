@@ -7,6 +7,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Card, CardContent } from '@/components/ui/card';
 import { Inbox, Eye, ShieldAlert, Download, FileSpreadsheet } from 'lucide-react';
 import { AssessmentDownloadButton } from '@/components/admin/assessment-download-button';
+import { AssessmentDeleteButton } from '@/components/admin/assessment-delete-button';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 import type { Assessment } from '@/types/database.types';
 
@@ -177,6 +178,10 @@ export default async function AdminAssessmentsPage() {
                           Review Lead
                         </Button>
                       </Link>
+                      <AssessmentDeleteButton
+                        assessmentId={lead.id}
+                        clientName={lead.first_name}
+                      />
                     </div>
                   </CardContent>
                 </Card>

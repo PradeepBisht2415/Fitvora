@@ -6,7 +6,7 @@ import { StatusBadge } from '@/components/ui/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Search, Eye, Users, Filter, RefreshCw, FileText } from 'lucide-react';
+import { Search, Eye, Users, Filter, RefreshCw, FileText, Trash2, Loader2 } from 'lucide-react';
 import type { AdminMemberRow } from '@/lib/admin/members-query';
 
 export type { AdminMemberRow };
@@ -21,6 +21,53 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [tierFilter, setTierFilter] = useState<string>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteLead = async (assessmentId: string, rowUserId: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete intake lead for "${name}"?`)) {
+      return;
+    }
+    setDeletingId(rowUserId);
+    try {
+      const res = await fetch(`/api/admin/assessments/${assessmentId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setMembers((prev) => prev.filter((m) => m.userId !== rowUserId));
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete intake lead');
+      }
+    } catch (err) {
+      console.error('Delete lead error:', err);
+      alert('Network error while deleting lead');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleDeleteMember = async (memberUserId: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete registered member "${name}"? This removes their profile and account.`)) {
+      return;
+    }
+    setDeletingId(memberUserId);
+    try {
+      const res = await fetch(`/api/admin/members/${memberUserId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setMembers((prev) => prev.filter((m) => m.userId !== memberUserId));
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete member');
+      }
+    } catch (err) {
+      console.error('Delete member error:', err);
+      alert('Network error while deleting member');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -219,12 +266,29 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {member.isLead && member.assessmentId ? (
-                          <Link href={`/admin/assessments/${member.assessmentId}`}>
-                            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-emerald-300 bg-emerald-50 text-[#075B2B] hover:bg-emerald-100 font-bold flex items-center gap-1">
-                              <FileText className="h-3 w-3" />
-                              <span>View Intake</span>
+                          <>
+                            <Link href={`/admin/assessments/${member.assessmentId}`}>
+                              <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs border-emerald-300 bg-emerald-50 text-[#075B2B] hover:bg-emerald-100 font-bold flex items-center gap-1">
+                                <FileText className="h-3 w-3" />
+                                <span>View Intake</span>
+                              </Button>
+                            </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteLead(member.assessmentId!, member.userId, member.name)}
+                              disabled={deletingId === member.userId}
+                              className="h-7 px-2 text-xs border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-medium flex items-center gap-1"
+                              title="Delete this intake lead"
+                            >
+                              {deletingId === member.userId ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-red-600" />
+                              ) : (
+                                <Trash2 className="h-3 w-3 text-red-600" />
+                              )}
+                              <span className="hidden sm:inline">Delete</span>
                             </Button>
-                          </Link>
+                          </>
                         ) : (
                           <>
                             <Link
@@ -240,6 +304,21 @@ export function MemberTable({ initialMembers }: MemberTableProps) {
                                 View Desk
                               </Button>
                             </Link>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeleteMember(member.userId, member.name)}
+                              disabled={deletingId === member.userId}
+                              className="h-7 px-2 text-xs border-red-200 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-medium flex items-center gap-1"
+                              title="Delete this member account"
+                            >
+                              {deletingId === member.userId ? (
+                                <Loader2 className="h-3 w-3 animate-spin text-red-600" />
+                              ) : (
+                                <Trash2 className="h-3 w-3 text-red-600" />
+                              )}
+                              <span className="hidden sm:inline">Delete</span>
+                            </Button>
                           </>
                         )}
                       </div>
