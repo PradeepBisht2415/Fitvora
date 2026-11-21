@@ -21,6 +21,14 @@ export function MealCard({ meal, isNext }: MealCardProps) {
     ? (meal.custom_alternatives as { title: string; portion: string }[])
     : [];
 
+  // Defensive clean title: strip leading bullets/bullets with times, or fallback if title looks like a time
+  let displayTitle = (meal.custom_title || '').replace(/^[·•–—\s*]+/, '').trim();
+  if (!displayTitle || /^\d{1,2}:\d{2}/.test(displayTitle)) {
+    displayTitle = meal.meal_type
+      ? meal.meal_type.charAt(0).toUpperCase() + meal.meal_type.slice(1).replace('_', ' ')
+      : 'Meal';
+  }
+
   return (
     <>
       <Card
@@ -56,11 +64,12 @@ export function MealCard({ meal, isNext }: MealCardProps) {
 
         <CardContent className="p-4 space-y-3 text-xs">
           <div>
-            <CardTitle className="text-base font-bold text-[#1A2E1C]">
-              {meal.custom_title}
+            <CardTitle className="text-base font-bold text-[#1A2E1C] leading-snug">
+              {displayTitle}
             </CardTitle>
-            <div className="mt-1 inline-flex items-center gap-1.5 rounded-lg bg-[#EAF8E7]/50 px-2.5 py-1 text-xs text-emerald-900 font-semibold border border-emerald-100">
-              <span>Portion: {meal.custom_portion}</span>
+            <div className="mt-2 rounded-lg bg-[#EAF8E7]/60 px-3 py-2 text-xs text-emerald-950 border border-emerald-200/60 leading-relaxed font-normal">
+              <span className="font-semibold text-[#075B2B]">Portion: </span>
+              <span>{meal.custom_portion}</span>
             </div>
           </div>
 

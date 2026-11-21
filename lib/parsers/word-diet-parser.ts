@@ -254,14 +254,14 @@ function cleanMealContent(line: string): string {
       ''
     )
     .trim();
-  str = str.replace(/^[\s:–—|@·-]+/, '').trim();
+  str = str.replace(/^[\s:–—|@·•-]+/, '').trim();
   str = str
     .replace(
       /^[\s(\[]*(?:\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm|\d{2})|\d{1,2}[:.]\d{2})(?:\s*[-–—to]+\s*\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm|\d{2})|\s*(?:AM|PM|am|pm))?[\s)\]]*/i,
       ''
     )
     .trim();
-  str = str.replace(/^[\s:–—|@·-]+/, '').trim();
+  str = str.replace(/^[\s:–—|@·•-]+/, '').trim();
   return str;
 }
 
@@ -391,9 +391,9 @@ function parseStructuredMenuReport(lines: string[]): { meals: PlanMealSlot[]; da
           ''
         )
         .trim();
-      title = title.replace(/^\|\s*/, '').trim();
+      title = title.replace(/^[\s·•–—|:-]+/, '').trim();
 
-      if (!title || title.length < 2 || isDayNameOnly(title)) {
+      if (!title || title.length < 2 || isDayNameOnly(title) || /^\d{1,2}:\d{2}/.test(title)) {
         title = mealType.charAt(0).toUpperCase() + mealType.slice(1).replace('_', ' ');
       }
 
@@ -429,7 +429,12 @@ function parseStructuredMenuReport(lines: string[]): { meals: PlanMealSlot[]; da
       }
 
       // Otherwise this line is the portion / ingredients description!
-      if (!isNutritionOrSummaryLine(rawLine) && !isDayNameOnly(rawLine) && rawLine.length > 3) {
+      if (
+        !isNutritionOrSummaryLine(rawLine) &&
+        !isDayNameOnly(rawLine) &&
+        rawLine.length > 3 &&
+        !/^\d+\s*g(?:\s*(?:protein|carbs|fat|fiber))?$/i.test(rawLine.trim())
+      ) {
         currentMeal.customPortion = rawLine;
       }
     }
