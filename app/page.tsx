@@ -1,11 +1,13 @@
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Inbox } from 'lucide-react';
+import { ArrowRight, CheckCircle2, ShieldCheck, Sparkles } from 'lucide-react';
 import { Navbar } from '@/components/marketing/navbar';
 import { Footer } from '@/components/marketing/footer';
+import { PathwaysSection } from '@/components/marketing/pathways-section';
+import { HowItWorksPreview } from '@/components/marketing/how-it-works-preview';
+import { MealSamplePreview } from '@/components/marketing/meal-sample-preview';
+import { PricingPreview } from '@/components/marketing/pricing-preview';
+import { FaqAccordion } from '@/components/marketing/faq-accordion';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { EmptyState } from '@/components/ui/empty-state';
 import { BrandCharacter } from '@/components/ui/brand-character';
 
 export default function HomePage() {
@@ -14,7 +16,7 @@ export default function HomePage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* 1. Hero Section */}
         <section className="relative overflow-hidden pt-8 pb-16 md:pt-16 md:pb-24">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-12">
@@ -84,94 +86,20 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Phase 0 System & Design Token Showcase */}
-        <section className="border-t border-border-soft bg-white/70 py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
-            <div className="text-center space-y-3 max-w-3xl mx-auto">
-              <span className="text-xs font-bold uppercase tracking-wider text-fresh-green">
-                Phase 0 Foundation
-              </span>
-              <h2 className="text-3xl font-extrabold text-forest-green">
-                Fitvora Design System & Architecture Verification
-              </h2>
-              <p className="text-sm text-muted-text">
-                Verifying typography, color tokens, button variants, status indicators, and truthful zero-data empty states.
-              </p>
-            </div>
+        {/* 2. Pathways Section (Weight Loss vs Weight Gain) */}
+        <PathwaysSection />
 
-            {/* Color Palette Tokens */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-              <div className="rounded-xl border border-border-soft p-4 bg-forest-green text-white space-y-1">
-                <div className="text-xs uppercase opacity-80">Primary</div>
-                <div className="font-bold text-sm">Forest Green</div>
-                <div className="text-xs font-mono">#075B2B</div>
-              </div>
-              <div className="rounded-xl border border-border-soft p-4 bg-fresh-green text-white space-y-1">
-                <div className="text-xs uppercase opacity-80">Accent / CTA</div>
-                <div className="font-bold text-sm">Fresh Green</div>
-                <div className="text-xs font-mono">#2FAF37</div>
-              </div>
-              <div className="rounded-xl border border-pale-green-dark p-4 bg-pale-green text-forest-green space-y-1">
-                <div className="text-xs uppercase opacity-80">Tint / Card</div>
-                <div className="font-bold text-sm">Pale Green</div>
-                <div className="text-xs font-mono">#EAF8E7</div>
-              </div>
-              <div className="rounded-xl border border-border-soft p-4 bg-warm-cream text-dark-text space-y-1">
-                <div className="text-xs uppercase opacity-80">Background</div>
-                <div className="font-bold text-sm">Warm Cream</div>
-                <div className="text-xs font-mono">#FFFDF7</div>
-              </div>
-              <div className="rounded-xl border border-border-soft p-4 bg-white text-dark-text space-y-1">
-                <div className="text-xs uppercase opacity-80">Surface</div>
-                <div className="font-bold text-sm">Pure White</div>
-                <div className="text-xs font-mono">#FFFFFF</div>
-              </div>
-            </div>
+        {/* 3. 3-Step Process Teaser */}
+        <HowItWorksPreview />
 
-            {/* Status Badges Showcase */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Lifecycle & Entitlement Status Tokens</CardTitle>
-                <CardDescription>
-                  Standardized status badges implemented across assessment triage, subscriptions, and diet plans.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2.5">
-                <StatusBadge status="pending_review" />
-                <StatusBadge status="approved" />
-                <StatusBadge status="needs_info" />
-                <StatusBadge status="not_suitable" />
-                <StatusBadge status="active" />
-                <StatusBadge status="published" />
-                <StatusBadge status="draft" />
-                <StatusBadge status="expired" />
-                <StatusBadge status="normal" />
-                <StatusBadge status="premium" />
-              </CardContent>
-            </Card>
+        {/* 4. Representative Indian Home Meals Samples */}
+        <MealSamplePreview />
 
-            {/* Truthful Empty State Verification */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Truthful Empty State Component (No Fake Data)</CardTitle>
-                <CardDescription>
-                  Production launches with zero fake members or reviews. All views implement informative empty states.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <EmptyState
-                  icon={Inbox}
-                  title="No Pending Assessments"
-                  description="Your assessment inbox is clean. When a prospective member completes the public intake wizard, their submission will appear here for safety review."
-                  action={{
-                    label: 'Preview Assessment Wizard',
-                    href: '/assessment',
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        {/* 5. Plans & Pricing Comparison */}
+        <PricingPreview />
+
+        {/* 6. FAQ Accordion */}
+        <FaqAccordion />
       </main>
 
       <Footer />

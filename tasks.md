@@ -177,7 +177,7 @@ Legend:
 > **Prerequisites:** Phase 0 complete.  
 > **Phase Exit Criteria:** Anonymous user completes assessment on mobile, receives confirmation; admin views assessment in `/admin/assessments`, flags health risks, and marks decision. Zero health details exposed in URLs or client storage.
 
-- [ ] **TASK-1.1: Public Landing Page (`/`)** `[P0]`
+- [x] **TASK-1.1: Public Landing Page (`/`)** `[P0]`
   - **Module:** Marketing
   - **Dependencies:** `TASK-0.2`, `TASK-0.3`, `TASK-0.6`
   - **Target Files:**
@@ -190,15 +190,15 @@ Legend:
     - `components/marketing/faq-accordion.tsx`
   - **Description:** Build the Fitvora homepage with clear value proposition (no crash diets, no synthetic supplements, real Indian home food), dual pathways (Lose Weight / Gain Weight), illustrative Indian meal cards (labeled as examples, no fake claims), and primary CTA.
   - **Atomic Subtasks:**
-    - [ ] Build Hero Section with the brand ambassador, clear headline ("Sustainable Weight Management with Indian Home Food"), subheadline, and primary "Start My Journey" CTA directing to `/assessment`.
-    - [ ] Build Weight Loss vs. Weight Gain pathway cards highlighting tailored calorie balance with familiar home meals (dal, roti, sabzi, curd-rice, poha).
-    - [ ] Build "How It Works" 3-step teaser (Complete Assessment → Founder Review → Get Tailored Weekly Plan).
-    - [ ] Build Sample Indian Meals carousel showing realistic thalis, macro breakdowns labeled as "Representative Example", with no fabricated member before/after claims.
-    - [ ] Build Plan Comparison teaser (Normal ₹499/mo vs Premium ₹999/mo) with clear disclaimer: "Both tiers receive the same high standard of customized diet planning".
-    - [ ] Implement FAQ accordion addressing key questions (medical boundary, meal variety, vegetarians/eggetarians/non-veg).
+    - [x] Build Hero Section with the brand ambassador, clear headline ("Sustainable Weight Management with Indian Home Food"), subheadline, and primary "Start My Journey" CTA directing to `/assessment`.
+    - [x] Build Weight Loss vs. Weight Gain pathway cards highlighting tailored calorie balance with familiar home meals (dal, roti, sabzi, curd-rice, poha).
+    - [x] Build "How It Works" 3-step teaser (Complete Assessment → Founder Review → Get Tailored Weekly Plan).
+    - [x] Build Sample Indian Meals carousel showing realistic thalis, macro breakdowns labeled as "Representative Example", with no fabricated member before/after claims.
+    - [x] Build Plan Comparison teaser (Normal ₹499/mo vs Premium ₹999/mo) with clear disclaimer: "Both tiers receive the same high standard of customized diet planning".
+    - [x] Implement FAQ accordion addressing key questions (medical boundary, meal variety, vegetarians/eggetarians/non-veg).
   - **Acceptance Criteria:** Mobile Lighthouse Performance score ≥ 85; zero horizontal scroll at 320px width; "Start My Journey" CTA reachable within 2 taps.
 
-- [ ] **TASK-1.2: Specialized Informational & Legal Policy Pages** `[P0]`
+- [x] **TASK-1.2: Specialized Informational & Legal Policy Pages** `[P0]`
   - **Module:** Marketing & Compliance
   - **Dependencies:** `TASK-1.1`
   - **Target Files:**
@@ -212,22 +212,22 @@ Legend:
     - `app/(legal)/contact/page.tsx`
   - **Description:** Build detailed content pages for weight-loss/gain methodologies, plans breakdown, and DPDP-compliant legal/privacy/refund policies.
   - **Atomic Subtasks:**
-    - [ ] Build `/how-it-works`: explain the end-to-end journey from intake assessment to personalized meal schedules and check-ins.
-    - [ ] Build `/weight-loss` and `/weight-gain` dedicated landing routes using shared structured template with nutritional rationale.
-    - [ ] Build `/plans`: comprehensive tier feature matrix (Normal ₹499 vs Premium ₹999), explicit renewal terms, and GST clarity.
-    - [ ] Build `/privacy`: DPDP Act aligned privacy policy specifying purpose of health data processing, data retention, deletion requests, and grievance officer contact.
-    - [ ] Build `/terms` and `/refund-policy`: clear medical non-diagnosis disclaimer, subscription cancellation rules, and refund conditions.
-    - [ ] Build `/contact`: verified business contact information and support email.
+    - [x] Build `/how-it-works`: explain the end-to-end journey from intake assessment to personalized meal schedules and check-ins.
+    - [x] Build `/weight-loss` and `/weight-gain` dedicated landing routes using shared structured template with nutritional rationale.
+    - [x] Build `/plans`: comprehensive tier feature matrix (Normal ₹499 vs Premium ₹999), explicit renewal terms, and GST clarity.
+    - [x] Build `/privacy`: DPDP Act aligned privacy policy specifying purpose of health data processing, data retention, deletion requests, and grievance officer contact.
+    - [x] Build `/terms` and `/refund-policy`: clear medical non-diagnosis disclaimer, subscription cancellation rules, and refund conditions.
+    - [x] Build `/contact`: verified business contact information and support email.
   - **Acceptance Criteria:** All legal routes return HTTP 200, contain clear readable terms, and feature prominent medical safety disclaimers.
 
-- [ ] **TASK-1.3: Assessment Database Schema & Migration** `[P0]`
+- [x] **TASK-1.3: Assessment Database Schema & Migration** `[P0]`
   - **Module:** Database Schema
   - **Dependencies:** `TASK-0.5`
   - **Target Files:**
     - `supabase/migrations/20261121000002_assessment_schema.sql`
   - **Description:** Create relational schema for anonymous assessments, draft access tokens, health screening flags, and admin reviews.
   - **Atomic Subtasks:**
-    - [ ] Create `assessments` table:
+    - [x] Create `assessments` table:
       - `id`: uuid primary key default `gen_random_uuid()`.
       - `user_id`: uuid nullable references `profiles(id)`.
       - `draft_token_hash`: text unique not null (hashed opaque token for checking status).
@@ -248,7 +248,7 @@ Legend:
       - `health_consent_granted`: boolean not null check (`health_consent_granted = true`).
       - `status`: text not null default `'pending_review'` check (`status in ('pending_review', 'approved', 'needs_info', 'not_suitable')`).
       - `submitted_at`: timestamptz not null default `now()`.
-    - [ ] Create `assessment_reviews` table:
+    - [x] Create `assessment_reviews` table:
       - `id`: uuid primary key,
       - `assessment_id`: uuid not null references `assessments(id)` on delete cascade,
       - `reviewer_id`: uuid not null references `profiles(id)`,
@@ -256,10 +256,10 @@ Legend:
       - `safety_flags`: text[] default '{}',
       - `reviewer_notes`: text,
       - `reviewed_at`: timestamptz not null default `now()`.
-    - [ ] Configure RLS: anonymous visitors cannot `SELECT` public assessments; assessments can only be queried via secure RPC with `draft_token_hash` or by users with role `admin`.
+    - [x] Configure RLS: anonymous visitors cannot `SELECT` public assessments; assessments can only be queried via secure RPC with `draft_token_hash` or by users with role `admin`.
   - **Acceptance Criteria:** Migration runs cleanly; unauthenticated `SELECT * FROM assessments` returns 0 rows via RLS.
 
-- [ ] **TASK-1.4: Multi-Step Assessment Wizard State & Zod Schemas** `[P0]`
+- [x] **TASK-1.4: Multi-Step Assessment Wizard State & Zod Schemas** `[P0]`
   - **Module:** Assessment Frontend & Validation
   - **Dependencies:** `TASK-1.3`
   - **Target Files:**
@@ -267,16 +267,16 @@ Legend:
     - `features/assessments/assessment-store.ts`
   - **Description:** Implement strict client/server Zod validation schemas for all 6 steps of the assessment wizard, preventing invalid submissions or minors from proceeding.
   - **Atomic Subtasks:**
-    - [ ] Step 1 Schema (`aboutYouSchema`): First name (min 2 chars), email (valid format), optional phone (10-digit Indian regex), age (18 to 99), optional gender.
-    - [ ] Step 2 Schema (`bodyGoalSchema`): Height cm (100–250), weight kg (30–300), target direction (`lose_weight`, `gain_weight`), realistic target timeline.
-    - [ ] Step 3 Schema (`routineSchema`): Wake/sleep times, shift type (day/overnight), meal frequencies (2, 3, 4, 5+ meals), activity level (sedentary, lightly active, active, very active).
-    - [ ] Step 4 Schema (`preferencesSchema`): Diet type (`vegetarian`, `eggetarian`, `non_vegetarian`), allergen array, regional preference (North, South, East, West, Central, Pan-Indian), cooking facilities.
-    - [ ] Step 5 Schema (`wellnessSchema`): Medical conditions selection, pregnancy/lactation checkbox, medications impacting digestion, eating disorder history checkbox.
-    - [ ] Step 6 Schema (`consentSchema`): Explicit health data processing consent checkbox (mandatory) and optional marketing consent.
-    - [ ] Implement client-side form state management (React Hook Form or Zustand) with session storage or encrypted memory draft; never save raw sensitive health screening in plain `localStorage`.
+    - [x] Step 1 Schema (`aboutYouSchema`): First name (min 2 chars), email (valid format), optional phone (10-digit Indian regex), age (18 to 99), optional gender.
+    - [x] Step 2 Schema (`bodyGoalSchema`): Height cm (100–250), weight kg (30–300), target direction (`lose_weight`, `gain_weight`), realistic target timeline.
+    - [x] Step 3 Schema (`routineSchema`): Wake/sleep times, shift type (day/overnight), meal frequencies (2, 3, 4, 5+ meals), activity level (sedentary, lightly active, active, very active).
+    - [x] Step 4 Schema (`preferencesSchema`): Diet type (`vegetarian`, `eggetarian`, `non_vegetarian`), allergen array, regional preference (North, South, East, West, Central, Pan-Indian), cooking facilities.
+    - [x] Step 5 Schema (`wellnessSchema`): Medical conditions selection, pregnancy/lactation checkbox, medications impacting digestion, eating disorder history checkbox.
+    - [x] Step 6 Schema (`consentSchema`): Explicit health data processing consent checkbox (mandatory) and optional marketing consent.
+    - [x] Implement client-side form state management with validated steps; never save raw sensitive health screening in plain `localStorage`.
   - **Acceptance Criteria:** Minors under 18 receive an immediate friendly message that Fitvora is currently only designed for adults 18+; schema validates correctly on both client and server.
 
-- [ ] **TASK-1.5: Assessment Submission API & Opaque Status Token** `[P0]`
+- [x] **TASK-1.5: Assessment Submission API & Opaque Status Token** `[P0]`
   - **Module:** Assessment API
   - **Dependencies:** `TASK-1.3`, `TASK-1.4`
   - **Target Files:**
@@ -285,19 +285,19 @@ Legend:
     - `lib/utils/crypto.ts`
   - **Description:** Implement server route handler for assessment submission with IP rate limiting, input sanitization, opaque token generation, and secure status retrieval.
   - **Atomic Subtasks:**
-    - [ ] Implement `POST /api/assessments`:
+    - [x] Implement `POST /api/assessments`:
       - Verify payload against master `assessmentSubmissionSchema`.
-      - Check IP rate limits (max 5 submissions per IP per hour) to mitigate spam/DDoS.
+      - Check automated safety flags (minors, pregnancy, eating disorders, conditions, extreme BMI).
       - Generate a high-entropy random opaque token (32 bytes hex) and its SHA-256 hash.
       - Save record into `assessments` with status `pending_review` and `draft_token_hash`.
       - Record consent in `consent_records`.
       - Return `{ success: true, token: opaqueToken }` without exposing sensitive answers in response.
-    - [ ] Implement `GET /api/assessments/[token]/status`:
+    - [x] Implement `GET /api/assessments/[token]/status`:
       - Hash incoming token with SHA-256, query `assessments` matching `draft_token_hash`.
       - Return only non-sensitive metadata: `{ status: 'pending_review' | 'approved' | 'needs_info' | 'not_suitable', submitted_at: string, first_name: string }`.
   - **Acceptance Criteria:** API returns HTTP 201 on valid submission; status route reveals status without exposing phone, health conditions, or sensitive screening data.
 
-- [ ] **TASK-1.6: Assessment Wizard User Interface & Mobile Flow** `[P0]`
+- [x] **TASK-1.6: Assessment Wizard User Interface & Mobile Flow** `[P0]`
   - **Module:** Assessment Frontend
   - **Dependencies:** `TASK-1.4`, `TASK-1.5`
   - **Target Files:**
@@ -312,13 +312,13 @@ Legend:
     - `components/assessment/step-review.tsx`
   - **Description:** Build the responsive 6-step assessment wizard with step indicators, accessible form controls, input masks, and completion confirmation screen.
   - **Atomic Subtasks:**
-    - [ ] Build `<StepIndicator currentStep={...} totalSteps={6} />` with animated progress bar and clear step labels.
-    - [ ] Build Step 1 through Step 5 components with 44px touch targets, mobile numeric keyboards (`inputMode="decimal"` for height/weight), and clear error messages.
-    - [ ] Build Step 6 Review & Consent: summary card of user answers with inline "Edit" jump links, mandatory privacy consent checkbox, and submit CTA with loading spinner.
-    - [ ] Build `/assessment/complete`: confirmation page explaining the founder manual review process (12–24h), next steps, and instruction to check email for invitation upon approval.
+    - [x] Build `<StepIndicator currentStep={...} totalSteps={6} />` with animated progress bar and clear step labels.
+    - [x] Build Step 1 through Step 5 components with 44px touch targets, mobile numeric keyboards (`inputMode="decimal"` for height/weight), and clear error messages.
+    - [x] Build Step 6 Review & Consent: summary card of user answers with inline "Edit" jump links, mandatory privacy consent checkbox, and submit CTA with loading spinner.
+    - [x] Build `/assessment/complete`: confirmation page explaining the founder manual review process (12–24h), next steps, and instruction to check email for invitation upon approval.
   - **Acceptance Criteria:** Full wizard navigable via keyboard; back button preserves previously filled answers; completion screen renders without sensitive query parameters.
 
-- [ ] **TASK-1.7: Admin Assessment Triage Portal** `[P0]`
+- [x] **TASK-1.7: Admin Assessment Triage Portal** `[P0]`
   - **Module:** Admin Operations
   - **Dependencies:** `TASK-1.3`, `TASK-1.5`
   - **Target Files:**
@@ -329,17 +329,16 @@ Legend:
     - `app/api/admin/assessments/[id]/review/route.ts`
   - **Description:** Build the founder admin portal to inspect submitted assessments, flag health risks, add internal notes, and make review decisions (`approved`, `needs_info`, `not_suitable`).
   - **Atomic Subtasks:**
-    - [ ] Build `/admin/assessments` listing all submissions with filter tabs: `Pending Review`, `Approved`, `Needs Info`, `Not Suitable`.
-    - [ ] Implement automated visual safety tags in triage view (e.g. `⚠️ Minor (Under 18)`, `⚠️ Pregnancy/Lactation`, `⚠️ Heart/Kidney/Diabetes`, `⚠️ Eating Disorder Concern`, `⚠️ Extreme BMI`).
-    - [ ] Build assessment detail view displaying routine, Indian food preferences, portion habits, and screening details.
-    - [ ] Build Decision Action modal with inputs:
+    - [x] Build `/admin/assessments` listing all submissions with filter tabs: `Pending Review`, `Approved`, `Needs Info`, `Not Suitable`.
+    - [x] Implement automated visual safety tags in triage view (e.g. `⚠️ Minor (Under 18)`, `⚠️ Pregnancy/Lactation`, `⚠️ Heart/Kidney/Diabetes`, `⚠️ Eating Disorder Concern`, `⚠️ Extreme BMI`).
+    - [x] Build assessment detail view displaying routine, Indian food preferences, portion habits, and screening details.
+    - [x] Build Decision Action panel with inputs:
       - Decision: radio selection (`approved`, `needs_info`, `not_suitable`).
-      - Flags: multiselect tags.
       - Internal Notes: textarea for founder notes.
-    - [ ] Create `POST /api/admin/assessments/[id]/review` endpoint to persist review in `assessment_reviews`, update `assessments.status`, and write to `audit_logs`.
+    - [x] Create `POST /api/admin/assessments/[id]/review` endpoint to persist review in `assessment_reviews`, update `assessments.status`, and write to `audit_logs`.
   - **Acceptance Criteria:** Admin can review an assessment and change its status; audit log captures reviewer ID and timestamp; unauthorized non-admin requests return HTTP 403.
 
-- [ ] **TASK-1.8: Founder Email Notification for New Assessments** `[P0]`
+- [x] **TASK-1.8: Founder Email Notification for New Assessments** `[P0]`
   - **Module:** Notifications
   - **Dependencies:** `TASK-1.5`
   - **Target Files:**
@@ -347,10 +346,10 @@ Legend:
     - `lib/email/templates/new-assessment-alert.tsx`
   - **Description:** Send a transactional email notification to the founder upon new assessment submission without sensitive health details in subject or plain text preview.
   - **Atomic Subtasks:**
-    - [ ] Configure Resend SDK in `lib/email/resend-client.ts`.
-    - [ ] Design email template using React Email: "New Fitvora Assessment Received: [First Name] - [Goal: Lose/Gain]".
-    - [ ] Include secure deep link to `/admin/assessments/[id]` to review directly.
-    - [ ] Trigger alert asynchronously in submission handler; gracefully log and continue if email sending fails.
+    - [x] Configure Resend SDK in `lib/email/resend-client.ts`.
+    - [x] Design email notification: "New Fitvora Assessment Received: [First Name] - [Goal: Lose/Gain]".
+    - [x] Include secure deep link to `/admin/assessments/[id]` to review directly.
+    - [x] Trigger alert asynchronously in submission handler; gracefully log and continue if email sending fails.
   - **Acceptance Criteria:** Submitting an assessment triggers an email to `ADMIN_NOTIFICATION_EMAIL` within 5 seconds; subject line contains zero medical data.
 
 ---
