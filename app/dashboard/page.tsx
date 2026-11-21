@@ -97,9 +97,9 @@ async function DashboardContent({
           isImpersonating
             ? { label: 'Go to Member Desk', href: `/admin/members/${effectiveUserId}` }
             : {
-                label: 'Choose a Plan (From ₹499/mo)',
-                href: '/checkout',
-              }
+              label: 'Choose a Plan (From ₹499/mo)',
+              href: '/checkout',
+            }
         }
       />
     );
@@ -188,8 +188,8 @@ async function DashboardContent({
     assessment?.target_direction === 'gain_weight'
       ? 'Healthy Weight Gain & Muscle Nourishment'
       : assessment?.target_direction === 'maintain_health'
-      ? 'Weight Maintenance & Clean Eating'
-      : 'Sustainable Weight Loss with Home Meals';
+        ? 'Weight Maintenance & Clean Eating'
+        : 'Sustainable Weight Loss with Home Meals';
 
   const firstName = profile?.first_name || 'Member';
 
