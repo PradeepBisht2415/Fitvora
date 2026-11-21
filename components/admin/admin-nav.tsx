@@ -2,7 +2,9 @@
 
 import React, { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { createClient } from '@/lib/db/supabase-browser';
+import { Button } from '@/components/ui/button';
 import {
   ClipboardList,
   Users,
@@ -13,10 +15,19 @@ import {
   ClipboardCheck,
   LayoutDashboard,
   ExternalLink,
+  LogOut,
 } from 'lucide-react';
 
 function AdminNavContent() {
   const pathname = usePathname();
+  const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  };
 
   const links = [
     { label: 'Overview', href: '/admin', icon: LayoutDashboard },
@@ -68,8 +79,19 @@ function AdminNavContent() {
             title="View member portal with active diet schedule"
           >
             <ExternalLink className="h-3.5 w-3.5 text-[#2FAF37]" />
-            <span>Member Dashboard</span>
+            <span className="hidden md:inline">Member Dashboard</span>
           </Link>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSignOut}
+            className="border-gray-200 text-xs text-gray-700 hover:bg-gray-100 h-8 ml-1 shadow-2xs"
+            title="Sign out of Founder Admin Portal"
+          >
+            <LogOut className="mr-1.5 h-3.5 w-3.5" />
+            <span>Sign Out</span>
+          </Button>
         </nav>
       </div>
     </header>

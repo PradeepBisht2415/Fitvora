@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatusBadge } from '@/components/ui/status-badge';
+import { AdminNav } from '@/components/admin/admin-nav';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -105,6 +106,7 @@ function AssessmentDetailContent() {
 
   return (
     <div className="min-h-screen bg-warm-cream">
+      <AdminNav />
       {/* Admin Top Navigation */}
       <header className="border-b border-border-soft bg-white px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-5xl items-center justify-between">
