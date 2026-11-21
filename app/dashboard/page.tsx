@@ -194,15 +194,6 @@ async function DashboardContent({
       (m) => m.day_of_week === targetDayOfWeek
     );
 
-    // Determine current/next meal by time
-    const currentHourMinute = new Date().toLocaleTimeString('en-GB', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
-
-    const nextMeal = todayMeals.find((m) => m.scheduled_time >= currentHourMinute) || todayMeals[0];
-
     // Fetch assessment goal
     const { data: assessment } = await adminSupabase
       .from('assessments')
@@ -289,11 +280,7 @@ async function DashboardContent({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {todayMeals.map((meal) => (
-              <MealCard
-                key={meal.id}
-                meal={meal}
-                isNext={nextMeal?.id === meal.id}
-              />
+              <MealCard key={meal.id} meal={meal} />
             ))}
           </div>
         )}

@@ -54,13 +54,7 @@ export function MealCard({ meal, isNext }: MealCardProps) {
 
   return (
     <>
-      <Card
-        className={`bg-white border transition-all shadow-xs ${
-          isNext
-            ? 'border-[#075B2B] ring-2 ring-[#075B2B]/20 shadow-sm'
-            : 'border-gray-200 hover:border-emerald-200'
-        }`}
-      >
+      <Card className="bg-white border border-gray-200 hover:border-emerald-200 transition-all shadow-xs">
         <CardHeader className="p-4 pb-3 border-b border-gray-100 flex flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <Badge
@@ -77,12 +71,6 @@ export function MealCard({ meal, isNext }: MealCardProps) {
               <span>{formatMealTime(meal.scheduled_time)}</span>
             </div>
           </div>
-
-          {isNext && (
-            <Badge className="bg-[#075B2B] text-white text-[10px] font-bold uppercase tracking-wider">
-              Upcoming Next
-            </Badge>
-          )}
         </CardHeader>
 
         <CardContent className="p-4 space-y-3 text-xs">
