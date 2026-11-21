@@ -18,6 +18,7 @@ interface MessageThreadProps {
   thread: SupportThread;
   messages: ExtendedMessage[];
   currentUserId: string;
+  asMember?: string;
   onMessageSent: () => void;
 }
 
@@ -25,6 +26,7 @@ export function MessageThread({
   thread,
   messages,
   currentUserId,
+  asMember,
   onMessageSent,
 }: MessageThreadProps) {
   const [replyText, setReplyText] = useState('');
@@ -38,7 +40,7 @@ export function MessageThread({
     setLoading(true);
     setError(null);
     try {
-      const res = await postSupportMessage(thread.id, replyText);
+      const res = await postSupportMessage(thread.id, replyText, asMember);
       if (!res.success) {
         setError(res.error || 'Failed to send reply');
       } else {

@@ -7,7 +7,8 @@ import { revalidatePath } from 'next/cache';
 
 export async function createSupportThread(
   subject: string,
-  initialMessage: string
+  initialMessage: string,
+  asMemberId?: string
 ): Promise<{
   success: boolean;
   threadId?: string;
@@ -29,14 +30,27 @@ export async function createSupportThread(
     }
 
     const adminSupabase = createAdminClient();
+    let targetUserId = user.id;
+
+    if (asMemberId) {
+      const { data: profile } = await adminSupabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profile?.role === 'admin') {
+        targetUserId = asMemberId;
+      }
+    }
 
     // Check member's subscription tier to set priority
     const { data: sub } = await adminSupabase
       .from('subscriptions')
       .select('plan_id, status')
-      .eq('user_id', user.id)
+      .eq('user_id', targetUserId)
       .eq('status', 'active')
-      .single();
+      .maybeSingle();
 
     const priority = sub?.plan_id === 'premium' ? 'premium' : 'normal';
 
@@ -44,7 +58,7 @@ export async function createSupportThread(
     const { data: thread, error: threadErr } = await adminSupabase
       .from('support_threads')
       .insert({
-        user_id: user.id,
+        user_id: targetUserId,
         subject: subject.trim(),
         status: 'open',
         priority,
@@ -63,7 +77,7 @@ export async function createSupportThread(
       .from('support_messages')
       .insert({
         thread_id: thread.id,
-        sender_id: user.id,
+        sender_id: targetUserId,
         body: initialMessage.trim(),
       });
 
@@ -83,7 +97,8 @@ export async function createSupportThread(
 
 export async function postSupportMessage(
   threadId: string,
-  body: string
+  body: string,
+  asMemberId?: string
 ): Promise<{
   success: boolean;
   message?: SupportMessage;
@@ -130,12 +145,17 @@ export async function postSupportMessage(
       return { success: false, error: 'Forbidden. You do not have access to this thread.' };
     }
 
+    let senderId = user.id;
+    if (isAdmin && asMemberId) {
+      senderId = asMemberId;
+    }
+
     // Insert message
     const { data: newMsg, error: msgErr } = await adminSupabase
       .from('support_messages')
       .insert({
         thread_id: threadId,
-        sender_id: user.id,
+        sender_id: senderId,
         body: body.trim(),
       })
       .select()

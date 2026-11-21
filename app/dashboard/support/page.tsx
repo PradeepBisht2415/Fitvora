@@ -98,6 +98,7 @@ function SupportContent() {
         <div>
           <NewTicketModal
             isPremium={isPremium}
+            asMember={asMember}
             onSuccess={(newId) => {
               setActiveThreadId(newId);
               loadThreads();
@@ -138,6 +139,7 @@ function SupportContent() {
               thread={activeThread}
               messages={messages}
               currentUserId={currentUserId}
+              asMember={asMember}
               onMessageSent={() => {
                 if (activeThreadId) loadThreadMessages(activeThreadId);
                 loadThreads();

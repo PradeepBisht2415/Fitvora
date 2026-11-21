@@ -8,9 +8,10 @@ import { Plus, X, Loader2, MessageSquare, AlertCircle } from 'lucide-react';
 interface NewTicketModalProps {
   onSuccess?: (threadId: string) => void;
   isPremium?: boolean;
+  asMember?: string;
 }
 
-export function NewTicketModal({ onSuccess, isPremium }: NewTicketModalProps) {
+export function NewTicketModal({ onSuccess, isPremium, asMember }: NewTicketModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
@@ -28,7 +29,7 @@ export function NewTicketModal({ onSuccess, isPremium }: NewTicketModalProps) {
     setError(null);
 
     try {
-      const res = await createSupportThread(subject, message);
+      const res = await createSupportThread(subject, message, asMember);
       if (!res.success || !res.threadId) {
         setError(res.error || 'Failed to submit inquiry.');
       } else {
