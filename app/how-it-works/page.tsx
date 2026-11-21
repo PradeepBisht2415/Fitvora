@@ -12,7 +12,7 @@ export default function HowItWorksPage() {
       step: 'Step 1',
       title: 'Free Intake Assessment',
       icon: ClipboardCheck,
-      desc: 'Complete our 6-step intake wizard covering your wake/sleep timings, shift schedule (including night shifts), food allergies, regional cooking preferences, and health history. No account registration is required at this stage.',
+      desc: 'Complete our 6-step intake wizard covering your wake/sleep timings, shift schedule (including night shifts), food allergies, regional cooking preferences, and health history.',
       highlight: 'Takes 3 minutes • 100% confidential under DPDP Act',
     },
     {

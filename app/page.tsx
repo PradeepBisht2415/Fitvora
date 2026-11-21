@@ -58,7 +58,7 @@ export default function HomePage() {
                 <div className="pt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3 text-xs font-semibold text-dark-text/80">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-fresh-green shrink-0" />
-                    <span>Free Assessment (No Account)</span>
+                    <span>Free Health Assessment</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-fresh-green shrink-0" />

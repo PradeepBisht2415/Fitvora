@@ -256,8 +256,12 @@ export function generateAssessmentDocHtml(item: SanitizedAssessment): string {
   <div class="section-title">2. DAILY ROUTINE & CIRCADIAN SCHEDULE</div>
   <table class="data-table">
     <tr>
-      <th>Sleep & Wake Window</th>
-      <td>Sleep: ${item.routine.sleep_time} &bull; Wake: ${item.routine.wake_time}</td>
+      <th>Wake Up Time</th>
+      <td><strong>${item.routine.wake_time || 'N/A'}</strong></td>
+    </tr>
+    <tr>
+      <th>Sleep Time</th>
+      <td><strong>${item.routine.sleep_time || 'N/A'}</strong></td>
     </tr>
     <tr>
       <th>Work Shift</th>
@@ -433,7 +437,8 @@ Timeline:        ${item.timeline_weeks ? `${item.timeline_weeks} weeks` : 'Flexi
 ------------------------------------------------------------
 DAILY ROUTINE & SCHEDULE
 ------------------------------------------------------------
-Sleep Window:    ${item.routine.sleep_time} to ${item.routine.wake_time}
+Wake Up Time:    ${item.routine.wake_time || 'N/A'}
+Sleep Time:      ${item.routine.sleep_time || 'N/A'}
 Work Shift:      ${item.routine.work_shift}
 Meal Frequency:  ${item.routine.meal_frequency}
 Activity Level:  ${item.routine.activity_level}

@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Lock, MessageCircle, AlertTriangle, HeartPulse } from 'lucide-react';
+import { formatTime12 } from '@/lib/utils';
 import type { Assessment } from '@/types/database.types';
 
 interface PreferencesViewProps {
@@ -129,17 +130,21 @@ export function PreferencesView({ assessment }: PreferencesViewProps) {
         {/* Routine Schedule */}
         <div className="space-y-1.5 border-t border-gray-100 pt-3">
           <span className="font-bold text-gray-700 block">Daily Living Routine</span>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-gray-600">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-gray-600">
             <div>
-              <span className="text-gray-400">Wake / Sleep:</span>{' '}
-              <strong>{routine.wake_time || '07:00'} - {routine.sleep_time || '23:00'}</strong>
+              <span className="text-gray-400 block">Wake Up Time:</span>{' '}
+              <strong className="text-[#075B2B]">{formatTime12(routine.wake_time || '07:00')}</strong>
             </div>
             <div>
-              <span className="text-gray-400">Work Shift:</span>{' '}
+              <span className="text-gray-400 block">Sleep Time:</span>{' '}
+              <strong className="text-[#075B2B]">{formatTime12(routine.sleep_time || '23:00')}</strong>
+            </div>
+            <div>
+              <span className="text-gray-400 block">Work Shift:</span>{' '}
               <strong className="capitalize">{routine.work_shift?.replace('_', ' ') || 'Standard Day'}</strong>
             </div>
             <div>
-              <span className="text-gray-400">Activity Level:</span>{' '}
+              <span className="text-gray-400 block">Activity Level:</span>{' '}
               <strong className="capitalize">{routine.activity_level?.replace('_', ' ') || 'Lightly Active'}</strong>
             </div>
           </div>

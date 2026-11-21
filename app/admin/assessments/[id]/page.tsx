@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, CheckCircle2, AlertTriangle, XCircle, Loader2, Eye, Download, ShieldCheck } from 'lucide-react';
 import { AssessmentDownloadButton } from '@/components/admin/assessment-download-button';
+import { formatTime12 } from '@/lib/utils';
 import type { Assessment } from '@/types/database.types';
 
 function createSampleLead(id: string): Assessment {
@@ -268,10 +269,14 @@ function AssessmentDetailContent() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-base text-forest-green">2. Daily Routine & Schedule</CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-2 gap-4 text-xs">
+              <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-xs">
                 <div>
-                  <span className="text-muted-text block">Sleep Window:</span>
-                  <span className="font-bold">{routine['wake_time'] as string} to {routine['sleep_time'] as string}</span>
+                  <span className="text-muted-text block">Wake Up Time:</span>
+                  <span className="font-bold text-[#1A2E1C]">{formatTime12(routine['wake_time'] as string)}</span>
+                </div>
+                <div>
+                  <span className="text-muted-text block">Sleep Time:</span>
+                  <span className="font-bold text-[#1A2E1C]">{formatTime12(routine['sleep_time'] as string)}</span>
                 </div>
                 <div>
                   <span className="text-muted-text block">Work Shift:</span>

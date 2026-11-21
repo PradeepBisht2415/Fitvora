@@ -2,12 +2,28 @@ import * as React from 'react';
 import { type RoutineData } from '@/lib/validation/assessment-schema';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Sun, Moon, Clock, Sparkles } from 'lucide-react';
+import { formatTime12 } from '@/lib/utils';
 
 interface StepRoutineProps {
   data: RoutineData;
   onChange: (data: Partial<RoutineData>) => void;
   errors?: Record<string, string>;
 }
+
+const WAKE_PRESETS = [
+  { label: '6:00 AM', value: '06:00' },
+  { label: '7:00 AM', value: '07:00' },
+  { label: '8:00 AM', value: '08:00' },
+  { label: '4:00 PM (Night Shift)', value: '16:00' },
+];
+
+const SLEEP_PRESETS = [
+  { label: '10:00 PM', value: '22:00' },
+  { label: '11:00 PM', value: '23:00' },
+  { label: '12:00 AM', value: '00:00' },
+  { label: '8:00 AM (Night Shift)', value: '08:00' },
+];
 
 export function StepRoutine({ data, onChange, errors = {} }: StepRoutineProps) {
   return (
@@ -19,38 +35,106 @@ export function StepRoutine({ data, onChange, errors = {} }: StepRoutineProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Circadian Guidance Notice */}
+        <div className="rounded-xl bg-[#EAF8E7]/70 border border-emerald-200/60 p-3.5 flex items-start gap-2.5 text-xs text-[#075B2B]">
+          <Sparkles className="h-4 w-4 shrink-0 text-[#2FAF37] mt-0.5" />
+          <p className="leading-relaxed">
+            <strong>Circadian Meal Timing:</strong> Your customized breakfast, lunch, snacks, and dinner hours will be calculated directly around your exact wake up and sleep times to prevent energy slumps and late-night snacking.
+          </p>
+        </div>
+
         {/* Wake and Sleep Times */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-dark-text" htmlFor="wake_time">
-              Usual Wake Time <span className="text-destructive">*</span>
-            </label>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          {/* Wake Up Time */}
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-dark-text flex items-center gap-1.5" htmlFor="wake_time">
+                <Sun className="h-4 w-4 text-amber-500" />
+                <span>Wake Up Time</span> <span className="text-destructive">*</span>
+              </label>
+              {data.wake_time && (
+                <span className="text-xs font-extrabold text-[#075B2B] bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
+                  {formatTime12(data.wake_time)}
+                </span>
+              )}
+            </div>
             <Input
               id="wake_time"
               type="time"
               value={data.wake_time}
               onChange={(e) => onChange({ wake_time: e.target.value })}
-              className={errors['wake_time'] ? 'border-destructive' : ''}
+              className={`bg-white ${errors['wake_time'] ? 'border-destructive' : ''}`}
             />
             {errors['wake_time'] && (
               <p className="text-xs text-destructive">{errors['wake_time']}</p>
             )}
+            <div className="space-y-1 pt-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 block">
+                Quick Presets:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {WAKE_PRESETS.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => onChange({ wake_time: p.value })}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      data.wake_time === p.value
+                        ? 'bg-[#075B2B] text-white shadow-2xs'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-emerald-50'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-semibold text-dark-text" htmlFor="sleep_time">
-              Usual Sleep Time <span className="text-destructive">*</span>
-            </label>
+          {/* Sleep Time */}
+          <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-4 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-bold text-dark-text flex items-center gap-1.5" htmlFor="sleep_time">
+                <Moon className="h-4 w-4 text-indigo-500" />
+                <span>Sleep Time (Bedtime)</span> <span className="text-destructive">*</span>
+              </label>
+              {data.sleep_time && (
+                <span className="text-xs font-extrabold text-[#075B2B] bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
+                  {formatTime12(data.sleep_time)}
+                </span>
+              )}
+            </div>
             <Input
               id="sleep_time"
               type="time"
               value={data.sleep_time}
               onChange={(e) => onChange({ sleep_time: e.target.value })}
-              className={errors['sleep_time'] ? 'border-destructive' : ''}
+              className={`bg-white ${errors['sleep_time'] ? 'border-destructive' : ''}`}
             />
             {errors['sleep_time'] && (
               <p className="text-xs text-destructive">{errors['sleep_time']}</p>
             )}
+            <div className="space-y-1 pt-1">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 block">
+                Quick Presets:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {SLEEP_PRESETS.map((p) => (
+                  <button
+                    key={p.value}
+                    type="button"
+                    onClick={() => onChange({ sleep_time: p.value })}
+                    className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-colors ${
+                      data.sleep_time === p.value
+                        ? 'bg-[#075B2B] text-white shadow-2xs'
+                        : 'bg-white border border-gray-200 text-gray-700 hover:bg-emerald-50'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 

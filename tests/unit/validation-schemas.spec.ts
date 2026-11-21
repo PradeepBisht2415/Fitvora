@@ -1,8 +1,10 @@
 import { test, expect } from '@playwright/test';
 import {
   aboutYouSchema,
+  routineSchema,
   wellnessSchema,
 } from '../../lib/validation/assessment-schema';
+import { formatTime12 } from '../../lib/utils';
 import { weightEntrySchema } from '../../lib/validation/weight-schema';
 import { renderAssessmentApprovedEmail } from '../../lib/email/templates/assessment-approved';
 import { renderPlanPublishedEmail } from '../../lib/email/templates/plan-published';
@@ -394,5 +396,37 @@ Portion key: 1 medium roti = ~30 g dry atta, without ghee; 1 katori = ~150 ml co
 
     // 3. Empty test
     expect(deriveGroceryListFromMeals([])).toEqual([]);
+  });
+
+  test('Assessment Routine: Validates wake up and sleep time inputs & formats accurately', () => {
+    // 1. Missing wake_time or sleep_time fails routineSchema
+    const invalidRoutine = {
+      wake_time: '',
+      sleep_time: '',
+      work_shift: 'standard_day',
+      meal_frequency: '3_meals',
+      activity_level: 'sedentary',
+    };
+    const res = routineSchema.safeParse(invalidRoutine);
+    expect(res.success).toBe(false);
+
+    // 2. Valid routine passes
+    const validRoutine = {
+      wake_time: '16:00', // 4 PM night shift
+      sleep_time: '08:00', // 8 AM sleep
+      work_shift: 'overnight_shift',
+      meal_frequency: '3_meals',
+      activity_level: 'lightly_active',
+    };
+    const validRes = routineSchema.safeParse(validRoutine);
+    expect(validRes.success).toBe(true);
+
+    // 3. formatTime12 conversions
+    expect(formatTime12('07:00')).toBe('7:00 AM');
+    expect(formatTime12('23:00')).toBe('11:00 PM');
+    expect(formatTime12('16:00')).toBe('4:00 PM');
+    expect(formatTime12('08:00')).toBe('8:00 AM');
+    expect(formatTime12('00:00')).toBe('12:00 AM');
+    expect(formatTime12('12:30')).toBe('12:30 PM');
   });
 });

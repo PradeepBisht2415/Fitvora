@@ -64,14 +64,6 @@ export function Footer() {
                   Plans: ₹499 & ₹999 / month
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/assessment"
-                  className="text-pale-green hover:text-white transition-colors font-semibold"
-                >
-                  Start Assessment (No Signup)
-                </Link>
-              </li>
             </ul>
           </div>
 

@@ -8,6 +8,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Edit3, Lock } from 'lucide-react';
+import { formatTime12 } from '@/lib/utils';
 
 interface StepReviewProps {
   formData: AssessmentSubmissionData;
@@ -127,10 +128,14 @@ export function StepReview({
               Edit
             </Button>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs text-dark-text sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 text-xs text-dark-text sm:grid-cols-4">
             <div>
-              <span className="text-muted-text block">Sleep Window:</span>
-              <span className="font-semibold">{routine.wake_time} to {routine.sleep_time}</span>
+              <span className="text-muted-text block">Wake Up Time:</span>
+              <span className="font-bold text-forest-green">{formatTime12(routine.wake_time)}</span>
+            </div>
+            <div>
+              <span className="text-muted-text block">Sleep Time:</span>
+              <span className="font-bold text-forest-green">{formatTime12(routine.sleep_time)}</span>
             </div>
             <div>
               <span className="text-muted-text block">Work Shift:</span>
