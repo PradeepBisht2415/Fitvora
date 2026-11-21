@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/db/supabase-admin';
 
-export const dynamic = 'force-dynamic';
-
 export async function GET(req: Request) {
   try {
     // 1. Verify cron secret
